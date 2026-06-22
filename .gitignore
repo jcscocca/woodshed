@@ -1,0 +1,11 @@
+# dependencies / build
+node_modules/
+dist/
+
+# generated audio test fixtures (regenerate with: npm run fixtures)
+test/audio/fixtures/*.wav
+test/audio/fixtures/*.mid
+
+# misc
+*.log
+.DS_Store
