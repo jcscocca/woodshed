@@ -89,6 +89,16 @@ function trailingCount(arr, rating) {
 }
 function hasRecent(arr, rating, k) { return arr.slice(-k).some((s) => s.rating === rating); }
 
+// Coaching gate: average of the last few *coached* accuracy scores. With no
+// coached data we return null and callers treat that as "ready" — so practice
+// without the coach behaves exactly as before (never withheld for missing data).
+export function accuracyReady(mine, threshold = 80, k = 2) {
+  const c = mine.filter((s) => s.coached && s.accuracy != null);
+  if (!c.length) return true;
+  const recent = c.slice(-k);
+  return recent.reduce((t, s) => t + s.accuracy, 0) / recent.length >= threshold;
+}
+
 export function progressionProposals(items, sessions, acked = {}) {
   const live = withDerivedStats(items, sessions);
   const status = trackStatus(live);
@@ -107,7 +117,7 @@ export function progressionProposals(items, sessions, acked = {}) {
     // Track stages don't change difficulty — they advance to the next stage.
     if (it.trackId) {
       if (!isCurrentEdge.has(it.id)) continue;
-      if ((easy >= 2) || (it.times >= 5 && !hasRecent(mine, "hard", 3))) {
+      if (((easy >= 2) || (it.times >= 5 && !hasRecent(mine, "hard", 3))) && accuracyReady(mine)) {
         out.push({ itemId: it.id, inst: it.inst, title: it.title, kind: "advance", trackName: it.trackName,
           reason: easy >= 2
             ? `The last ${easy} felt easy — ready for the next stage of ${it.trackName}.`
@@ -116,16 +126,16 @@ export function progressionProposals(items, sessions, acked = {}) {
       continue;
     }
 
-    if (it.diff >= 5 && it.times >= 4 && easy >= 2) {
+    if (it.diff >= 5 && it.times >= 4 && easy >= 2 && accuracyReady(mine)) {
       out.push({ itemId: it.id, inst: it.inst, title: it.title, kind: "graduate",
         reason: `Played ${it.times}× and still too easy at the top level — rotate it out to make room.` });
-    } else if (easy >= 2 && it.diff < 5) {
+    } else if (easy >= 2 && it.diff < 5 && accuracyReady(mine)) {
       out.push({ itemId: it.id, inst: it.inst, title: it.title, kind: "level-up", from: it.diff, to: it.diff + 1,
         reason: `The last ${easy} times felt too easy.` });
     } else if (hard >= 2 && it.diff > 1) {
       out.push({ itemId: it.id, inst: it.inst, title: it.title, kind: "ease", from: it.diff, to: it.diff - 1,
         reason: `The last ${hard} times felt tough — ease off and rebuild it.` });
-    } else if (it.times >= 6 && it.diff < 5 && !hasRecent(mine, "hard", 3)) {
+    } else if (it.times >= 6 && it.diff < 5 && !hasRecent(mine, "hard", 3) && accuracyReady(mine)) {
       out.push({ itemId: it.id, inst: it.inst, title: it.title, kind: "level-up", from: it.diff, to: it.diff + 1,
         reason: `You've put in ${it.times} sessions on this — ready to push the challenge up?` });
     }

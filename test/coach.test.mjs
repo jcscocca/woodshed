@@ -126,4 +126,26 @@ test("gradeArpeggio: a dead string (no event) is missed", () => {
   assert.ok(r.missed.includes("G"));
 });
 
+import { accuracyReady, progressionProposals } from "../src/engine.js";
+
+const sess = (itemId, rating, extra = {}) => ({ itemId, inst: "guitar", date: "2026-06-01", rating, minutes: 10, bpm: null, ...extra });
+
+test("accuracyReady: no coached data => ready (cold-start pass-through)", () => {
+  assert.equal(accuracyReady([sess("x", "easy"), sess("x", "easy")]), true);
+});
+test("accuracyReady: recent high coached accuracy => ready", () => {
+  assert.equal(accuracyReady([sess("x", "easy", { coached: true, accuracy: 95 }), sess("x", "easy", { coached: true, accuracy: 88 })]), true);
+});
+test("accuracyReady: recent low coached accuracy => not ready", () => {
+  assert.equal(accuracyReady([sess("x", "easy", { coached: true, accuracy: 50 }), sess("x", "easy", { coached: true, accuracy: 55 })]), false);
+});
+
+test("progressionProposals: low coached accuracy withholds the level-up", () => {
+  const items = [{ id: "gtr-pent", inst: "guitar", title: "Pent", type: "technique", diff: 2, hidden: false }];
+  const easyLow = [sess("gtr-pent", "easy", { coached: true, accuracy: 40 }), sess("gtr-pent", "easy", { coached: true, accuracy: 45 })];
+  assert.equal(progressionProposals(items, easyLow).filter((p) => p.kind === "level-up").length, 0);
+  const easyNone = [sess("gtr-pent", "easy"), sess("gtr-pent", "easy")];
+  assert.equal(progressionProposals(items, easyNone).filter((p) => p.kind === "level-up").length, 1);
+});
+
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });
