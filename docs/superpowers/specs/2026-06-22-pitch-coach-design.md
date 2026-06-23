@@ -86,20 +86,23 @@ instead of a mic):
    2048-sample frames at ~60 fps, raw (echo/noise/gain processing all off).
 2. **Per-frame readout** — *extend `audio/dsp.js`.* `detectPitch` + `rms` already
    give frequency and loudness; additionally **expose the AMDF clarity value it
-   already computes** (`(mean − d[lag]) / mean`) as a confidence score. Add an
-   optional `expectedHz` hint that biases the lag search toward the target's
-   octave (see §1e).
+   already computes** (`(mean − d[lag]) / mean`) as a confidence score (a new
+   `detectPitchDetailed`; `detectPitch` becomes a thin wrapper). No new octave
+   option is needed: the coach clamps `detectPitch`'s existing `minF`/`maxF` to
+   the exercise's pitch span itself (§7), which is both cheap and keeps
+   out-of-range octave artifacts from registering.
 3. **Stabilizer** — *new (`coach.js`).* The "be reasonable" core. Holds a short
    ring buffer (~100 ms) of frames and emits a *confirmed* note only when the
    frames agree on one pitch, clarity clears a floor, and loudness clears a floor.
    A single stray frame can never produce a judgment.
-4. **Segmentation** — *new (`coach.js`), reusing `createOnsetTracker`.* Emits a
-   discrete *played-note event* `{ pitch, octave, tStart, dur, peakRms, clarity }`.
-   **Primary trigger is a stable pitch *change*** (robust to legato — hammer-ons,
-   slurs, pedaled piano — where there's no new attack). The onset tracker is the
-   *secondary* trigger, used only to catch a **re-articulated repeated note** (same
-   pitch struck twice). This is the correction to the original attack-only design,
-   whose 160 ms refractory would have dropped fast scale notes.
+4. **Segmentation** — *new (`coach.js`).* Emits a discrete *played-note event*
+   `{ midi, name, octave, tStart, peak }`. **Primary trigger is a stable pitch
+   *change*** (robust to legato — hammer-ons, slurs, pedaled piano — where there's
+   no new attack). A **re-articulated repeated note** (same pitch struck twice) is
+   caught by a brief silent-gap reset between confirmations, not the amplitude
+   onset tracker — whose 160 ms refractory would have dropped fast scale notes.
+   "Clean ring" falls out of this for free: a note that won't sustain past the
+   hold window simply never confirms (a dead/choked string reads as missed).
 5. **Matcher** — *new, pure (`coach.js`).* Walks the expected sequence against the
    played-note stream with **windowed lookahead** so a mistake never desyncs the
    line:
@@ -233,10 +236,10 @@ Worker / AudioWorklet is documented as the escape hatch if a real device lags.
     octave slip (forgiven on guitar, failed on piano); missed note + lookahead
     recovery; repeated note; arpeggio order; muted-string advisory; keyboard
     voicing routed to arpeggio.
-  - `npm run test:audio` — extend `generate-fixtures.py` with a rendered **scale**
-    and **arpeggio**; assert the **stabilizer + segmentation** emit the right
-    discrete notes, and an end-to-end clean run scores ~full. Octave-strict check:
-    a C5 buffer must **not** satisfy a C4 target.
+  - `npm run test:audio` — extend `generate-fixtures.py` with a rendered **scale**;
+    assert an end-to-end clean run (detection → stabilizer → line grader) scores
+    ~full. (Arpeggio + octave-strict logic are covered by the synthetic unit
+    tests, including a C5 event that must **not** satisfy a C4 target.)
 - **Native (manual device checklist — can't run here):**
   - Mic permission prompt (desktop + Android via Capacitor `RECORD_AUDIO`).
   - Live latency feels responsive; green-on-catch isn't sluggish.
@@ -273,7 +276,7 @@ Worker / AudioWorklet is documented as the escape hatch if a real device lags.
 
 **Edited:**
 
-- `src/audio/dsp.js` — expose clarity/confidence; optional `expectedHz` octave bias.
+- `src/audio/dsp.js` — expose clarity/confidence via `detectPitchDetailed`; the coach narrows `minF`/`maxF` itself (existing option, no new API).
 - `src/audio/notes.js` — expected-sequence builder (octave policy, sequence-vs-block,
   gradeability).
 - `src/LessonSheet.jsx` — **Coach me** button + `CoachPanel` mount.
