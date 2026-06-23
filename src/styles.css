@@ -427,3 +427,25 @@ body{
 /* completed track stage: subtle gold lesson link beside reopen */
 .ws-stage-learn-link{ background:none; border:none; color:var(--gold); font-size:11.5px; cursor:pointer; padding:2px 0; font-family:inherit; }
 .ws-stage-learn-link:hover{ color:#edb35a; }
+
+/* ----- pitch coach ----- */
+.ws-coach-open { margin-top: 8px; }
+.ws-coach { margin-top: 10px; padding: 12px; border: 1px solid var(--line2); border-radius: var(--r); background: var(--bg); }
+.ws-coach-seq { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.ws-coach-chip { min-width: 30px; height: 34px; padding: 0 6px; border-radius: 9px; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; background: var(--bg3); color: var(--muted); line-height: 1; }
+.ws-coach-chip small { font-size: 8px; font-weight: 400; color: var(--muted2); }
+.ws-coach-chip.ok { background: rgba(95, 168, 160, .24); color: #7fc4bc; }
+.ws-coach-chip.bad { background: rgba(224, 120, 86, .22); color: #e8916f; }
+.ws-coach-chip.warn { background: rgba(227, 169, 72, .2); color: var(--gold); }
+.ws-coach-chip.mute { opacity: .55; }
+.ws-coach-chip.now { color: var(--gold); box-shadow: 0 0 0 2px var(--gold); animation: ws-coach-pulse 1.4s ease-in-out infinite; }
+@keyframes ws-coach-pulse { 0%, 100% { box-shadow: 0 0 0 2px rgba(227, 169, 72, .5); } 50% { box-shadow: 0 0 0 5px rgba(227, 169, 72, .12); } }
+.ws-coach-hint { text-align: center; color: var(--muted); font-size: 12px; margin: 10px 0; min-height: 16px; }
+.ws-coach-summary { margin-top: 10px; text-align: center; }
+.ws-coach-band { color: #7fc4bc; font-weight: 700; font-size: 13px; }
+.ws-coach-score { font-size: 22px; margin: 4px 0; }
+.ws-coach-score b { font-size: 28px; color: var(--text); }
+.ws-coach-missed { font-size: 12px; color: #e8916f; margin-bottom: 10px; }
+.ws-coach-actions { display: flex; gap: 8px; }
+.ws-coach-actions .ws-btn { flex: 1; }
+.ws-btn.full { width: 100%; }
