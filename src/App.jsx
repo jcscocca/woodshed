@@ -10,6 +10,23 @@ import { loadState, saveState, migrate } from "./storage.js";
 import { useMetronome } from "./useMetronome.js";
 import { useListener } from "./useListener.js";
 
+// Resource links are user-entered and ride along in exported/imported backups,
+// so treat them as untrusted. Only http(s) URLs ever reach an href — a
+// javascript:/data: link from a hand-edited backup is dropped, not rendered.
+const safeHref = (url) => {
+  const u = (url || "").trim();
+  return /^https?:\/\//i.test(u) ? u : undefined;
+};
+// Normalize a link the user typed: a bare domain gets https://; anything with a
+// non-http(s) scheme (javascript:, data:, …) is rejected to "".
+const normalizeUrl = (raw) => {
+  const u = (raw || "").trim();
+  if (!u) return "";
+  if (/^https?:\/\//i.test(u)) return u;
+  if (/^[a-z][\w+.-]*:/i.test(u)) return ""; // some other scheme -> reject
+  return "https://" + u;
+};
+
 /* ============================================================
    WOODSHED — adaptive multi-instrument practice
    ============================================================ */
@@ -312,7 +329,7 @@ function Today({ session, itemById, onSwap, onRegenerate, onStartLog, onAddAnoth
     <>
       <div className="ws-today-head">
         <div className="ws-today-eyebrow"><span className="ws-pulse" /> Today's set</div>
-        <div className="ws-today-meta mono">{insts.map((i) => INSTRUMENTS[i].name).join(" + ")} · {total} min</div>
+        <div className="ws-today-meta mono">{insts.map((i) => INSTRUMENTS[i]?.name || i).join(" + ")} · {total} min</div>
       </div>
 
       <div className="ws-cards">
@@ -329,12 +346,14 @@ function Today({ session, itemById, onSwap, onRegenerate, onStartLog, onAddAnoth
 }
 
 function SessionItem({ item, onSwap }) {
+  const inst = INSTRUMENTS[item.inst];
+  const href = safeHref(item.link && item.link.url);
   return (
-    <div className="ws-card" style={{ "--accent": INSTRUMENTS[item.inst].color }}>
+    <div className="ws-card" style={{ "--accent": inst ? inst.color : "var(--gold)" }}>
       <div className="ws-card-rail" />
       <div className="ws-card-body">
         <div className="ws-card-top">
-          <span className="ws-inst-tag">{INSTRUMENTS[item.inst].name}</span>
+          <span className="ws-inst-tag">{inst ? inst.name : item.inst}</span>
           <span className="ws-type-tag">{TYPE_LABEL[item.type]}</span>
           {item.trackName && <span className="ws-track-tag">{item.trackName}</span>}
           <Dots n={item.diff} />
@@ -343,7 +362,7 @@ function SessionItem({ item, onSwap }) {
         <h3 className="ws-card-title">{item.title}</h3>
         <p className="ws-card-desc">{item.desc}</p>
         <div className="ws-card-foot">
-          {item.link && <a className="ws-card-link" href={item.link.url} target="_blank" rel="noreferrer">↗ {item.link.label}</a>}
+          {item.link && href && <a className="ws-card-link" href={href} target="_blank" rel="noreferrer">↗ {item.link.label}</a>}
           <button className="ws-swap" onClick={onSwap} aria-label={`Swap ${item.title} for another exercise`}>↺ swap</button>
         </div>
       </div>
@@ -629,7 +648,7 @@ function Tracks({ live, onComplete, onReopen }) {
                     {st.status === "current" && (
                       <>
                         <p className="ws-stage-desc">{st.desc}</p>
-                        {st.link && <a className="ws-stage-link" href={st.link.url} target="_blank" rel="noreferrer">↗ {st.link.label}</a>}
+                        {st.link && safeHref(st.link.url) && <a className="ws-stage-link" href={safeHref(st.link.url)} target="_blank" rel="noreferrer">↗ {st.link.label}</a>}
                         <button className="ws-btn primary sm ws-stage-btn" onClick={() => onComplete(st.id)}>Mark complete →</button>
                       </>
                     )}
@@ -1051,7 +1070,7 @@ function ItemForm({ initial, sessions = [], hidden, onSave, onDelete, onToggleHi
   const valid = f.title.trim().length > 0;
   useEscape(onClose);
   const buildSave = () => {
-    const url = f.linkUrl.trim();
+    const url = normalizeUrl(f.linkUrl);
     return {
       inst: f.inst, title: f.title, type: f.type, diff: f.diff, min: f.min,
       desc: f.desc || "Your own exercise.",

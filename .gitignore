@@ -9,3 +9,4 @@ test/audio/fixtures/*.mid
 # misc
 *.log
 .DS_Store
+.claude/

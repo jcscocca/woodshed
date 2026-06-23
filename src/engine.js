@@ -57,10 +57,13 @@ const isRep = (it) => it.type === "song" || it.type === "creative";
 // what makes editing and deleting sessions correct: the log is the single
 // source of truth, and stats recompute from it automatically.
 export function withDerivedStats(items, sessions) {
-  const times = {}, last = {}, lastRating = {}, lastBpm = {};
+  const times = {}, last = {}, lastRating = {}, lastBpm = {}, bpmDate = {};
   for (const s of sessions) {
     times[s.itemId] = (times[s.itemId] || 0) + 1;
-    if (s.bpm != null) lastBpm[s.itemId] = s.bpm; // chronological -> ends on most recent
+    if (s.bpm != null && (!(s.itemId in bpmDate) || s.date >= bpmDate[s.itemId])) {
+      lastBpm[s.itemId] = s.bpm; // most recent dated tempo (not array order — survives edits/imports)
+      bpmDate[s.itemId] = s.date;
+    }
     if (!last[s.itemId] || s.date >= last[s.itemId]) {
       last[s.itemId] = s.date;
       lastRating[s.itemId] = s.rating; // rating of the most recent session
@@ -269,18 +272,6 @@ export function weekCount(sessions) {
   const set = new Set(sessions.map((s) => s.date));
   let n = 0;
   for (let i = 0; i <= dow; i++) if (set.has(addDays(start, i))) n++;
-  return n;
-}
-
-export function streakOf(sessions) {
-  const days = [...new Set(sessions.map((s) => s.date))];
-  if (!days.length) return 0;
-  const set = new Set(days);
-  const today = todayStr(), yes = addDays(today, -1);
-  let cursor = set.has(today) ? today : set.has(yes) ? yes : null;
-  if (!cursor) return 0;
-  let n = 0, d = cursor;
-  while (set.has(d)) { n++; d = addDays(d, -1); }
   return n;
 }
 
