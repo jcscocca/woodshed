@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { getLesson } from "./lessons/index.js";
 import { shapeToVoices } from "./audio/notes.js";
 import { playChords, playSequence, playClick, stop } from "./lessonAudio.js";
@@ -19,15 +19,17 @@ function ShapeView({ shape }) {
 export default function LessonSheet({ item, href, onClose }) {
   const lesson = getLesson(item.id);
   const [playing, setPlaying] = useState(false);
+  const timer = useRef(null);
   useEffect(() => {
     const h = (e) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", h);
-    return () => { window.removeEventListener("keydown", h); stop(); };
+    return () => { window.removeEventListener("keydown", h); clearTimeout(timer.current); stop(); };
   }, [onClose]);
   if (!lesson) return null;
   const inst = INSTRUMENTS[item.inst];
 
   const hear = () => {
+    clearTimeout(timer.current);
     if (playing) { stop(); setPlaying(false); return; }
     const { shape, bpm } = lesson;
     let ms;
@@ -35,7 +37,7 @@ export default function LessonSheet({ item, href, onClose }) {
     else if (shape) ms = playSequence(shapeToVoices(shape), { bpm: bpm || 80 });
     else ms = playClick({ bpm: bpm || 80 });
     setPlaying(true);
-    setTimeout(() => setPlaying(false), ms + 80);
+    timer.current = setTimeout(() => setPlaying(false), ms + 80);
   };
 
   return (
