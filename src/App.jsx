@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { INSTRUMENTS, TYPE_LABEL, FELT, TRACKS } from "./seed.js";
+import { getLesson } from "./lessons/index.js";
+import LessonSheet from "./LessonSheet.jsx";
 import { todayStr, addDays, prettyAgo } from "./dateUtils.js";
 import {
   generateSession, swapInSession, streakInfo, weekCount, levelFor, lastByInstrument,
@@ -39,6 +41,7 @@ export default function Woodshed() {
   const [listenOpen, setListenOpen] = useState(false);
   const [itemForm, setItemForm] = useState(null);   // { item } edit, { item: null } add
   const [editSession, setEditSession] = useState(null);
+  const [lessonFor, setLessonFor] = useState(null);
   const [showProposals, setShowProposals] = useState(false);
   const [lastTempo, setLastTempo] = useState(null);
   const [saveError, setSaveError] = useState(false);
@@ -215,10 +218,10 @@ export default function Woodshed() {
           <Today
             session={session} itemById={itemById} onSwap={swap} onRegenerate={regenerate}
             onStartLog={() => setLogging(true)} onAddAnother={addAnother}
-            settings={data.settings} sessions={data.sessions}
+            settings={data.settings} sessions={data.sessions} onLearn={setLessonFor}
           />
         )}
-        {view === "tracks" && <Tracks live={live} onComplete={completeStage} onReopen={reopenStage} />}
+        {view === "tracks" && <Tracks live={live} onComplete={completeStage} onReopen={reopenStage} onLearn={setLessonFor} />}
         {view === "library" && (
           <Library items={live.items} onOpen={(it) => setItemForm({ item: it })} onAdd={() => setItemForm({ item: null })} />
         )}
@@ -254,6 +257,7 @@ export default function Woodshed() {
           onDelete={itemForm.item && itemForm.item.custom ? () => { deleteItem(itemForm.item.id); setItemForm(null); } : null}
           onToggleHidden={itemForm.item ? () => toggleHidden(itemForm.item.id) : null}
           onClose={() => setItemForm(null)}
+          onLearn={(it) => { setItemForm(null); setLessonFor(it); }}
         />
       )}
       {editSession && (
@@ -261,6 +265,9 @@ export default function Woodshed() {
           session={editSession} itemById={itemById}
           onSave={editSessionSave} onDelete={deleteSession} onClose={() => setEditSession(null)}
         />
+      )}
+      {lessonFor && (
+        <LessonSheet item={lessonFor} href={safeHref(lessonFor.link?.url)} onClose={() => setLessonFor(null)} />
       )}
     </Shell>
   );
@@ -299,7 +306,7 @@ function Streak({ streak }) {
 }
 
 /* ----------------------- today ----------------------- */
-function Today({ session, itemById, onSwap, onRegenerate, onStartLog, onAddAnother, settings, sessions }) {
+function Today({ session, itemById, onSwap, onRegenerate, onStartLog, onAddAnother, settings, sessions, onLearn }) {
   const anyEnabled = Object.values(settings.enabled).some(Boolean);
   if (!anyEnabled)
     return <Empty title="No instruments selected" body="Turn at least one instrument back on in settings to get a session." />;
@@ -333,7 +340,7 @@ function Today({ session, itemById, onSwap, onRegenerate, onStartLog, onAddAnoth
       </div>
 
       <div className="ws-cards">
-        {items.map((it) => <SessionItem key={it.id} item={it} onSwap={() => onSwap(it.id)} />)}
+        {items.map((it) => <SessionItem key={it.id} item={it} onSwap={() => onSwap(it.id)} onLearn={onLearn} />)}
       </div>
 
       <div className="ws-today-actions">
@@ -345,7 +352,7 @@ function Today({ session, itemById, onSwap, onRegenerate, onStartLog, onAddAnoth
   );
 }
 
-function SessionItem({ item, onSwap }) {
+function SessionItem({ item, onSwap, onLearn }) {
   const inst = INSTRUMENTS[item.inst];
   const href = safeHref(item.link && item.link.url);
   return (
@@ -362,6 +369,7 @@ function SessionItem({ item, onSwap }) {
         <h3 className="ws-card-title">{item.title}</h3>
         <p className="ws-card-desc">{item.desc}</p>
         <div className="ws-card-foot">
+          {getLesson(item.id) && <button className="ws-learn" onClick={() => onLearn(item)} aria-label={`Learn: ${item.title}`}>◐ Learn</button>}
           {item.link && href && <a className="ws-card-link" href={href} target="_blank" rel="noreferrer">↗ {item.link.label}</a>}
           <button className="ws-swap" onClick={onSwap} aria-label={`Swap ${item.title} for another exercise`}>↺ swap</button>
         </div>
@@ -619,7 +627,7 @@ function ProposalSheet({ proposals, onAccept, onDismiss, onClose }) {
 }
 
 /* ----------------------- skill tracks ----------------------- */
-function Tracks({ live, onComplete, onReopen }) {
+function Tracks({ live, onComplete, onReopen, onLearn }) {
   const status = trackStatus(live.items);
   return (
     <>
@@ -649,7 +657,10 @@ function Tracks({ live, onComplete, onReopen }) {
                       <>
                         <p className="ws-stage-desc">{st.desc}</p>
                         {st.link && safeHref(st.link.url) && <a className="ws-stage-link" href={safeHref(st.link.url)} target="_blank" rel="noreferrer">↗ {st.link.label}</a>}
-                        <button className="ws-btn primary sm ws-stage-btn" onClick={() => onComplete(st.id)}>Mark complete →</button>
+                        <div className="ws-stage-actions">
+                          {getLesson(st.id) && <button className="ws-btn ghost sm ws-stage-learn" onClick={() => onLearn({ ...st, inst: t.inst })}>◐ Learn</button>}
+                          <button className="ws-btn primary sm ws-stage-btn" onClick={() => onComplete(st.id)}>Mark complete →</button>
+                        </div>
                       </>
                     )}
                     {st.status === "done" && <button className="ws-stage-reopen" onClick={() => onReopen(st.id)}>reopen</button>}
@@ -1059,7 +1070,7 @@ function Settings({ settings, onChange, onToggle, onReset, onClose, onExport, on
 }
 
 /* ----------------------- add / edit exercise ----------------------- */
-function ItemForm({ initial, sessions = [], hidden, onSave, onDelete, onToggleHidden, onClose }) {
+function ItemForm({ initial, sessions = [], hidden, onSave, onDelete, onToggleHidden, onClose, onLearn }) {
   const editing = !!initial;
   const [f, setF] = useState(
     initial
@@ -1083,6 +1094,9 @@ function ItemForm({ initial, sessions = [], hidden, onSave, onDelete, onToggleHi
       <div className="ws-sheet" onClick={(e) => e.stopPropagation()}>
         <div className="ws-sheet-grip" />
         <h2 className="ws-sheet-title">{editing ? "Edit exercise" : "Add to library"}</h2>
+        {editing && getLesson(initial.id) && (
+          <button className="ws-btn ghost sm ws-lesson-open" onClick={() => onLearn(initial)}>◐ Show lesson</button>
+        )}
 
         <div className="ws-field">
           <label>Instrument</label>

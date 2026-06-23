@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "fixtures": "bash test/audio/render-fixtures.sh",
     "test:audio": "node test/audio/dsp.realaudio.test.mjs",
-    "test:smoke": "node test/audio/dsp.smoke.test.mjs"
+    "test:smoke": "node test/audio/dsp.smoke.test.mjs",
+    "test:lessons": "node test/lessons.test.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",
