@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { shapeToTargets } from "./audio/notes.js";
 import { useCoach } from "./useCoach.js";
 
@@ -7,12 +7,34 @@ const STATUS_CLASS = { caught: "ok", missed: "bad", rang: "warn", "muted-ok": "m
 // The coaching surface inside the lesson sheet. "Coach me" opens it; the target
 // chips light up as you play; a calm summary follows. Restraint by design: the
 // only live cue is the pulsing current target and a single hint line.
-export default function CoachPanel({ item, lesson, onLog }) {
+export default function CoachPanel({ item, lesson, sessions = [], onLog }) {
   const [open, setOpen] = useState(false);
-  const { mode, targets } = useMemo(() => shapeToTargets(lesson.shape), [lesson.shape]);
+  const [dir, setDir] = useState("up");
+  const [runToken, setRunToken] = useState(0);
+  const base = useMemo(() => shapeToTargets(lesson.shape), [lesson.shape]);
+  const mode = base.mode;
+  const targets = useMemo(() => (mode === "arpeggio" && dir === "down" ? [...base.targets].reverse() : base.targets), [base, mode, dir]);
   const octaveStrict = mode === "arpeggio" || item.inst === "piano";
   const coach = useCoach({ mode, targets, octaveStrict });
   const r = coach.result;
+
+  // Launch a run only after `dir` (hence `targets`) has settled, so a reversed
+  // down-pass never starts against the old order.
+  useEffect(() => {
+    if (runToken === 0) return;
+    coach.reset();
+    coach.start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runToken]);
+  const launch = (d) => { setDir(d); setRunToken((n) => n + 1); };
+
+  // per-string / per-note memory: what this exercise's past coached sessions
+  // most often flagged, surfaced as "trouble spots" before you start.
+  const trouble = useMemo(() => {
+    const counts = {};
+    for (const s of sessions) if (s.coached && Array.isArray(s.missed)) for (const m of s.missed) counts[m] = (counts[m] || 0) + 1;
+    return Object.entries(counts).filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([m]) => m);
+  }, [sessions]);
 
   if (!open) {
     return (
@@ -52,12 +74,18 @@ export default function CoachPanel({ item, lesson, onLog }) {
           <div className="ws-coach-score mono"><b>{r.results.filter((x) => x.status === "caught").length}</b> / {targets.filter((t) => !t.muted).length} clean</div>
           {r.missed.length > 0 && <div className="ws-coach-missed">to revisit: {r.missed.join(", ")}</div>}
           <div className="ws-coach-actions">
-            <button className="ws-btn ghost sm" onClick={() => { coach.reset(); coach.start(); }}>↻ Try again</button>
+            <button className="ws-btn ghost sm" onClick={() => launch("up")}>↻ Try again</button>
+            {mode === "arpeggio" && dir === "up" && r.done && (
+              <button className="ws-btn ghost sm" onClick={() => launch("down")}>↓ once more</button>
+            )}
             <button className="ws-btn primary sm" onClick={() => onLog({ accuracy: r.accuracy, missed: r.missed })}>Log it →</button>
           </div>
         </div>
       ) : (
-        <button className="ws-btn primary sm full" onClick={coach.start}>● Start</button>
+        <div className="ws-coach-start">
+          {trouble.length > 0 && <div className="ws-coach-trouble">Trouble spots last time: {trouble.join(", ")}</div>}
+          <button className="ws-btn primary sm full" onClick={() => launch("up")}>● Start</button>
+        </div>
       )}
     </div>
   );

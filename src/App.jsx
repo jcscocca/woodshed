@@ -278,6 +278,7 @@ export default function Woodshed() {
       {lessonFor && (
         <LessonSheet
           item={lessonFor} href={safeHref(lessonFor.link?.url)}
+          sessions={data.sessions.filter((s) => s.itemId === lessonFor.id)}
           onClose={() => setLessonFor(null)}
           onCoachResult={recordCoachResult}
           onRequestLog={() => { setLessonFor(null); setLogging(true); }}

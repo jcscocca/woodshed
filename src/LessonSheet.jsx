@@ -18,7 +18,7 @@ function ShapeView({ shape }) {
   return null;
 }
 
-export default function LessonSheet({ item, href, onClose, onCoachResult, onRequestLog }) {
+export default function LessonSheet({ item, href, onClose, sessions = [], onCoachResult, onRequestLog }) {
   const lesson = getLesson(item.id);
   const [playing, setPlaying] = useState(false);
   const timer = useRef(null);
@@ -62,6 +62,7 @@ export default function LessonSheet({ item, href, onClose, onCoachResult, onRequ
           <CoachPanel
             item={item}
             lesson={lesson}
+            sessions={sessions}
             onLog={(res) => { onCoachResult(item.id, res); onRequestLog(); }}
           />
         )}
