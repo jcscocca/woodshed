@@ -4,6 +4,8 @@ import { shapeToVoices } from "./audio/notes.js";
 import { playChords, playSequence, playClick, stop } from "./lessonAudio.js";
 import { ChordDiagram, Keyboard, FretboardPattern } from "./diagrams.jsx";
 import { INSTRUMENTS, TYPE_LABEL } from "./seed.js";
+import CoachPanel from "./CoachPanel.jsx";
+import { isCoachable } from "./audio/notes.js";
 
 function ShapeView({ shape }) {
   if (!shape) return null;
@@ -16,7 +18,7 @@ function ShapeView({ shape }) {
   return null;
 }
 
-export default function LessonSheet({ item, href, onClose }) {
+export default function LessonSheet({ item, href, onClose, onCoachResult, onRequestLog }) {
   const lesson = getLesson(item.id);
   const [playing, setPlaying] = useState(false);
   const timer = useRef(null);
@@ -55,6 +57,14 @@ export default function LessonSheet({ item, href, onClose }) {
         <p className="ws-lesson-summary">{lesson.summary}</p>
 
         <ShapeView shape={lesson.shape} />
+
+        {isCoachable(item, lesson) && onCoachResult && (
+          <CoachPanel
+            item={item}
+            lesson={lesson}
+            onLog={(res) => { onCoachResult(item.id, res); onRequestLog(); }}
+          />
+        )}
 
         <button className={`ws-btn ${playing ? "ghost" : "primary"} sm ws-hear`} onClick={hear} aria-pressed={playing}>
           {playing ? "■ Stop" : "▶ Hear it"}

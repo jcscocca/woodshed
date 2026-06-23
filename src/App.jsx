@@ -44,6 +44,7 @@ export default function Woodshed() {
   const [lessonFor, setLessonFor] = useState(null);
   const [showProposals, setShowProposals] = useState(false);
   const [lastTempo, setLastTempo] = useState(null);
+  const [coachResults, setCoachResults] = useState({}); // itemId -> { accuracy, missed }
   const [saveError, setSaveError] = useState(false);
   const loaded = useRef(false);
   const remindedRef = useRef(null);
@@ -124,6 +125,8 @@ export default function Woodshed() {
     });
     setLogging(false);
   };
+
+  const recordCoachResult = (itemId, res) => setCoachResults((m) => ({ ...m, [itemId]: res }));
 
   const updateSettings = (patch) => setData((d) => ({ ...d, settings: { ...d.settings, ...patch } }));
   const toggleInstrument = (inst) =>
@@ -267,7 +270,12 @@ export default function Woodshed() {
         />
       )}
       {lessonFor && (
-        <LessonSheet item={lessonFor} href={safeHref(lessonFor.link?.url)} onClose={() => setLessonFor(null)} />
+        <LessonSheet
+          item={lessonFor} href={safeHref(lessonFor.link?.url)}
+          onClose={() => setLessonFor(null)}
+          onCoachResult={recordCoachResult}
+          onRequestLog={() => { setLessonFor(null); setLogging(true); }}
+        />
       )}
     </Shell>
   );
