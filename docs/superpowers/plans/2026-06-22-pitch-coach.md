@@ -460,6 +460,9 @@ export function gradeLine(targets, events, { octaveStrict = false } = {}) {
       results[cur].status = "missed"; results[cur + 1].status = "caught"; cur += 2; lastHeard = null;
     } else { lastHeard = e; } // stray — stay put, surface as a hint
   }
+  // Attempt ended: a stray heard on the current target that was never corrected
+  // is a genuine miss (e.g. a wrong octave under octaveStrict), not "pending".
+  if (lastHeard !== null && cur < targets.length) results[cur].status = "missed";
   const caught = results.filter((r) => r.status === "caught").length;
   return {
     results,
