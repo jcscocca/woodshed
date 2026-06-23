@@ -102,4 +102,28 @@ test("gradeLine: octave-strict (piano) rejects the wrong octave", () => {
   assert.equal(r.results[0].status, "missed");
 });
 
+import { gradeArpeggio } from "../src/coach.js";
+
+const cMaj = shapeToTargets({ kind: "chords", instrument: "guitar", chords: [{ name: "C", strings: ["x", 3, 2, 0, 1, 0] }] }).targets;
+// pitched midis low->high: A(48) D->E(52) G(55) B->C(60) e->E(64); string 0 muted (openMidi 40)
+const aev = (midi) => ({ midi, name: "", octave: 0 });
+
+test("gradeArpeggio: clean arpeggio (muted stays silent) scores 100", () => {
+  const r = gradeArpeggio(cMaj, [aev(48), aev(52), aev(55), aev(60), aev(64)]);
+  assert.equal(r.accuracy, 100);
+  assert.equal(r.results[0].status, "muted-ok");
+});
+
+test("gradeArpeggio: a ringing muted string is flagged but not counted against accuracy", () => {
+  const r = gradeArpeggio(cMaj, [aev(40), aev(48), aev(52), aev(55), aev(60), aev(64)]);
+  assert.equal(r.results[0].status, "rang");
+  assert.equal(r.accuracy, 100); // 5/5 pitched still clean
+});
+
+test("gradeArpeggio: a dead string (no event) is missed", () => {
+  const r = gradeArpeggio(cMaj, [aev(48), aev(52), aev(60), aev(64)]); // G string (55) never rang
+  assert.equal(r.accuracy, 80);
+  assert.ok(r.missed.includes("G"));
+});
+
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });

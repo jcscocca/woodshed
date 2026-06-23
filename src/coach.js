@@ -74,3 +74,37 @@ export function gradeLine(targets, events, { octaveStrict = false } = {}) {
     missed: results.filter((r) => r.status === "missed" || r.status === "pending").map((r) => r.target.label),
   };
 }
+
+// Step-gated, octave-aware grading for an arpeggiated chord. Events arrive in
+// play order (low->high), as the live stream produces them. A pitched string is
+// "caught" when its exact note rings; a string whose note never rings while a
+// LATER string does is "missed" (dead/skipped); strings not yet reached stay
+// "pending" (so live display dims them rather than flashing red). Muted strings
+// should stay silent — an event at the open pitch is flagged "rang" (advisory,
+// never scored). Stray events that match no upcoming string are skipped.
+export function gradeArpeggio(targets, events) {
+  const results = targets.map((t) => ({ target: t, status: "pending" }));
+  let ei = 0;
+  for (let ci = 0; ci < targets.length; ci++) {
+    const t = targets[ci];
+    if (t.muted) {
+      if (ei < events.length && events[ei].midi === t.openMidi) { results[ci].status = "rang"; ei++; }
+      else results[ci].status = "muted-ok";
+      continue;
+    }
+    const later = new Set(targets.slice(ci + 1).filter((x) => !x.muted).map((x) => x.midi));
+    while (ei < events.length && events[ei].midi !== t.midi && !later.has(events[ei].midi)) ei++; // skip strays
+    if (ei < events.length && events[ei].midi === t.midi) { results[ci].status = "caught"; ei++; }
+    else if (ei < events.length && later.has(events[ei].midi)) results[ci].status = "missed"; // a later string rang -> this one was skipped
+    else break; // events exhausted -> the rest simply aren't played yet (pending)
+  }
+  const pitched = results.filter((r) => !r.target.muted);
+  const caught = pitched.filter((r) => r.status === "caught").length;
+  return {
+    results,
+    cursor: results.findIndex((r) => r.status === "pending"),
+    done: !results.some((r) => r.status === "pending"),
+    accuracy: pitched.length ? Math.round((100 * caught) / pitched.length) : 0,
+    missed: pitched.filter((r) => r.status === "missed").map((r) => r.target.stringName || r.target.label),
+  };
+}
