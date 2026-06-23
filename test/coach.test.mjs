@@ -74,4 +74,32 @@ test("noteStream: a repeated note re-attacked after a gap emits twice", () => {
   assert.ok(ev.every((e) => e.name === "E"));
 });
 
+import { gradeLine } from "../src/coach.js";
+
+const ev = (midi) => ({ midi, name: "", octave: 0 });
+const lineTargets = [{ midi: 57, label: "A" }, { midi: 60, label: "C" }, { midi: 62, label: "D" }]; // A3 C4 D4
+
+test("gradeLine: a clean run scores 100", () => {
+  const r = gradeLine(lineTargets, [ev(57), ev(60), ev(62)], { octaveStrict: false });
+  assert.equal(r.accuracy, 100);
+  assert.deepEqual(r.results.map((x) => x.status), ["caught", "caught", "caught"]);
+});
+
+test("gradeLine: a wrong middle note doesn't desync (lookahead)", () => {
+  const r = gradeLine(lineTargets, [ev(57), ev(99), ev(62)], { octaveStrict: false });
+  assert.deepEqual(r.results.map((x) => x.status), ["caught", "missed", "caught"]);
+  assert.deepEqual(r.missed, ["C"]);
+});
+
+test("gradeLine: octave-forgiving accepts the right pitch class an octave off", () => {
+  const r = gradeLine([{ midi: 57, label: "A" }], [ev(69)], { octaveStrict: false });
+  assert.equal(r.accuracy, 100);
+});
+
+test("gradeLine: octave-strict (piano) rejects the wrong octave", () => {
+  const r = gradeLine([{ midi: 60, label: "C" }], [ev(72)], { octaveStrict: true });
+  assert.equal(r.accuracy, 0);
+  assert.equal(r.results[0].status, "missed");
+});
+
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });

@@ -44,3 +44,33 @@ export function runNoteStream(frames, opts) {
   for (const f of frames) { const e = s.push(f); if (e) out.push(e); }
   return out;
 }
+
+const samePitch = (aMidi, bMidi, octaveStrict) => octaveStrict ? aMidi === bMidi : ((aMidi % 12) + 12) % 12 === ((bMidi % 12) + 12) % 12;
+
+// Walk targets against confirmed events with a one-step lookahead so a single
+// wrong note marks that target "missed" and moves on instead of desyncing the
+// whole line. Pending targets (not yet reached when the player stops) stay
+// pending and count against accuracy.
+export function gradeLine(targets, events, { octaveStrict = false } = {}) {
+  const results = targets.map((t) => ({ target: t, status: "pending" }));
+  let cur = 0, lastHeard = null;
+  for (const e of events) {
+    if (cur >= targets.length) break;
+    if (samePitch(e.midi, targets[cur].midi, octaveStrict)) { results[cur].status = "caught"; cur++; lastHeard = null; }
+    else if (cur + 1 < targets.length && samePitch(e.midi, targets[cur + 1].midi, octaveStrict)) {
+      results[cur].status = "missed"; results[cur + 1].status = "caught"; cur += 2; lastHeard = null;
+    } else { lastHeard = e; } // stray — stay put, surface as a hint
+  }
+  // Attempt ended: a stray heard on the current target that was never corrected
+  // is a genuine miss (e.g. a wrong octave under octaveStrict), not "pending".
+  if (lastHeard !== null && cur < targets.length) results[cur].status = "missed";
+  const caught = results.filter((r) => r.status === "caught").length;
+  return {
+    results,
+    cursor: cur,
+    lastHeard,
+    done: cur >= targets.length,
+    accuracy: targets.length ? Math.round((100 * caught) / targets.length) : 0,
+    missed: results.filter((r) => r.status === "missed" || r.status === "pending").map((r) => r.target.label),
+  };
+}
