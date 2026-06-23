@@ -171,3 +171,12 @@ A few items from the original design audit are now built: the forgiving streak w
 The bigger piece still open is a **local-model upgrade**: instead of drawing from a fixed library, point the app at an LM Studio endpoint to generate fresh exercises on demand and read your session notes for feedback. `generateSession` in `src/engine.js` is the swap point; the rules engine stays as the offline fallback.
 
 If you ever want reminders that reach a fully closed app, that's the other natural extension — it means adding a small push backend, at which point the same backend could also carry cross-device sync (see *Where your data lives*).
+
+An **Android app** is also designed and ready to build when you are: wrap this
+same web build in [Capacitor](https://capacitorjs.com) (one codebase, assets
+bundled for full offline use) as `app.woodshed`. The full design — including a
+`src/platform/` abstraction, native daily reminders (which *do* reach a closed
+app, no push backend needed), the mic permission, and self-hosted fonts — is in
+[docs/superpowers/specs/2026-06-22-android-capacitor-design.md](docs/superpowers/specs/2026-06-22-android-capacitor-design.md).
+It's deliberately unscaffolded: the `android/` project is best generated fresh
+against current Capacitor/SDK versions when you have Android Studio in hand.
