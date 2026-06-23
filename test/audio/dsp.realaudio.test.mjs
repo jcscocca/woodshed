@@ -7,7 +7,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import WavDecoder from "wav-decoder";
 import Pitchfinder from "pitchfinder";
-import { detectPitch, noteFromFrequency, createOnsetTracker, bpmFromOnsets, rms } from "../../src/audio/dsp.js";
+import { detectPitch, detectPitchDetailed, noteFromFrequency, createOnsetTracker, bpmFromOnsets, rms } from "../../src/audio/dsp.js";
+import { createNoteStream, gradeLine } from "../../src/coach.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const FIX = path.join(here, "fixtures");
@@ -40,6 +41,24 @@ for (const bpm of [90, 120, 144]) {
   for (let p = 0; p + win <= ch.length; p += hop) { const t = (p / sr) * 1000; if (tr.step(rms(frame(ch, p, win)), t)) on.push(t); }
   const got = bpmFromOnsets(on); const ok = got !== null && Math.abs(got - bpm) <= 3; if (!ok) failed++;
   console.log(`  ${("drum_" + bpm).padEnd(14)} want ${bpm} got ${got} ${ok ? "PASS" : "FAIL"}`);
+}
+console.log("\nCOACH — clean scale through the full pipeline");
+if (fs.existsSync(path.join(FIX, "scale_cmaj_guitar.wav"))) {
+  const { sr, ch } = load("scale_cmaj_guitar.wav");
+  const stream = createNoteStream();
+  const events = [];
+  for (let p = 0; p + 2048 <= ch.length; p += 512) {
+    const win = frame(ch, p, 2048);
+    const { freq, clarity } = detectPitchDetailed(win, sr);
+    const ev = stream.push({ freq, clarity, level: rms(win), t: (p / sr) * 1000 });
+    if (ev) events.push(ev);
+  }
+  const targets = [60, 62, 64, 65, 67, 69, 71, 72].map((midi) => ({ midi, label: "" }));
+  const g = gradeLine(targets, events, { octaveStrict: false });
+  const ok = g.accuracy >= 80; if (!ok) failed++;
+  console.log(`  scale_cmaj_guitar  grade ${g.accuracy}% (${events.length} notes) ${ok ? "PASS" : "FAIL"}`);
+} else {
+  console.log("  (no scale fixture — skipped)");
 }
 console.log(failed ? `\n${failed} test(s) FAILED` : "\nAll real-audio tests passed.");
 process.exit(failed ? 1 : 0);
