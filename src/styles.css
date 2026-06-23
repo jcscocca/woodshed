@@ -418,3 +418,12 @@ body{
 .ws-kb-white.lit{ fill:var(--gold); }
 .ws-kb-black{ fill:#211e1a; }
 .ws-kb-finger{ fill:#1d1408; font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; }
+
+/* library row: split into a tap area + a Learn button (avoids nested buttons) */
+.ws-lib-item{ cursor:default; }
+.ws-lib-tap{ flex:1; min-width:0; display:flex; align-items:center; gap:10px; background:none; border:none; padding:0; margin:0; font:inherit; color:inherit; text-align:left; cursor:pointer; }
+.ws-lib-learn{ flex:none; background:none; border:1px solid var(--line2); border-radius:8px; color:var(--gold); font-size:14px; line-height:1; padding:7px 9px; cursor:pointer; transition:background .15s, color .15s, border-color .15s; }
+.ws-lib-learn:hover{ background:var(--bg3); color:#edb35a; border-color:var(--gold-dim); }
+/* completed track stage: subtle gold lesson link beside reopen */
+.ws-stage-learn-link{ background:none; border:none; color:var(--gold); font-size:11.5px; cursor:pointer; padding:2px 0; font-family:inherit; }
+.ws-stage-learn-link:hover{ color:#edb35a; }
