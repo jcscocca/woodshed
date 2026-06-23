@@ -23,8 +23,11 @@ export default function LessonSheet({ item, href, onClose }) {
   useEffect(() => {
     const h = (e) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", h);
-    return () => { window.removeEventListener("keydown", h); clearTimeout(timer.current); stop(); };
+    return () => window.removeEventListener("keydown", h);
   }, [onClose]);
+  // Tear down audio only on unmount, not on every parent re-render — onClose's
+  // identity changes each render, and stopping there would cut a demo mid-play.
+  useEffect(() => () => { clearTimeout(timer.current); stop(); }, []);
   if (!lesson) return null;
   const inst = INSTRUMENTS[item.inst];
 
