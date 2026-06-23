@@ -41,4 +41,37 @@ test("isCoachable: shape yes, accordion no, prose-only no", () => {
   assert.equal(isCoachable({ inst: "guitar" }, null), false);
 });
 
+import { runNoteStream } from "../src/coach.js";
+
+// helper: a run of frames at one frequency. dt=16ms ~ one rAF tick.
+const NOTE = { A4: 440, C5: 523.25, E4: 329.63 };
+const frames = (specs) => {
+  const out = []; let t = 0;
+  for (const [hz, ms] of specs) { for (let e = 0; e < ms; e += 16) { out.push({ freq: hz, clarity: hz ? 0.7 : 0, level: hz ? 0.2 : 0, t }); t += 16; } }
+  return out;
+};
+
+test("noteStream: a held note emits exactly one event after the hold window", () => {
+  const ev = runNoteStream(frames([[NOTE.A4, 300]]));
+  assert.equal(ev.length, 1);
+  assert.equal(ev[0].name, "A");
+  assert.equal(ev[0].octave, 4);
+});
+
+test("noteStream: a too-short blip never confirms", () => {
+  const ev = runNoteStream(frames([[NOTE.A4, 48]])); // < 90ms hold
+  assert.equal(ev.length, 0);
+});
+
+test("noteStream: two notes with a silent gap emit two events in order", () => {
+  const ev = runNoteStream(frames([[NOTE.A4, 200], [0, 120], [NOTE.C5, 200]]));
+  assert.deepEqual(ev.map((e) => e.name), ["A", "C"]);
+});
+
+test("noteStream: a repeated note re-attacked after a gap emits twice", () => {
+  const ev = runNoteStream(frames([[NOTE.E4, 200], [0, 120], [NOTE.E4, 200]]));
+  assert.equal(ev.length, 2);
+  assert.ok(ev.every((e) => e.name === "E"));
+});
+
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });
