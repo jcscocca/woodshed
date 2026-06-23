@@ -14,6 +14,7 @@ browser.
 
 - **A daily set across your instruments.** A short, time-boxed rotation that biases toward whichever instrument is most overdue, sometimes pairing two so progress doesn't stay diffuse.
 - **Skill tracks.** Ordered progressions per instrument (the **Tracks** tab). Only your *current* stage rotates into daily practice; clear it to unlock the next. Free-practice exercises sit alongside the tracks.
+- **Lessons.** Most exercises open a self-contained lesson — the concrete shapes (chord/keyboard diagrams), step-by-step how-to, "watch for" notes, and a built-in audio demo (an oscillator synth derived from the shapes; no audio files). Tap **Learn** on a card. Lessons are hand-authored, offline, and looked up by exercise id — so they appear with no migration and never touch your saved data.
 - **Suggestions from your practice.** The app reads what you log — repeated "too easy," consistent "tough," or just steady volume — and *proposes* leveling up, easing off, advancing a track stage, or rotating something out. Nothing changes until you confirm, and a handled suggestion won't reappear until you've practiced that item more.
 - **Metronome, stopwatch & tuner.** The **♩** icon opens a Web Audio metronome and a session timer. From there, a **tuner & listener (beta)** uses your microphone to show pitch and estimate tempo.
 - **Tempo tracking & analytics.** Log an optional BPM per exercise (it prefills from the metronome). **Progress** shows a consistency heatmap, per-exercise tempo trends, and recent-activity history.
@@ -90,6 +91,7 @@ The code is split so the parts you'll want to change are easy to find:
 | File | What's in it |
 |------|--------------|
 | `src/seed.js` | Instruments, their colors, the exercise library, and the **skill tracks** (`TRACKS`). **Add exercises or track stages here.** (Or use the in-app **+ Add** button, which saves to your browser.) |
+| `src/lessons/` | Hand-authored lesson content, one file per instrument, keyed by exercise id. `src/diagrams.jsx` draws the shapes; `src/lessonAudio.js` + `src/audio/notes.js` play them; `src/LessonSheet.jsx` is the sheet. |
 | `src/engine.js` | The session-building algorithm, the activity-aware **progression** suggestions, the **track** lock/unlock logic, and the stats. All pure functions — tweak the scoring, change how difficulty adapts, etc. Practice stats (last played, count, latest rating, last tempo) are *derived* from the session log, so editing or deleting a session keeps everything consistent. |
 | `src/storage.js` | The only file that knows where data is saved. Swap for a backend here. Includes a `migrate()` step so old saved data upgrades cleanly when the shape changes. |
 | `src/useMetronome.js` | The Web Audio metronome (accurate lookahead scheduler, tap tempo, accent on beat 1). |
