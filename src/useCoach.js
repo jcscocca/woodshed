@@ -16,12 +16,17 @@ export function useCoach({ mode, targets, octaveStrict }) {
   const ac = useRef(null), analyser = useRef(null), stream = useRef(null), raf = useRef(null), buf = useRef(null);
   const streamer = useRef(null), events = useRef([]);
 
+  // Clamp detection to the exercise's pitch span (cheap, and keeps out-of-range
+  // octave artifacts out). Guard the empty case (a hypothetical all-muted shape).
   const pitched = targets.filter((t) => !t.muted).map((t) => t.midi);
-  const minF = midiToFreq(Math.min(...pitched) - 3);
-  const maxF = midiToFreq(Math.max(...pitched) + 3);
+  const minF = pitched.length ? midiToFreq(Math.min(...pitched) - 3) : 80;
+  const maxF = pitched.length ? midiToFreq(Math.max(...pitched) + 3) : 1500;
 
   const grade = () => (mode === "arpeggio" ? gradeArpeggio(targets, events.current) : gradeLine(targets, events.current, { octaveStrict }));
 
+  // loop captures minF/maxF/grade from the render that called start(); safe
+  // because targets only change via launch() in CoachPanel, which requires
+  // !listening — so the rAF is always torn down before targets change.
   const loop = () => {
     const a = analyser.current;
     if (!a || !ac.current) return;
@@ -33,6 +38,7 @@ export function useCoach({ mode, targets, octaveStrict }) {
   };
 
   const start = useCallback(async () => {
+    if (listening) return; // never open a second mic stream
     setError(null); events.current = []; setResult(grade());
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { setError("This browser doesn't support microphone access."); return; }
     try {
@@ -49,7 +55,7 @@ export function useCoach({ mode, targets, octaveStrict }) {
     } catch (e) {
       setError(e && e.name === "NotAllowedError" ? "Microphone permission was denied." : "Couldn't access the microphone.");
     }
-  }, [mode, octaveStrict, targets]);
+  }, [listening, mode, octaveStrict, targets]);
 
   const teardown = () => {
     cancelAnimationFrame(raf.current);

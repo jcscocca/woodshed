@@ -58,7 +58,7 @@ export default function LessonSheet({ item, href, onClose, sessions = [], onCoac
 
         <ShapeView shape={lesson.shape} />
 
-        {isCoachable(item, lesson) && onCoachResult && (
+        {isCoachable(item, lesson) && onCoachResult && onRequestLog && (
           <CoachPanel
             item={item}
             lesson={lesson}
