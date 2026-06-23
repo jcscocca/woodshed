@@ -449,3 +449,4 @@ body{
 .ws-coach-actions { display: flex; gap: 8px; }
 .ws-coach-actions .ws-btn { flex: 1; }
 .ws-btn.full { width: 100%; }
+.ws-log-acc { font-size: 11px; color: #7fc4bc; margin-top: 4px; }

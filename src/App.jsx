@@ -119,9 +119,15 @@ export default function Woodshed() {
           id: `${today}-${e.itemId}-${Math.random().toString(36).slice(2, 7)}`,
           date: today, itemId: e.itemId, inst: it ? it.inst : "piano",
           minutes: e.minutes, rating: e.rating, bpm: e.bpm ?? null, note: note || "",
+          accuracy: e.accuracy ?? null, coached: e.accuracy != null, missed: e.missed ?? [],
         });
       }
       return { ...d, sessions, currentSession: { ...d.currentSession, completed: true } };
+    });
+    setCoachResults((m) => {
+      const next = { ...m };
+      for (const e of entries) if (e.done) delete next[e.itemId];
+      return next;
     });
     setLogging(false);
   };
@@ -239,7 +245,7 @@ export default function Woodshed() {
         ))}
       </nav>
 
-      {logging && <LogSheet session={session} itemById={itemById} lastTempo={lastTempo} onCancel={() => setLogging(false)} onCommit={commitLog} />}
+      {logging && <LogSheet session={session} itemById={itemById} lastTempo={lastTempo} coachResults={coachResults} onCancel={() => setLogging(false)} onCommit={commitLog} />}
       {practiceOpen && <PracticeSheet onClose={() => setPracticeOpen(false)} onTempo={setLastTempo} onOpenListen={() => { setPracticeOpen(false); setListenOpen(true); }} />}
       {listenOpen && <ListenSheet onClose={() => setListenOpen(false)} onTempo={setLastTempo} />}
       {showProposals && (
@@ -524,10 +530,11 @@ function ListenSheet({ onClose, onTempo }) {
 }
 
 /* ----------------------- log sheet ----------------------- */
-function LogSheet({ session, itemById, lastTempo, onCancel, onCommit }) {
+function LogSheet({ session, itemById, lastTempo, coachResults = {}, onCancel, onCommit }) {
   const init = session.items.map((x) => {
     const it = itemById(x.itemId);
-    return { itemId: x.itemId, title: it?.title || "", inst: it?.inst || "piano", done: true, minutes: x.minutes, rating: "good", bpm: it?.lastBpm ?? null };
+    const c = coachResults[x.itemId];
+    return { itemId: x.itemId, title: it?.title || "", inst: it?.inst || "piano", done: true, minutes: x.minutes, rating: "good", bpm: it?.lastBpm ?? null, accuracy: c?.accuracy ?? null, missed: c?.missed ?? [] };
   });
   const [entries, setEntries] = useState(init);
   const [note, setNote] = useState("");
@@ -577,6 +584,9 @@ function LogSheet({ session, itemById, lastTempo, onCancel, onCommit }) {
                       </span>
                     )}
                   </div>
+                  {e.accuracy != null && (
+                    <div className="ws-log-acc mono" title="Measured by the coach">◉ {e.accuracy}% clean{e.missed.length ? ` · revisit ${e.missed.join(", ")}` : ""}</div>
+                  )}
                 </div>
               )}
             </div>

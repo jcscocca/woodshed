@@ -40,6 +40,9 @@ export function migrate(state) {
   s.sessions = Array.isArray(s.sessions) ? s.sessions : [];
   s.progress = { acked: {}, ...(s.progress || {}) };
   if (!s.progress.acked || typeof s.progress.acked !== "object") s.progress.acked = {};
+  // v3 -> v4: session entries gained optional coach fields (accuracy, coached,
+  // missed). They're additive and read with safe defaults, so old sessions need
+  // no backfill — only the stamped version changes.
   s.version = SCHEMA_VERSION;
   return s;
 }

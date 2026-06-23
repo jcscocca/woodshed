@@ -287,7 +287,7 @@ export function minutesInLastDays(sessions, n) {
 }
 
 // ---- fresh install state ----
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 export function freshData() {
   return {
     version: SCHEMA_VERSION,
