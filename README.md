@@ -96,6 +96,7 @@ The code is split so the parts you'll want to change are easy to find:
 | `src/storage.js` | The only file that knows where data is saved. Swap for a backend here. Includes a `migrate()` step so old saved data upgrades cleanly when the shape changes. |
 | `src/useMetronome.js` | The Web Audio metronome (accurate lookahead scheduler, tap tempo, accent on beat 1). |
 | `src/useListener.js` | The microphone **tuner/listener (beta)** — autocorrelation pitch detection for the tuner, plus a rough tempo estimate from note onsets. |
+| `src/coach.js` + `src/useCoach.js` + `src/CoachPanel.jsx` | The **pitch coach** — pure grading core (stabilizer + line/arpeggio matchers), the mic hook, and the lesson-sheet UI. Grades single-note lines and arpeggiated chords against the lesson's known notes. |
 | `src/styles.css` | All styling and the color palette (CSS variables at the top). |
 | `src/App.jsx` | The UI — Today / Tracks / Library / Progress, the practice tools (metronome, stopwatch, tuner/listener), the analytics dashboards, and all the editing sheets. |
 
@@ -132,6 +133,24 @@ real device (microphone permission flow, and CPU cost: the AMDF scan runs per
 animation frame, which is fine for a tuner but is the first place to optimize —
 cap the lag search or move it to a worker — if the readout lags).
 
+### The pitch coach
+
+Tap **Coach me** in a lesson (single-note exercises, or chords played as an
+arpeggio) and Woodshed grades what it hears against the notes the lesson already
+knows. It's deliberately gentle: live, the diagram just lights up as you nail
+each note; the honest detail — how many you played clean, which to revisit —
+waits for the summary. That score logs alongside the session, shows up as an
+accuracy trend in **Progress**, and lets "ready to advance" rest on evidence,
+not just a self-rating.
+
+What it **can** grade: one clearly-sounding note at a time — scales, melodic
+lines, and chords checked one string at a time. Octave matters on piano (it'll
+tell you "right note, wrong octave"); on guitar and bass it's octave-forgiving.
+
+What it **can't**, by design: chords as strummed (it asks you to arpeggiate
+instead), accordion (the reeds don't detect cleanly), and timing — v1 grades the
+notes, not the tempo. Like the tuner, it's best verified on a real device.
+
 ### Reminders
 
 **Settings → Daily reminder** lets you pick a time and get a browser notification if you haven't practiced. The honest limit: a web app can only fire a notification while it's actually running — open in a tab, or installed and running in the background. A reminder that reaches you when the app is **fully closed** needs a push backend (a service worker plus a server sending the push), which this local-only version deliberately doesn't have. So treat it as a nudge for when Woodshed is already open somewhere; the surest prompt is opening the app, where today's set is waiting.
@@ -167,6 +186,8 @@ else is treated as a drill.
 ## What's next
 
 A few items from the original design audit are now built: the forgiving streak with a weekly goal, the daily reminder (with the open-app caveat above), and an accessibility pass (focus rings, ARIA on the custom controls, screen-reader labels on the tuner, and Escape-to-close on every sheet). The one accessibility refinement still open is full `role="dialog"` semantics and focus-trapping on the modal sheets.
+
+The **pitch coach** is now in, too: tap *Coach me* in a lesson to grade single-note lines and arpeggiated chords against the notes the lesson already knows (see *The pitch coach* above). Deferred extensions, in rough order: a soft timing read (the onset detector is too coarse for fast lines today), accordion support, and moving the per-frame DSP to a Web Worker if a phone ever lags — it stays on the main thread now via an exercise-aware narrowed pitch search.
 
 The bigger piece still open is a **local-model upgrade**: instead of drawing from a fixed library, point the app at an LM Studio endpoint to generate fresh exercises on demand and read your session notes for feedback. `generateSession` in `src/engine.js` is the swap point; the rules engine stays as the offline fallback.
 
