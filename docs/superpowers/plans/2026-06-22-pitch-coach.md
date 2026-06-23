@@ -501,7 +501,7 @@ Append to `test/coach.test.mjs` (above `process.on("exit"...)`):
 
 ```js
 import { gradeArpeggio } from "../src/coach.js";
-import { shapeToTargets } from "../src/audio/notes.js";
+// (shapeToTargets is already imported at the top of test/coach.test.mjs)
 
 const cMaj = shapeToTargets({ kind: "chords", instrument: "guitar", chords: [{ name: "C", strings: ["x", 3, 2, 0, 1, 0] }] }).targets;
 // pitched midis low->high: A(48) D->E(52) G(55) B->C(60) e->E(64); string 0 muted (openMidi 40)
@@ -536,11 +536,13 @@ Expected: FAIL — `gradeArpeggio is not a function`.
 Append to `src/coach.js`:
 
 ```js
-// Step-gated, octave-aware grading for an arpeggiated chord. Events are expected
-// in play order (low->high), as the live stream produces them. Pitched strings
-// must ring their exact note; muted strings should stay silent (an event at the
-// open pitch is flagged "rang" — advisory, never counted). Tolerates one stray
-// event before a pitched target so a fluffed note doesn't lock the walk.
+// Step-gated, octave-aware grading for an arpeggiated chord. Events arrive in
+// play order (low->high), as the live stream produces them. A pitched string is
+// "caught" when its exact note rings; a string whose note never rings while a
+// LATER string does is "missed" (dead/skipped); strings not yet reached stay
+// "pending" (so live display dims them rather than flashing red). Muted strings
+// should stay silent — an event at the open pitch is flagged "rang" (advisory,
+// never scored). Stray events that match no upcoming string are skipped.
 export function gradeArpeggio(targets, events) {
   const results = targets.map((t) => ({ target: t, status: "pending" }));
   let ei = 0;
@@ -551,9 +553,11 @@ export function gradeArpeggio(targets, events) {
       else results[ci].status = "muted-ok";
       continue;
     }
-    if (ei < events.length && events[ei].midi !== t.midi) ei++; // tolerate one stray
+    const later = new Set(targets.slice(ci + 1).filter((x) => !x.muted).map((x) => x.midi));
+    while (ei < events.length && events[ei].midi !== t.midi && !later.has(events[ei].midi)) ei++; // skip strays
     if (ei < events.length && events[ei].midi === t.midi) { results[ci].status = "caught"; ei++; }
-    else results[ci].status = "missed";
+    else if (ei < events.length && later.has(events[ei].midi)) results[ci].status = "missed"; // a later string rang -> this one was skipped
+    else break; // events exhausted -> the rest simply aren't played yet (pending)
   }
   const pitched = results.filter((r) => !r.target.muted);
   const caught = pitched.filter((r) => r.status === "caught").length;
