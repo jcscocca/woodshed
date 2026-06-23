@@ -10,3 +10,4 @@ test/audio/fixtures/*.mid
 *.log
 .DS_Store
 .claude/
+.superpowers/
