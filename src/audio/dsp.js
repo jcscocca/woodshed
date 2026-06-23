@@ -69,17 +69,19 @@ export function noteFromFrequency(freq) {
 //  2. It gates on *periodicity*, not loudness: a frame is only accepted if the
 //     AMDF dip is clearly below the average, so room noise and hiss can't
 //     produce a phantom note.
-// Returns frequency in Hz, or -1 when the frame is silent or not pitched.
-export function detectPitch(buf, sampleRate, { minF = 40, maxF = 1500, sensitivity = 0.1, clarity = 0.35 } = {}) {
+// AMDF detector that also returns its periodicity "clarity" (how far the dip
+// sits below the mean — a 0..~1 confidence). detectPitch keeps its old contract
+// (just the frequency) by reading .freq off this.
+export function detectPitchDetailed(buf, sampleRate, { minF = 40, maxF = 1500, sensitivity = 0.1, clarity = 0.35 } = {}) {
   let pk = 0;
   for (let i = 0; i < buf.length; i++) { const a = Math.abs(buf[i]); if (a > pk) pk = a; }
-  if (pk < 0.004) return -1; // genuine silence
+  if (pk < 0.004) return { freq: -1, clarity: 0 }; // genuine silence
   const b = Float32Array.from(buf, (v) => v / pk); // normalize to unit peak
 
   const n = b.length;
   const minLag = Math.max(2, Math.floor(sampleRate / maxF));
   const maxLag = Math.min(n - 1, Math.floor(sampleRate / minF));
-  if (maxLag <= minLag) return -1;
+  if (maxLag <= minLag) return { freq: -1, clarity: 0 };
 
   let lo = Infinity, hi = -Infinity, mean = 0, cnt = 0;
   const d = new Float64Array(maxLag + 1);
@@ -92,18 +94,16 @@ export function detectPitch(buf, sampleRate, { minF = 40, maxF = 1500, sensitivi
     if (sum > hi) hi = sum;
   }
   mean /= cnt;
-  if (hi <= lo) return -1;
+  if (hi <= lo) return { freq: -1, clarity: 0 };
 
-  // first lag dipping below a fraction of the range (the smallest such lag is
-  // the fundamental, not an octave-down multiple), then settle into its local
-  // minimum.
   const thresh = lo + sensitivity * (hi - lo);
   let lag = minLag;
   while (lag <= maxLag && d[lag] > thresh) lag++;
-  if (lag > maxLag) return -1;
+  if (lag > maxLag) return { freq: -1, clarity: 0 };
   while (lag + 1 <= maxLag && d[lag + 1] < d[lag]) lag++;
 
-  if ((mean - d[lag]) / mean < clarity) return -1; // not periodic enough
+  const clarityVal = (mean - d[lag]) / mean;
+  if (clarityVal < clarity) return { freq: -1, clarity: clarityVal }; // not periodic enough
 
   let T = lag; // parabolic interpolation for sub-sample accuracy
   if (lag > minLag && lag < maxLag) {
@@ -111,7 +111,12 @@ export function detectPitch(buf, sampleRate, { minF = 40, maxF = 1500, sensitivi
     const denom = a - 2 * bb + c;
     if (denom) T = lag + 0.5 * (a - c) / denom;
   }
-  return T > 0 ? sampleRate / T : -1;
+  return { freq: T > 0 ? sampleRate / T : -1, clarity: clarityVal };
+}
+
+// Frequency in Hz, or -1 when silent/unpitched. Thin wrapper over the detailed form.
+export function detectPitch(buf, sampleRate, opts) {
+  return detectPitchDetailed(buf, sampleRate, opts).freq;
 }
 
 // Onset detector: an EWMA of the level, with a relative threshold and a
