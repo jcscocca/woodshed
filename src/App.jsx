@@ -821,6 +821,7 @@ function Progress({ data, live, streak, onEditSession }) {
 
       <Heatmap sessions={data.sessions} />
       <TempoTrends sessions={data.sessions} items={live.items} />
+      <AccuracyTrends sessions={data.sessions} items={live.items} />
     </>
   );
 }
@@ -897,6 +898,36 @@ function TempoTrends({ sessions, items }) {
             <div className="ws-tempo-info">
               <div className="ws-tempo-title">{r.title}</div>
               <div className="ws-tempo-meta mono">♩{last}{delta !== 0 && <span className={delta > 0 ? "ws-up" : "ws-down"}> {delta > 0 ? "+" : ""}{delta}</span>}</div>
+            </div>
+            <Sparkline series={r.series} />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* accuracy trends — coached % over time per exercise */
+function AccuracyTrends({ sessions, items }) {
+  const byItem = {};
+  for (const s of sessions) if (s.coached && s.accuracy != null) (byItem[s.itemId] = byItem[s.itemId] || []).push(s.accuracy);
+  const rows = Object.keys(byItem)
+    .filter((id) => byItem[id].length >= 2)
+    .map((id) => ({ id, title: items.find((i) => i.id === id)?.title || "Deleted exercise", series: byItem[id] }))
+    .sort((a, b) => b.series.length - a.series.length)
+    .slice(0, 6);
+  if (!rows.length) return null;
+  return (
+    <div className="ws-block">
+      <div className="ws-block-label">Accuracy progress</div>
+      {rows.map((r) => {
+        const last = r.series[r.series.length - 1];
+        const delta = last - r.series[0];
+        return (
+          <div key={r.id} className="ws-tempo-row">
+            <div className="ws-tempo-info">
+              <div className="ws-tempo-title">{r.title}</div>
+              <div className="ws-tempo-meta mono">{last}%{delta !== 0 && <span className={delta > 0 ? "ws-up" : "ws-down"}> {delta > 0 ? "+" : ""}{delta}</span>}</div>
             </div>
             <Sparkline series={r.series} />
           </div>
