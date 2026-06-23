@@ -1,14 +1,15 @@
-// Guitar lessons. strings: low->high [E A D G B e]; fret number, 0 open, "x" muted.
-const G  = { name: "G",  strings: [3, 2, 0, 0, 0, 3] };
-const D  = { name: "D",  strings: ["x", "x", 0, 2, 3, 2] };
-const Em = { name: "Em", strings: [0, 2, 2, 0, 0, 0] };
-const C  = { name: "C",  strings: ["x", 3, 2, 0, 1, 0] };
-const E  = { name: "E",  strings: [0, 2, 2, 1, 0, 0] };
-const A  = { name: "A",  strings: ["x", 0, 2, 2, 2, 0] };
-const F  = { name: "F",  strings: [1, 3, 3, 2, 1, 1] };
-const Bb = { name: "Bb", strings: ["x", 1, 3, 3, 3, 1] };
-const E5 = { name: "E5", strings: [0, 2, "x", "x", "x", "x"] };
-const A5 = { name: "A5", strings: ["x", 0, 2, "x", "x", "x"] };
+// Guitar lessons. strings/fingers: low->high [E A D G B e]; fret number, 0 open,
+// "x" muted. fingers: 1=index 2=middle 3=ring 4=pinky (0 on open/muted strings).
+const G  = { name: "G",  strings: [3, 2, 0, 0, 0, 3],           fingers: [2, 1, 0, 0, 0, 3] };
+const D  = { name: "D",  strings: ["x", "x", 0, 2, 3, 2],       fingers: [0, 0, 0, 1, 3, 2] };
+const Em = { name: "Em", strings: [0, 2, 2, 0, 0, 0],           fingers: [0, 2, 3, 0, 0, 0] };
+const C  = { name: "C",  strings: ["x", 3, 2, 0, 1, 0],         fingers: [0, 3, 2, 0, 1, 0] };
+const E  = { name: "E",  strings: [0, 2, 2, 1, 0, 0],           fingers: [0, 2, 3, 1, 0, 0] };
+const A  = { name: "A",  strings: ["x", 0, 2, 2, 2, 0],         fingers: [0, 0, 1, 2, 3, 0] };
+const F  = { name: "F",  strings: [1, 3, 3, 2, 1, 1],           fingers: [1, 3, 4, 2, 1, 1] };
+const Bb = { name: "Bb", strings: ["x", 1, 3, 3, 3, 1],         fingers: [0, 1, 2, 3, 4, 1] };
+const E5 = { name: "E5", strings: [0, 2, "x", "x", "x", "x"],   fingers: [0, 1, 0, 0, 0, 0] };
+const A5 = { name: "A5", strings: ["x", 0, 2, "x", "x", "x"],   fingers: [0, 0, 1, 0, 0, 0] };
 
 export default {
   "gtr-open": {

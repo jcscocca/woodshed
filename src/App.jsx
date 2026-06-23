@@ -223,7 +223,7 @@ export default function Woodshed() {
         )}
         {view === "tracks" && <Tracks live={live} onComplete={completeStage} onReopen={reopenStage} onLearn={setLessonFor} />}
         {view === "library" && (
-          <Library items={live.items} onOpen={(it) => setItemForm({ item: it })} onAdd={() => setItemForm({ item: null })} />
+          <Library items={live.items} onOpen={(it) => setItemForm({ item: it })} onAdd={() => setItemForm({ item: null })} onLearn={setLessonFor} />
         )}
         {view === "progress" && <Progress data={data} live={live} streak={streak} onEditSession={setEditSession} />}
       </main>
@@ -663,7 +663,12 @@ function Tracks({ live, onComplete, onReopen, onLearn }) {
                         </div>
                       </>
                     )}
-                    {st.status === "done" && <button className="ws-stage-reopen" onClick={() => onReopen(st.id)}>reopen</button>}
+                    {st.status === "done" && (
+                      <div className="ws-stage-actions">
+                        {getLesson(st.id) && <button className="ws-stage-learn-link" onClick={() => onLearn({ ...st, inst: t.inst })}>◐ Lesson</button>}
+                        <button className="ws-stage-reopen" onClick={() => onReopen(st.id)}>reopen</button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -676,7 +681,7 @@ function Tracks({ live, onComplete, onReopen, onLearn }) {
 }
 
 /* ----------------------- library ----------------------- */
-function Library({ items, onOpen, onAdd }) {
+function Library({ items, onOpen, onAdd, onLearn }) {
   const today = todayStr();
   const order = ["piano", "guitar", "bass", "accordion"];
   return (
@@ -696,17 +701,20 @@ function Library({ items, onOpen, onAdd }) {
               <span className="ws-lib-count mono">{list.filter((i) => !i.hidden).length} active</span>
             </div>
             {list.map((it) => (
-              <button key={it.id} className={`ws-lib-item ${it.hidden ? "is-hidden" : ""}`} onClick={() => onOpen(it)}>
-                <div className="ws-lib-main">
-                  <div className="ws-lib-title">{it.title}{it.mastered ? <span className="ws-hidden-tag mastered">Mastered</span> : it.hidden && <span className="ws-hidden-tag">Hidden</span>}</div>
-                  <div className="ws-lib-meta">
-                    <span className="ws-type-tag sm">{TYPE_LABEL[it.type]}</span>
-                    <Dots n={it.diff} />
-                    <span className="mono ws-lib-sub">{it.min}m · {prettyAgo(it.last, today)} · {it.times}×{it.lastBpm ? ` · ♩${it.lastBpm}` : ""}</span>
+              <div key={it.id} className={`ws-lib-item ${it.hidden ? "is-hidden" : ""}`}>
+                <button className="ws-lib-tap" onClick={() => onOpen(it)} aria-label={`Edit ${it.title}`}>
+                  <div className="ws-lib-main">
+                    <div className="ws-lib-title">{it.title}{it.mastered ? <span className="ws-hidden-tag mastered">Mastered</span> : it.hidden && <span className="ws-hidden-tag">Hidden</span>}</div>
+                    <div className="ws-lib-meta">
+                      <span className="ws-type-tag sm">{TYPE_LABEL[it.type]}</span>
+                      <Dots n={it.diff} />
+                      <span className="mono ws-lib-sub">{it.min}m · {prettyAgo(it.last, today)} · {it.times}×{it.lastBpm ? ` · ♩${it.lastBpm}` : ""}</span>
+                    </div>
                   </div>
-                </div>
-                <span className="ws-lib-chev">›</span>
-              </button>
+                  <span className="ws-lib-chev" aria-hidden="true">›</span>
+                </button>
+                {getLesson(it.id) && <button className="ws-lib-learn" onClick={() => onLearn(it)} aria-label={`Lesson: ${it.title}`}>◐</button>}
+              </div>
             ))}
           </div>
         );

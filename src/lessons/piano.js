@@ -120,7 +120,7 @@ export default {
   },
   "trk-pno-5": {
     summary: "Break the left-hand chords into rolling arpeggios under the melody (C–E–G–C shown).",
-    shape: { kind: "keyboard", notes: [{ name: "C", octave: 3 }, { name: "E", octave: 3 }, { name: "G", octave: 3 }, { name: "C", octave: 4 }] },
+    shape: { kind: "keyboard", notes: [{ name: "C", octave: 3 }, { name: "E", octave: 3 }, { name: "G", octave: 3 }, { name: "C", octave: 4 }], fingers: [5, 3, 2, 1] },
     bpm: 80,
     steps: [
       "Instead of a block chord, roll the notes: C-E-G-C, evenly, like a wave.",

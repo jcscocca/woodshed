@@ -9,6 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "fixtures": "bash test/audio/render-fixtures.sh",
+    "test": "npm run test:smoke && npm run test:lessons",
     "test:audio": "node test/audio/dsp.realaudio.test.mjs",
     "test:smoke": "node test/audio/dsp.smoke.test.mjs",
     "test:lessons": "node test/lessons.test.mjs"
