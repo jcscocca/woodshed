@@ -34,9 +34,9 @@ test("keyboard with play:block -> arpeggio", () => {
   assert.equal(mode, "arpeggio");
 });
 
-test("isCoachable: shape yes, accordion no, prose-only no", () => {
+test("isCoachable: any shaped instrument (incl. accordion); prose-only no", () => {
   assert.equal(isCoachable({ inst: "bass" }, { shape: { kind: "fretboard" } }), true);
-  assert.equal(isCoachable({ inst: "accordion" }, { shape: { kind: "keyboard" } }), false);
+  assert.equal(isCoachable({ inst: "accordion" }, { shape: { kind: "keyboard" } }), true);
   assert.equal(isCoachable({ inst: "guitar" }, { shape: null }), false);
   assert.equal(isCoachable({ inst: "guitar" }, null), false);
 });

@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback, useEffect } from "react";
-import { detectPitchDetailed, rms } from "./audio/dsp.js";
+import { detectPitchDetailed, detectPitchSpectral, rms } from "./audio/dsp.js";
 import { midiToFreq } from "./audio/notes.js";
 import { createNoteStream, gradeLine, gradeArpeggio } from "./coach.js";
 
@@ -8,7 +8,7 @@ import { createNoteStream, gradeLine, gradeArpeggio } from "./coach.js";
 // live and exposes the running result. Same honest scope as the tuner: one clear
 // note at a time. Detection is clamped to the exercise's pitch span (cheap, and
 // it keeps out-of-range octave artifacts from registering).
-export function useCoach({ mode, targets, octaveStrict }) {
+export function useCoach({ mode, targets, octaveStrict, inst }) {
   const [listening, setListening] = useState(false);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null); // { results, cursor, accuracy, done, missed, lastHeard }
@@ -21,6 +21,7 @@ export function useCoach({ mode, targets, octaveStrict }) {
   const pitched = targets.filter((t) => !t.muted).map((t) => t.midi);
   const minF = pitched.length ? midiToFreq(Math.min(...pitched) - 3) : 80;
   const maxF = pitched.length ? midiToFreq(Math.max(...pitched) + 3) : 1500;
+  const detect = inst === "accordion" ? detectPitchSpectral : detectPitchDetailed;
 
   const grade = () => (mode === "arpeggio" ? gradeArpeggio(targets, events.current) : gradeLine(targets, events.current, { octaveStrict }));
 
@@ -31,7 +32,7 @@ export function useCoach({ mode, targets, octaveStrict }) {
     const a = analyser.current;
     if (!a || !ac.current) return;
     a.getFloatTimeDomainData(buf.current);
-    const { freq, clarity } = detectPitchDetailed(buf.current, ac.current.sampleRate, { minF, maxF });
+    const { freq, clarity } = detect(buf.current, ac.current.sampleRate, { minF, maxF });
     const ev = streamer.current.push({ freq, clarity, level: rms(buf.current), t: performance.now() });
     if (ev) { events.current = [...events.current, ev]; setResult(grade()); }
     raf.current = requestAnimationFrame(loop);

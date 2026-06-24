@@ -15,7 +15,7 @@ export default function CoachPanel({ item, lesson, sessions = [], onLog }) {
   const mode = base.mode;
   const targets = useMemo(() => (mode === "arpeggio" && dir === "down" ? [...base.targets].reverse() : base.targets), [base, mode, dir]);
   const octaveStrict = mode === "arpeggio" || item.inst === "piano";
-  const coach = useCoach({ mode, targets, octaveStrict });
+  const coach = useCoach({ mode, targets, octaveStrict, inst: item.inst });
   const r = coach.result;
 
   // Launch a run only after `dir` (hence `targets`) has settled, so a reversed
