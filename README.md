@@ -24,7 +24,7 @@ browser.
 - **Built to be usable.** Keyboard focus rings, ARIA on the custom toggles and controls, Escape to close any sheet, and screen-reader labels on the tuner and streak.
 - **Yours, offline.** No account or server — history lives in your browser, with JSON export/import to move it between devices.
 
-> The audio tools (metronome and the mic tuner/listener) are best verified on a real device with working audio in/out. Pitch detection is reliable for single, clearly-sounding notes; chords and accordion reeds are not. See **Listener notes** below.
+> The audio tools (metronome and the mic tuner/listener) are best verified on a real device with working audio in/out. Pitch detection is reliable for single, clearly-sounding notes; chords and accordion reeds are not (the pitch coach grades accordion with a dedicated spectral detector). See **Listener notes** below.
 
 ---
 

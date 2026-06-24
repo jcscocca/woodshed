@@ -488,7 +488,7 @@ function ListenSheet({ onClose, onTempo }) {
           <div className="ws-listen-err">{l.error}</div>
         ) : !l.listening ? (
           <div className="ws-listen-intro">
-            <p>Uses your microphone to show pitch and estimate tempo. It works best on single, clearly-sounding notes — tuning a string, or a monophonic line. Chords and accordion reeds are unreliable.</p>
+            <p>Uses your microphone to show pitch and estimate tempo. It works best on single, clearly-sounding notes — tuning a string, or a monophonic line. Chords and accordion reeds are unreliable here — the pitch coach uses a dedicated spectral detector for accordion.</p>
             <button className="ws-btn primary" onClick={l.start}>Start listening</button>
           </div>
         ) : (
