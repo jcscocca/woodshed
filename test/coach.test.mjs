@@ -148,4 +148,16 @@ test("progressionProposals: low coached accuracy withholds the level-up", () => 
   assert.equal(progressionProposals(items, easyNone).filter((p) => p.kind === "level-up").length, 1);
 });
 
+import { fft } from "../src/audio/dsp.js";
+
+test("fft: a pure cosine peaks at its bin", () => {
+  const N = 64, k = 8;
+  const re = new Float64Array(N), im = new Float64Array(N);
+  for (let n = 0; n < N; n++) re[n] = Math.cos(2 * Math.PI * k * n / N);
+  fft(re, im);
+  let maxBin = 0, maxMag = 0;
+  for (let b = 0; b < N / 2; b++) { const m = Math.hypot(re[b], im[b]); if (m > maxMag) { maxMag = m; maxBin = b; } }
+  assert.equal(maxBin, k);
+});
+
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });
