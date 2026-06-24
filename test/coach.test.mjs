@@ -194,4 +194,18 @@ test("detectPitchSpectral: silence returns -1", () => {
   assert.equal(detectPitchSpectral(new Float32Array(2048), SRX).freq, -1);
 });
 
+import { evenness } from "../src/coach.js";
+
+const tsEvents = (ts) => ts.map((t) => ({ tStart: t }));
+
+test("evenness: regular spacing => even", () => {
+  assert.equal(evenness(tsEvents([0, 200, 400, 600, 800])).band, "even");
+});
+test("evenness: jittery spacing => uneven", () => {
+  assert.equal(evenness(tsEvents([0, 90, 500, 560, 1300])).band, "uneven");
+});
+test("evenness: fewer than 3 gaps => null", () => {
+  assert.equal(evenness(tsEvents([0, 200, 400])), null);
+});
+
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });

@@ -452,3 +452,4 @@ body{
 .ws-log-acc { font-size: 11px; color: #7fc4bc; margin-top: 4px; }
 .ws-coach-start { text-align: center; }
 .ws-coach-trouble { font-size: 11px; color: var(--muted); margin-bottom: 8px; text-align: center; }
+.ws-coach-timing { font-size: 11px; color: var(--muted2); margin-bottom: 8px; }

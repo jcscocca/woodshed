@@ -73,6 +73,7 @@ export default function CoachPanel({ item, lesson, sessions = [], onLog }) {
           <div className="ws-coach-band">{band}</div>
           <div className="ws-coach-score mono"><b>{r.results.filter((x) => x.status === "caught").length}</b> / {targets.filter((t) => !t.muted).length} clean</div>
           {r.missed.length > 0 && <div className="ws-coach-missed">to revisit: {r.missed.join(", ")}</div>}
+          {r.timing && <div className="ws-coach-timing mono">timing: {r.timing.band} · rough</div>}
           <div className="ws-coach-actions">
             <button className="ws-btn ghost sm" onClick={() => launch("up")}>↻ Try again</button>
             {mode === "arpeggio" && dir === "up" && r.done && (
