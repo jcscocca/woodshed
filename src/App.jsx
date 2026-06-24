@@ -11,6 +11,7 @@ import {
 import { loadState, saveState, migrate } from "./storage.js";
 import { useMetronome } from "./useMetronome.js";
 import { useListener } from "./useListener.js";
+import { useDialog } from "./useDialog.js";
 
 // Resource links are user-entered and ride along in exported/imported backups,
 // so treat them as untrusted. Only http(s) URLs ever reach an href — a
@@ -289,14 +290,6 @@ export default function Woodshed() {
 }
 
 /* ----------------------- shell ----------------------- */
-function useEscape(onClose) {
-  useEffect(() => {
-    const h = (e) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", h);
-    return () => window.removeEventListener("keydown", h);
-  }, [onClose]);
-}
-
 function Shell({ children }) {
   return <div className="ws-root"><div className="ws-col">{children}</div></div>;
 }
@@ -417,13 +410,13 @@ function PracticeSheet({ onClose, onTempo, onOpenListen }) {
   useEffect(() => { if (m.playing && onTempo) onTempo(m.bpm); }, [m.playing, m.bpm, onTempo]);
 
   const close = () => { m.stop(); onClose(); };
-  useEscape(close);
+  const dlgRef = useDialog(close);
   const mm = String(Math.floor(sec / 60)).padStart(2, "0");
   const ss = String(sec % 60).padStart(2, "0");
 
   return (
     <div className="ws-sheet-wrap ws-practice-wrap">
-      <div className="ws-sheet ws-practice" onClick={(e) => e.stopPropagation()}>
+      <div className="ws-sheet ws-practice" onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label="Practice tools" tabIndex={-1}>
         <div className="ws-sheet-grip" />
         <div className="ws-practice-head">
           <h2 className="ws-sheet-title" style={{ margin: 0 }}>Practice</h2>
@@ -477,14 +470,14 @@ function PracticeSheet({ onClose, onTempo, onOpenListen }) {
 function ListenSheet({ onClose, onTempo }) {
   const l = useListener();
   const close = () => { l.stop(); onClose(); };
-  useEscape(close);
+  const dlgRef = useDialog(close);
   const cents = l.note?.cents ?? 0;
   const clamped = Math.max(-50, Math.min(50, cents));
   const inTune = l.note && Math.abs(cents) <= 5;
 
   return (
     <div className="ws-sheet-wrap ws-practice-wrap">
-      <div className="ws-sheet ws-practice" onClick={(e) => e.stopPropagation()}>
+      <div className="ws-sheet ws-practice" onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label="Tuner and listener" tabIndex={-1}>
         <div className="ws-sheet-grip" />
         <div className="ws-practice-head">
           <h2 className="ws-sheet-title" style={{ margin: 0 }}>Tuner &amp; listener <span className="ws-beta">beta</span></h2>
@@ -539,14 +532,14 @@ function LogSheet({ session, itemById, lastTempo, coachResults = {}, onCancel, o
   });
   const [entries, setEntries] = useState(init);
   const [note, setNote] = useState("");
-  useEscape(onCancel);
+  const dlgRef = useDialog(onCancel);
 
   const patch = (i, p) => setEntries((e) => e.map((row, idx) => (idx === i ? { ...row, ...p } : row)));
   const anyDone = entries.some((e) => e.done);
 
   return (
     <div className="ws-sheet-wrap" onClick={onCancel}>
-      <div className="ws-sheet" onClick={(e) => e.stopPropagation()}>
+      <div className="ws-sheet" onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label="Log your session" tabIndex={-1}>
         <div className="ws-sheet-grip" />
         <h2 className="ws-sheet-title">How'd it go?</h2>
         <p className="ws-sheet-sub">Marking things <em>too easy</em> or <em>tough</em> tunes what comes next.</p>
@@ -607,7 +600,7 @@ function LogSheet({ session, itemById, lastTempo, coachResults = {}, onCancel, o
 
 /* ----------------------- progression proposals ----------------------- */
 function ProposalSheet({ proposals, onAccept, onDismiss, onClose }) {
-  useEscape(onClose);
+  const dlgRef = useDialog(onClose);
   const changeLabel = (p) =>
     p.kind === "level-up" ? `Level ${p.from} → ${p.to}`
     : p.kind === "ease" ? `Ease to level ${p.to}`
@@ -616,7 +609,7 @@ function ProposalSheet({ proposals, onAccept, onDismiss, onClose }) {
   const btnLabel = (p) => (p.kind === "graduate" ? "Rotate out" : p.kind === "advance" ? "Advance" : "Apply");
   return (
     <div className="ws-sheet-wrap" onClick={onClose}>
-      <div className="ws-sheet" onClick={(e) => e.stopPropagation()}>
+      <div className="ws-sheet" onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label="Practice suggestions" tabIndex={-1}>
         <div className="ws-sheet-grip" />
         <h2 className="ws-sheet-title">From your practice</h2>
         <p className="ws-sheet-sub">Suggestions based on what you've logged. Nothing changes unless you say so.</p>
@@ -972,10 +965,10 @@ function SessionEdit({ session, itemById, onSave, onDelete, onClose }) {
   const it = itemById(session.itemId);
   const [minutes, setMinutes] = useState(session.minutes);
   const [rating, setRating] = useState(session.rating);
-  useEscape(onClose);
+  const dlgRef = useDialog(onClose);
   return (
     <div className="ws-sheet-wrap" onClick={onClose}>
-      <div className="ws-sheet" onClick={(e) => e.stopPropagation()}>
+      <div className="ws-sheet" onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label="Edit session" tabIndex={-1}>
         <div className="ws-sheet-grip" />
         <h2 className="ws-sheet-title">Edit session</h2>
         <p className="ws-sheet-sub">{it ? it.title : "Deleted exercise"} · {prettyAgo(session.date, todayStr())}</p>
@@ -1009,7 +1002,7 @@ function Settings({ settings, onChange, onToggle, onReset, onClose, onExport, on
   const [confirm, setConfirm] = useState(false);
   const [msg, setMsg] = useState("");
   const [, force] = useState(0);
-  useEscape(onClose);
+  const dlgRef = useDialog(onClose);
   const lengths = [10, 15, 20, 30, 45];
   const goals = [3, 4, 5, 6, 7];
   const rem = settings.reminder || { enabled: false, time: "18:00" };
@@ -1041,7 +1034,7 @@ function Settings({ settings, onChange, onToggle, onReset, onClose, onExport, on
 
   return (
     <div className="ws-sheet-wrap" onClick={onClose}>
-      <div className="ws-sheet" onClick={(e) => e.stopPropagation()}>
+      <div className="ws-sheet" onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label="Settings" tabIndex={-1}>
         <div className="ws-sheet-grip" />
         <h2 className="ws-sheet-title">Settings</h2>
 
@@ -1137,7 +1130,7 @@ function ItemForm({ initial, sessions = [], hidden, onSave, onDelete, onToggleHi
   );
   const set = (p) => setF((s) => ({ ...s, ...p }));
   const valid = f.title.trim().length > 0;
-  useEscape(onClose);
+  const dlgRef = useDialog(onClose);
   const buildSave = () => {
     const url = normalizeUrl(f.linkUrl);
     return {
@@ -1149,7 +1142,7 @@ function ItemForm({ initial, sessions = [], hidden, onSave, onDelete, onToggleHi
 
   return (
     <div className="ws-sheet-wrap" onClick={onClose}>
-      <div className="ws-sheet" onClick={(e) => e.stopPropagation()}>
+      <div className="ws-sheet" onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label="Exercise editor" tabIndex={-1}>
         <div className="ws-sheet-grip" />
         <h2 className="ws-sheet-title">{editing ? "Edit exercise" : "Add to library"}</h2>
         {editing && getLesson(initial.id) && (

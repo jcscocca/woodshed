@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useDialog } from "./useDialog.js";
 import { getLesson } from "./lessons/index.js";
 import { shapeToVoices } from "./audio/notes.js";
 import { playChords, playSequence, playClick, stop } from "./lessonAudio.js";
@@ -20,13 +21,9 @@ function ShapeView({ shape }) {
 
 export default function LessonSheet({ item, href, onClose, sessions = [], onCoachResult, onRequestLog }) {
   const lesson = getLesson(item.id);
+  const dlgRef = useDialog(onClose);
   const [playing, setPlaying] = useState(false);
   const timer = useRef(null);
-  useEffect(() => {
-    const h = (e) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", h);
-    return () => window.removeEventListener("keydown", h);
-  }, [onClose]);
   // Tear down audio only on unmount, not on every parent re-render — onClose's
   // identity changes each render, and stopping there would cut a demo mid-play.
   useEffect(() => () => { clearTimeout(timer.current); stop(); }, []);
@@ -47,7 +44,7 @@ export default function LessonSheet({ item, href, onClose, sessions = [], onCoac
 
   return (
     <div className="ws-sheet-wrap" onClick={onClose}>
-      <div className="ws-sheet ws-lesson" onClick={(e) => e.stopPropagation()}>
+      <div className="ws-sheet ws-lesson" onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label="Lesson" tabIndex={-1}>
         <div className="ws-sheet-grip" />
         <div className="ws-lesson-tags">
           <span className="ws-inst-tag" style={{ color: inst ? inst.color : "var(--gold)" }}>{inst ? inst.name : item.inst}</span>
