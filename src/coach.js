@@ -75,6 +75,21 @@ export function gradeLine(targets, events, { octaveStrict = false } = {}) {
   };
 }
 
+// Soft, tempo-independent timing read: the coefficient of variation of the gaps
+// between confirmed notes. Needs >= 3 gaps (4 notes). Deliberately forgiving —
+// a nudge in the summary, never scored. Returns { band, cv } or null.
+export function evenness(events) {
+  if (events.length < 4) return null;
+  const iois = [];
+  for (let i = 1; i < events.length; i++) iois.push(events[i].tStart - events[i - 1].tStart);
+  if (iois.some((g) => g <= 0)) return null; // assumes monotonic tStart (note stream guarantees it)
+  const mean = iois.reduce((a, b) => a + b, 0) / iois.length;
+  if (mean <= 0) return null;
+  const variance = iois.reduce((a, b) => a + (b - mean) ** 2, 0) / iois.length;
+  const cv = Math.sqrt(variance) / mean;
+  return { band: cv <= 0.2 ? "even" : "uneven", cv };
+}
+
 // Step-gated, octave-aware grading for an arpeggiated chord. Events arrive in
 // play order (low->high), as the live stream produces them. A pitched string is
 // "caught" when its exact note rings; a string whose note never rings while a

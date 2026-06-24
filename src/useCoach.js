@@ -1,14 +1,14 @@
 import { useRef, useState, useCallback, useEffect } from "react";
-import { detectPitchDetailed, rms } from "./audio/dsp.js";
+import { detectPitchDetailed, detectPitchSpectral, rms } from "./audio/dsp.js";
 import { midiToFreq } from "./audio/notes.js";
-import { createNoteStream, gradeLine, gradeArpeggio } from "./coach.js";
+import { createNoteStream, gradeLine, gradeArpeggio, evenness } from "./coach.js";
 
 // Mic listener for coaching: a thin shell (getUserMedia + rAF) around the pure
 // coach core. Given an exercise's { mode, targets } and octave policy, it grades
 // live and exposes the running result. Same honest scope as the tuner: one clear
 // note at a time. Detection is clamped to the exercise's pitch span (cheap, and
 // it keeps out-of-range octave artifacts from registering).
-export function useCoach({ mode, targets, octaveStrict }) {
+export function useCoach({ mode, targets, octaveStrict, inst }) {
   const [listening, setListening] = useState(false);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null); // { results, cursor, accuracy, done, missed, lastHeard }
@@ -21,25 +21,28 @@ export function useCoach({ mode, targets, octaveStrict }) {
   const pitched = targets.filter((t) => !t.muted).map((t) => t.midi);
   const minF = pitched.length ? midiToFreq(Math.min(...pitched) - 3) : 80;
   const maxF = pitched.length ? midiToFreq(Math.max(...pitched) + 3) : 1500;
+  const detect = inst === "accordion" ? detectPitchSpectral : detectPitchDetailed;
 
   const grade = () => (mode === "arpeggio" ? gradeArpeggio(targets, events.current) : gradeLine(targets, events.current, { octaveStrict }));
+  // timing (evenness) rides along on every result; CoachPanel only shows it in the summary.
+  const compute = () => ({ ...grade(), timing: evenness(events.current) });
 
-  // loop captures minF/maxF/grade from the render that called start(); safe
+  // loop captures minF/maxF/compute from the render that called start(); safe
   // because targets only change via launch() in CoachPanel, which requires
   // !listening — so the rAF is always torn down before targets change.
   const loop = () => {
     const a = analyser.current;
     if (!a || !ac.current) return;
     a.getFloatTimeDomainData(buf.current);
-    const { freq, clarity } = detectPitchDetailed(buf.current, ac.current.sampleRate, { minF, maxF });
+    const { freq, clarity } = detect(buf.current, ac.current.sampleRate, { minF, maxF });
     const ev = streamer.current.push({ freq, clarity, level: rms(buf.current), t: performance.now() });
-    if (ev) { events.current = [...events.current, ev]; setResult(grade()); }
+    if (ev) { events.current = [...events.current, ev]; setResult(compute()); }
     raf.current = requestAnimationFrame(loop);
   };
 
   const start = useCallback(async () => {
     if (listening) return; // never open a second mic stream
-    setError(null); events.current = []; setResult(grade());
+    setError(null); events.current = []; setResult(compute());
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { setError("This browser doesn't support microphone access."); return; }
     try {
       stream.current = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
@@ -64,9 +67,9 @@ export function useCoach({ mode, targets, octaveStrict }) {
     analyser.current = null; ac.current = null; stream.current = null;
   };
   const stop = useCallback(() => { teardown(); setListening(false); }, []);
-  const reset = useCallback(() => { events.current = []; setResult(grade()); }, [mode, targets, octaveStrict]);
+  const reset = useCallback(() => { events.current = []; setResult(compute()); }, [mode, targets, octaveStrict]);
 
   useEffect(() => () => teardown(), []);
 
-  return { listening, error, result: result || grade(), start, stop, reset };
+  return { listening, error, result: result || compute(), start, stop, reset };
 }

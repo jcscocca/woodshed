@@ -15,7 +15,7 @@ export default function CoachPanel({ item, lesson, sessions = [], onLog }) {
   const mode = base.mode;
   const targets = useMemo(() => (mode === "arpeggio" && dir === "down" ? [...base.targets].reverse() : base.targets), [base, mode, dir]);
   const octaveStrict = mode === "arpeggio" || item.inst === "piano";
-  const coach = useCoach({ mode, targets, octaveStrict });
+  const coach = useCoach({ mode, targets, octaveStrict, inst: item.inst });
   const r = coach.result;
 
   // Launch a run only after `dir` (hence `targets`) has settled, so a reversed
@@ -73,6 +73,7 @@ export default function CoachPanel({ item, lesson, sessions = [], onLog }) {
           <div className="ws-coach-band">{band}</div>
           <div className="ws-coach-score mono"><b>{r.results.filter((x) => x.status === "caught").length}</b> / {targets.filter((t) => !t.muted).length} clean</div>
           {r.missed.length > 0 && <div className="ws-coach-missed">to revisit: {r.missed.join(", ")}</div>}
+          {r.timing && <div className="ws-coach-timing mono">timing: {r.timing.band} · rough</div>}
           <div className="ws-coach-actions">
             <button className="ws-btn ghost sm" onClick={() => launch("up")}>↻ Try again</button>
             {mode === "arpeggio" && dir === "up" && r.done && (

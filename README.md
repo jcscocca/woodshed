@@ -24,7 +24,7 @@ browser.
 - **Built to be usable.** Keyboard focus rings, ARIA on the custom toggles and controls, Escape to close any sheet, and screen-reader labels on the tuner and streak.
 - **Yours, offline.** No account or server — history lives in your browser, with JSON export/import to move it between devices.
 
-> The audio tools (metronome and the mic tuner/listener) are best verified on a real device with working audio in/out. Pitch detection is reliable for single, clearly-sounding notes; chords and accordion reeds are not. See **Listener notes** below.
+> The audio tools (metronome and the mic tuner/listener) are best verified on a real device with working audio in/out. Pitch detection is reliable for single, clearly-sounding notes; chords and accordion reeds are not (the pitch coach grades accordion with a dedicated spectral detector). See **Listener notes** below.
 
 ---
 
@@ -147,9 +147,15 @@ What it **can** grade: one clearly-sounding note at a time — scales, melodic
 lines, and chords checked one string at a time. Octave matters on piano (it'll
 tell you "right note, wrong octave"); on guitar and bass it's octave-forgiving.
 
+It now also reads **timing evenness** (a soft "even / a little uneven" note in the
+summary — never scored) and coaches **accordion**: a spectral (FFT) detector finds
+the center pitch of musette's detuned multi-reed sound where the plain tuner can't.
+Accordion is the newest, least battle-tested path — validated on synthetic
+multi-reed signals and best confirmed on your own instrument.
+
 What it **can't**, by design: chords as strummed (it asks you to arpeggiate
-instead), accordion (the reeds don't detect cleanly), and timing — v1 grades the
-notes, not the tempo. Like the tuner, it's best verified on a real device.
+instead) and absolute tempo (it grades the notes and their evenness, not BPM).
+Like the tuner, it's best verified on a real device.
 
 ### Reminders
 
@@ -187,7 +193,9 @@ else is treated as a drill.
 
 A few items from the original design audit are now built: the forgiving streak with a weekly goal, the daily reminder (with the open-app caveat above), and an accessibility pass (focus rings, ARIA on the custom controls, screen-reader labels on the tuner, and Escape-to-close on every sheet). The one accessibility refinement still open is full `role="dialog"` semantics and focus-trapping on the modal sheets.
 
-The **pitch coach** is now in, too: tap *Coach me* in a lesson to grade single-note lines and arpeggiated chords against the notes the lesson already knows (see *The pitch coach* above). Deferred extensions, in rough order: a soft timing read (the onset detector is too coarse for fast lines today), accordion support, and moving the per-frame DSP to a Web Worker if a phone ever lags — it stays on the main thread now via an exercise-aware narrowed pitch search.
+The **pitch coach** is now in, too: tap *Coach me* in a lesson to grade single-note lines and arpeggiated chords against the notes the lesson already knows (see *The pitch coach* above). Deferred now: moving the per-frame DSP to a Web Worker if a phone ever lags (it
+stays on the main thread today via an exercise-aware narrowed pitch search).
+Timing evenness and accordion (musette) detection are now in.
 
 The bigger piece still open is a **local-model upgrade**: instead of drawing from a fixed library, point the app at an LM Studio endpoint to generate fresh exercises on demand and read your session notes for feedback. `generateSession` in `src/engine.js` is the swap point; the rules engine stays as the offline fallback.
 

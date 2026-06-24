@@ -69,6 +69,6 @@ export const shapeToTargets = (shape) => {
   throw new Error(`Unknown shape kind: ${shape.kind}`);
 };
 
-// Can a coach grade this exercise? Needs a shape and a single-note-capable
-// instrument. Accordion is out (reeds detect poorly); chords are in via arpeggio.
-export const isCoachable = (item, lesson) => !!(lesson && lesson.shape && item && item.inst !== "accordion");
+// Coachable = has a shape (single-note line or chord->arpeggio). Accordion is in
+// now too — useCoach routes it to the spectral detector (see useCoach.js).
+export const isCoachable = (item, lesson) => !!(lesson && lesson.shape && item);
