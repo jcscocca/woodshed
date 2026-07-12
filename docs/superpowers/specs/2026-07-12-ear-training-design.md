@@ -39,14 +39,14 @@ path and feeds the same progression gating.
 | Hidden targets | During an attempt the target notes are **never shown** — blank pips with status color only. Names appear at reveal. The CoachPanel "looking for X" hint is likewise omitted in ear mode (it would name the answer); only "hearing X" shows. |
 | Timing / evenness | **Not read.** Ear training tests recall, not rhythm; phrases are ≤ 6 notes anyway (evenness needs ≥ 4 confirmed notes to say anything). |
 | Grading core | **`gradeLine` unchanged.** Ear rounds feed it ordinary `{ midi, label }` targets. |
-| Existing users | New seed items arrive via an **additive storage migration (v4 → v5)** — append-by-id, run once, never touches logs. |
+| Existing users | New seed items ride the **existing `mergeContent` path** — `src/engine.js` already appends missing default content by id on every load (it's how new track stages reach existing users). No migration, no schema bump. |
 
 ## Delivery boundary
 
 **In scope:** phrase generator + round machine (pure, tested); `EarPanel` UI in
 the lesson sheet; ear exercises in the seed for all four instruments with
-hand-authored lesson entries; the v5 migration; logging through the existing
-coached-accuracy handoff; README updates.
+hand-authored lesson entries; logging through the existing coached-accuracy
+handoff; README updates.
 
 **Deferred / non-goals:** a standalone free-practice ear tool; ear stages in
 skill tracks; ear support for user-added custom exercises (they have no lesson
@@ -149,32 +149,25 @@ In `LessonSheet.jsx`:
   The existing `pno-ear` transcription card stays as-is — self-directed
   transcription is a different (worthwhile) activity.
 - Each new item gets a lesson entry in new `src/lessons/ear.js` (merged in
-  `lessons/index.js`): the usual `summary` / `steps` / `watch`, **no `shape`**,
-  plus the `ear` config block `{ range, keys, bpm, rounds }` with per-instrument
-  ranges (e.g. bass sits low, piano centered).
+  `lessons/index.js`): the usual `summary` / `steps` / `watch`, a `prescribe`
+  line (the lesson schema requires shape *or* prescription, and it reads well
+  in the sheet), **no `shape`**, plus the `ear` config block
+  `{ range, keys, bpm, rounds }` with per-instrument ranges (e.g. bass sits
+  low, piano centered).
 
-### 6. Storage migration (v4 → v5)
+### 6. Reaching existing installs — no migration
 
-`SCHEMA_VERSION` (in `engine.js`) bumps to 5. In `migrate()`, before the final
-version stamp:
-
-```js
-if ((s.version || 1) < 5) {
-  const have = new Set(s.items.map((i) => i.id));
-  for (const it of EAR_SEED) if (!have.has(it.id)) s.items.push({ hidden: false, ...it });
-}
-```
-
-- `EAR_SEED` is exported from `seed.js` (the same objects are also in `SEED`
-  for fresh installs).
-- Version-gated so it runs once: a user who later hides or removes an ear
-  exercise never has it silently reappear.
-- Append-only against the item list; sessions, settings, and progress are
-  untouched. Exported v4 JSON imports cleanly (import runs `migrate` too).
+`mergeContent` (`src/engine.js`) already appends any default content missing
+from a saved library, by id, on every load — it's how newly added track stages
+reach existing users. The ear exercises simply join `SEED` and ride it: no
+schema bump, no `storage.js` change, nothing to run once. A user who *hides*
+an ear exercise keeps it hidden — the item is still present, so nothing
+re-appends. (An earlier draft specified a v4 → v5 append migration; it was
+redundant with this existing mechanism and is dropped.)
 
 ### 7. Engine
 
-No changes beyond the `SCHEMA_VERSION` constant. Ear exercises are ordinary
+No changes at all. Ear exercises are ordinary
 library items: the scheduler rotates them by the same overdue/difficulty
 logic, and accuracy gating already reads coached log entries.
 
@@ -198,6 +191,9 @@ New `test/ear.test.mjs`, wired into `npm test` as `test:ear`:
 - **Round machine:** a full scripted session (begin → prompt → listen →
   reveal → … → done); replay budget enforcement per diff; summary math
   (round-mean accuracy, missed aggregation).
+- **Lesson schema:** `test/lessons.test.mjs` gains an ear-config check (range
+  spans ≥ an octave so P8 prompts fit, keys the generator knows, sane
+  rounds/bpm, shapeless-with-prescribe).
 - **Grading:** no new tests — `gradeLine` is untouched and already covered by
   `test/coach.test.mjs`.
 
@@ -209,6 +205,6 @@ this repo).
 - The coach section gains an ear-training paragraph: what a session looks
   like, the help ladder, octave-forgiving grading, hidden-targets honesty.
 - The "ear" type moves from implicitly unsupported to supported.
-- The seed-editing note gains a line: these particular items also reach
-  existing installs via the v5 migration (the general "seed edits need a
-  reset" caveat still holds for hand edits).
+- The seed-editing note gains a line: newly *added* default items (like these)
+  reach existing installs automatically via the content merge; the "seed edits
+  need a reset" caveat only applies to edits of existing items.
