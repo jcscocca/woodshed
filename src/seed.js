@@ -70,6 +70,16 @@ export const SEED = [
   { id: "acc-both",    inst: "accordion", title: "Coordinate both hands",      type: "song",      diff: 3, min: 10, desc: "Simple song: melody right, oom-pah left. Hands separate first, then together." },
   { id: "acc-scales",  inst: "accordion", title: "Right-hand scales",          type: "technique", diff: 2, min: 5,  desc: "A major scale on the keyboard side; keep the bellows even the whole way." },
   { id: "acc-folk",    inst: "accordion", title: "Learn a folk tune",          type: "song",      diff: 3, min: 10, desc: "A short folk melody with simple left-hand accompaniment, phrase by phrase." },
+
+  // ---------- EAR TRAINING (echo rounds — graded; see src/ear.js) ----------
+  { id: "pno-ear-int", inst: "piano",     title: "Echo: intervals",     type: "ear", diff: 1, min: 6, desc: "The app plays two notes; find them and play them back. Your ear learns the distances first." },
+  { id: "pno-ear-phr", inst: "piano",     title: "Echo: short phrases", type: "ear", diff: 3, min: 8, desc: "Hear a short melody and play it back by ear. Phrases grow as you level up." },
+  { id: "gtr-ear-int", inst: "guitar",    title: "Echo: intervals",     type: "ear", diff: 1, min: 6, desc: "Two notes from the app; echo them on one string or across strings — any octave counts." },
+  { id: "gtr-ear-phr", inst: "guitar",    title: "Echo: short phrases", type: "ear", diff: 3, min: 8, desc: "Play back a short melodic phrase by ear. Sing it first if it helps — it does." },
+  { id: "bs-ear-int",  inst: "bass",      title: "Echo: intervals",     type: "ear", diff: 1, min: 6, desc: "Echo two notes by ear. Interval recognition is half of learning lines off records." },
+  { id: "bs-ear-phr",  inst: "bass",      title: "Echo: short phrases", type: "ear", diff: 3, min: 8, desc: "Short phrases to catch and play back — the transcription muscle, one lick at a time." },
+  { id: "acc-ear-int", inst: "accordion", title: "Echo: intervals",     type: "ear", diff: 1, min: 6, desc: "Two notes on the right hand; play them back. Any octave counts." },
+  { id: "acc-ear-phr", inst: "accordion", title: "Echo: short phrases", type: "ear", diff: 3, min: 8, desc: "Echo short right-hand phrases by ear, one round at a time." },
 ];
 
 // ============================================================

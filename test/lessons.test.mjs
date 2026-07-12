@@ -88,4 +88,24 @@ test("every shaped lesson produces audible voices", () => {
   }
 });
 
+// --- ear lessons: generator config schema ---
+
+import { KEY_ROOT } from "../src/ear.js";
+
+test("ear lessons exist for all four instruments and carry a valid generator config", () => {
+  const earLessons = Object.entries(LESSONS).filter(([, L]) => L.ear);
+  assert.equal(earLessons.length, 8, `expected 2 ear lessons x 4 instruments, got ${earLessons.length}`);
+  for (const [id, L] of earLessons) {
+    const { range, keys, bpm, rounds } = L.ear;
+    assert.ok(Array.isArray(range) && range.length === 2, `${id}: ear.range must be [lo, hi]`);
+    const [lo, hi] = range;
+    assert.ok(Number.isInteger(lo) && Number.isInteger(hi) && hi - lo >= 12, `${id}: range must span >= an octave so P8 prompts fit`);
+    assert.ok(Array.isArray(keys) && keys.length >= 1 && keys.every((k) => k in KEY_ROOT), `${id}: keys must be roots the generator knows`);
+    assert.ok(Number.isInteger(rounds) && rounds >= 1, `${id}: bad rounds`);
+    assert.ok(Number.isInteger(bpm) && bpm >= 40 && bpm <= 200, `${id}: bpm out of range`);
+    assert.ok(!L.shape, `${id}: ear lessons are shapeless — the phrase is generated`);
+    assert.ok(L.prescribe, `${id}: needs a prescribe line (schema requires shape or prescription)`);
+  }
+});
+
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });
