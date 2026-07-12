@@ -153,6 +153,14 @@ the center pitch of musette's detuned multi-reed sound where the plain tuner can
 Accordion is the newest, least battle-tested path — validated on synthetic
 multi-reed signals and best confirmed on your own instrument.
 
+It also **trains your ear**: the *Echo* exercises (all four instruments) play a
+short prompt — two notes at first, longer in-key phrases as you level up — and
+coach you as you play it back. The targets stay hidden until each round's
+reveal; a "starts on" hint and free replays taper off at higher difficulty.
+Grading is octave-forgiving, and prompts sit where your instrument naturally
+plays. Accuracy logs like any coached run and feeds the same progression
+suggestions.
+
 What it **can't**, by design: chords as strummed (it asks you to arpeggiate
 instead) and absolute tempo (it grades the notes and their evenness, not BPM).
 Like the tuner, it's best verified on a real device.
@@ -186,6 +194,11 @@ else is treated as a drill.
 > already used the app, your library is saved in your browser. Use
 > Settings → Reset to rebuild from the updated seed (this erases your logs), or
 > add the new items through the in-app **+ Add** button.
+>
+> Newly **added** default items are different: the app merges missing default
+> content into an existing library on load (that's how new track stages — and
+> the ear-training Echo exercises — reach you without a reset). The reset
+> caveat applies to *edits* of items you already have.
 
 ---
 
@@ -195,7 +208,9 @@ A few items from the original design audit are now built: the forgiving streak w
 
 The **pitch coach** is now in, too: tap *Coach me* in a lesson to grade single-note lines and arpeggiated chords against the notes the lesson already knows (see *The pitch coach* above). Deferred now: moving the per-frame DSP to a Web Worker if a phone ever lags (it
 stays on the main thread today via an exercise-aware narrowed pitch search).
-Timing evenness and accordion (musette) detection are now in.
+Timing evenness and accordion (musette) detection are now in, and the `ear`
+exercise type is no longer aspirational — the Echo exercises grade
+call-and-response rounds through the same coach.
 
 The bigger piece still open is a **local-model upgrade**: instead of drawing from a fixed library, point the app at an LM Studio endpoint to generate fresh exercises on demand and read your session notes for feedback. `generateSession` in `src/engine.js` is the swap point; the rules engine stays as the offline fallback.
 
