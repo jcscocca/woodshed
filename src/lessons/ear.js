@@ -5,29 +5,29 @@
 // the per-instrument line and range are the only real differences.
 
 const intervals = (instLine, range) => ({
-  summary: "The app plays two notes; you play them back. Interval by interval, your ear learns the distances melodies are made of.",
-  prescribe: "5 rounds · listen, then echo · any octave counts",
+  summary: "The app plays a short prompt — two notes to start — and you play it back. Interval by interval, your ear learns the distances melodies are made of.",
+  prescribe: "5 rounds · listen, then echo · reveal after each round",
   steps: [
-    "Tap Train your ear, then Start. You'll hear two notes — the pips show how many, never which.",
+    "Tap Train your ear, then Start. You'll hear the prompt — the pips show how many notes, never which.",
     instLine,
     "Play them back in order. Pips light up as notes land; wrong guesses don't derail the round.",
-    "Stuck? Replay the prompt — free at this level. After each round the notes are revealed.",
+    "Stuck? Replay the prompt — free at low difficulty, rationed as you level up. After each round the notes are revealed.",
   ],
   watch: [
     "Sing or hum the notes before you hunt for them — the voice finds intervals faster than fingers.",
-    "Hear the distance before you play the second note; don't fish note by note.",
+    "Hear the distance before you play the next note; don't fish note by note.",
   ],
   ear: { range, keys: ["C", "G", "F"], bpm: 80, rounds: 5 },
 });
 
 const phrases = (instLine, range) => ({
   summary: "Hear a short melody, play it back by ear. The phrases lengthen and leap wider as you level up.",
-  prescribe: "5 rounds · short phrases in a key · replays are limited",
+  prescribe: "5 rounds · short phrases in a key · reveal after each round",
   steps: [
     "Tap Train your ear, then Start. A short phrase plays — count the pips.",
     instLine,
     "Echo the phrase in order. Reveal shows what it was; Next brings a fresh one.",
-    "Replays are limited here — hold the whole phrase in your head before you play.",
+    "Replays thin out as difficulty climbs — hold the whole phrase in your head before you play.",
   ],
   watch: [
     "Catch the contour first (up-up-down beats exact notes), then pin the intervals.",
@@ -42,7 +42,7 @@ export default {
   "gtr-ear-int": intervals("One string or across strings — whatever your hands find first.", [52, 71]),
   "gtr-ear-phr": phrases("Phrases sit mid-neck; stay in position and let your ear steer.", [52, 71]),
   "bs-ear-int":  intervals("Anywhere on the neck — low positions are fine.", [40, 59]),
-  "bs-ear-phr":  phrases("Phrases sit in the octave above open E — classic line territory.", [40, 59]),
+  "bs-ear-phr":  phrases("Phrases sit above open E, in classic line territory.", [40, 59]),
   "acc-ear-int": intervals("Right hand only; keep the bellows gentle and steady.", [57, 81]),
   "acc-ear-phr": phrases("Right hand only, one key at a time. Steady bellows keeps detection clean.", [57, 81]),
 };
