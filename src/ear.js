@@ -100,3 +100,54 @@ export function generateRound({ diff, ear, rng }) {
     bpm: ear.bpm || 80,
   };
 }
+
+// Replay budget per round, by item difficulty. The help ladder tightens here
+// and in the "starts on" hint (EarPanel shows it at diff <= 2) — never via octave.
+export const REPLAYS = { 1: Infinity, 2: Infinity, 3: 2, 4: 1, 5: 1 };
+
+// Session state machine: idle -> prompt -> listen -> reveal -> (prompt … | done).
+// Pure and timer-free: EarPanel drives transitions (it knows the prompt's
+// duration and owns the mic); tests drive them synchronously. Out-of-phase
+// calls are no-ops, so a stray timer can never corrupt a session.
+export function createEarSession({ diff, ear }) {
+  const total = (ear && ear.rounds) || 5;
+  const budget = REPLAYS[diff] ?? 1;
+  const s = { phase: "idle", round: 0, total, replaysLeft: budget, current: null, rounds: [] };
+  // Missed targets become interval labels ("↓m3") so trouble-spot memory reads
+  // musically; a missed opener has no previous note, hence "first note".
+  const missedLabels = (result) =>
+    result.results
+      .map((r, k) => ({ r, k }))
+      .filter(({ r }) => r.status !== "caught")
+      .map(({ k }) => (k === 0 ? "first note" : intervalLabel(s.current.targets[k - 1].midi, s.current.targets[k].midi)));
+  return {
+    get state() { return { ...s }; },
+    begin(rng) {
+      if (s.phase !== "idle") return;
+      s.phase = "prompt"; s.round = 1; s.replaysLeft = budget; s.current = generateRound({ diff, ear, rng });
+    },
+    promptEnded() { if (s.phase === "prompt") s.phase = "listen"; },
+    replay() {
+      if (s.phase !== "listen" || s.replaysLeft <= 0) return false;
+      s.replaysLeft -= 1; s.phase = "prompt"; return true;
+    },
+    roundGraded(result) {
+      if (s.phase !== "listen") return;
+      s.rounds.push({ accuracy: result.accuracy, missed: missedLabels(result) });
+      s.phase = "reveal";
+    },
+    next(rng) {
+      if (s.phase !== "reveal") return;
+      if (s.round >= s.total) { s.phase = "done"; return; }
+      s.round += 1; s.replaysLeft = budget; s.current = generateRound({ diff, ear, rng }); s.phase = "prompt";
+    },
+    summary() {
+      const n = s.rounds.length;
+      return {
+        accuracy: n ? Math.round(s.rounds.reduce((a, r) => a + r.accuracy, 0) / n) : 0,
+        missed: [...new Set(s.rounds.flatMap((r) => r.missed))],
+        rounds: s.rounds.slice(),
+      };
+    },
+  };
+}

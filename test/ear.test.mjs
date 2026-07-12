@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mulberry32, intervalLabel, generateRound } from "../src/ear.js";
+import { mulberry32, intervalLabel, generateRound, createEarSession, REPLAYS } from "../src/ear.js";
 import { midiToFreq } from "../src/audio/notes.js";
 
 let failures = 0;
@@ -98,6 +98,70 @@ test("generateRound diff 5: five-to-six notes, leaps to an octave, chromatics al
     assert.ok(r.targets.every((t) => t.midi >= 60 && t.midi <= 79), `seed ${s}: out of range`);
     for (const g of gaps(r)) assert.ok(g >= 1 && g <= 12, `seed ${s}: gap ${g} beyond an octave`);
   }
+});
+
+// gradeLine-shaped stub: only .accuracy and .results[].status are read.
+const graded = (accuracy, statuses) => ({ accuracy, results: statuses.map((st) => ({ status: st })) });
+
+test("session: idle -> prompt -> listen -> reveal -> ... -> done", () => {
+  const s = createEarSession({ diff: 1, ear: { ...EAR, rounds: 2 } });
+  assert.equal(s.state.phase, "idle");
+  s.begin(mulberry32(1));
+  assert.equal(s.state.phase, "prompt");
+  assert.equal(s.state.round, 1);
+  assert.equal(s.state.total, 2);
+  assert.equal(s.state.current.targets.length, 2);
+  s.promptEnded();
+  assert.equal(s.state.phase, "listen");
+  s.roundGraded(graded(100, ["caught", "caught"]));
+  assert.equal(s.state.phase, "reveal");
+  s.next(mulberry32(2));
+  assert.equal(s.state.phase, "prompt");
+  assert.equal(s.state.round, 2);
+  s.promptEnded();
+  s.roundGraded(graded(50, ["caught", "missed"]));
+  s.next(mulberry32(3));
+  assert.equal(s.state.phase, "done");
+});
+
+test("session: out-of-phase calls are ignored", () => {
+  const s = createEarSession({ diff: 1, ear: EAR });
+  s.promptEnded(); s.roundGraded(graded(0, [])); s.next(mulberry32(1));
+  assert.equal(s.state.phase, "idle");
+  s.begin(mulberry32(1));
+  s.roundGraded(graded(0, [])); // not listening yet
+  assert.equal(s.state.phase, "prompt");
+});
+
+test("session: replay budget — unlimited at diff 1, one at diff 5, resets per round", () => {
+  assert.equal(REPLAYS[1], Infinity);
+  const s5 = createEarSession({ diff: 5, ear: { ...EAR, rounds: 2 } });
+  s5.begin(mulberry32(1)); s5.promptEnded();
+  assert.equal(s5.replay(), true);   // back to prompt, budget spent
+  s5.promptEnded();
+  assert.equal(s5.replay(), false);  // exhausted
+  s5.roundGraded(graded(0, ["missed", "missed", "missed", "missed", "missed"]));
+  s5.next(mulberry32(2)); s5.promptEnded();
+  assert.equal(s5.replay(), true);   // fresh budget in round 2
+
+  const s1 = createEarSession({ diff: 1, ear: EAR });
+  s1.begin(mulberry32(1)); s1.promptEnded();
+  for (let i = 0; i < 10; i++) { assert.equal(s1.replay(), true); s1.promptEnded(); }
+});
+
+test("session: summary averages rounds; missed become interval labels", () => {
+  const s = createEarSession({ diff: 1, ear: { ...EAR, rounds: 2 } });
+  s.begin(mulberry32(1)); s.promptEnded();
+  s.roundGraded(graded(100, ["caught", "caught"]));
+  s.next(mulberry32(2)); s.promptEnded();
+  s.roundGraded(graded(0, ["missed", "pending"]));
+  s.next(mulberry32(3));
+  assert.equal(s.state.phase, "done");
+  const sum = s.summary();
+  assert.equal(sum.accuracy, 50);
+  assert.equal(sum.rounds.length, 2);
+  assert.ok(sum.missed.includes("first note"));
+  assert.ok(sum.missed.some((m) => /^[↑↓](m|M|P|TT)/.test(m)), `interval label expected, got ${JSON.stringify(sum.missed)}`);
 });
 
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });
