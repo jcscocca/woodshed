@@ -64,4 +64,40 @@ test("generateRound: targets, prompt, bpm, labels agree", () => {
   for (const t of r.targets) assert.match(t.label, /^[A-G]#?\d$/);
 });
 
+const MAJOR_STEPS = [0, 2, 4, 5, 7, 9, 11];
+const ROOTS = { C: 0, G: 7, F: 5 };
+const inKey = (midi, root) => MAJOR_STEPS.includes((((midi - root) % 12) + 12) % 12);
+const gaps = (r) => r.targets.slice(1).map((t, i) => Math.abs(t.midi - r.targets[i].midi));
+
+test("generateRound diff 3: three diatonic notes, steps and thirds, no repeats", () => {
+  for (let s = 0; s < 200; s++) {
+    const r = generateRound({ diff: 3, ear: EAR, rng: mulberry32(s) });
+    assert.equal(r.targets.length, 3, `seed ${s}`);
+    assert.ok(r.targets.every((t) => t.midi >= 60 && t.midi <= 79), `seed ${s}: out of range`);
+    assert.ok(Object.values(ROOTS).some((root) => r.targets.every((t) => inKey(t.midi, root))), `seed ${s}: not in any configured key`);
+    for (const g of gaps(r)) assert.ok(g >= 1 && g <= 4, `seed ${s}: gap ${g} beyond steps/thirds`);
+  }
+});
+
+test("generateRound diff 4: four-to-five notes, leaps to a sixth", () => {
+  const lens = new Set();
+  for (let s = 0; s < 200; s++) {
+    const r = generateRound({ diff: 4, ear: EAR, rng: mulberry32(s) });
+    lens.add(r.targets.length);
+    assert.ok(r.targets.length >= 4 && r.targets.length <= 5, `seed ${s}`);
+    for (const g of gaps(r)) assert.ok(g >= 1 && g <= 9, `seed ${s}: gap ${g} beyond a sixth`);
+    assert.ok(Object.values(ROOTS).some((root) => r.targets.every((t) => inKey(t.midi, root))), `seed ${s}: diff 4 stays diatonic`);
+  }
+  assert.deepEqual([...lens].sort(), [4, 5], "both lengths should occur");
+});
+
+test("generateRound diff 5: five-to-six notes, leaps to an octave, chromatics allowed", () => {
+  for (let s = 0; s < 200; s++) {
+    const r = generateRound({ diff: 5, ear: EAR, rng: mulberry32(s) });
+    assert.ok(r.targets.length >= 5 && r.targets.length <= 6, `seed ${s}`);
+    assert.ok(r.targets.every((t) => t.midi >= 60 && t.midi <= 79), `seed ${s}: out of range`);
+    for (const g of gaps(r)) assert.ok(g >= 1 && g <= 12, `seed ${s}: gap ${g} beyond an octave`);
+  }
+});
+
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });

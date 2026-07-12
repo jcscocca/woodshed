@@ -45,12 +45,55 @@ function intervalMidis(diff, lo, hi, rng) {
   return [start, up ? start + step : start - step];
 }
 
+const MAJOR = [0, 2, 4, 5, 7, 9, 11];
+export const KEY_ROOT = { C: 0, G: 7, D: 2, A: 9, E: 4, F: 5, Bb: 10, Eb: 3 };
+const PHRASE_LEN = { 3: [3, 3], 4: [4, 5], 5: [5, 6] };
+const PHRASE_REACH = { 3: 2, 4: 5, 5: 7 }; // max scale-steps per move (2≈third, 5≈sixth, 7≈octave)
+
+function scaleNotes(key, lo, hi) {
+  const root = KEY_ROOT[key];
+  const out = [];
+  for (let m = lo; m <= hi; m++) if (MAJOR.includes((((m - root) % 12) + 12) % 12)) out.push(m);
+  return out;
+}
+
+// Random walk over the scale. No repeated adjacent notes — a legato re-strike
+// of the same pitch never re-confirms in the note stream (see coach.js gapMs),
+// so repeats would be ungradeable, not just hard.
+function phraseMidis(diff, keys, lo, hi, rng) {
+  const d = Math.min(diff, 5);
+  const scale = scaleNotes(pick(keys, rng), lo, hi);
+  const [a, b] = PHRASE_LEN[d];
+  const len = a + Math.floor(rng() * (b - a + 1));
+  let i = Math.floor(rng() * scale.length);
+  const midis = [scale[i]];
+  while (midis.length < len) {
+    const reach = 1 + Math.floor(rng() * PHRASE_REACH[d]);
+    const dir = rng() < 0.5 ? -1 : 1;
+    let j = i + dir * reach;
+    if (j < 0 || j >= scale.length) j = i - dir * reach; // bounce off the range edge
+    j = Math.max(0, Math.min(scale.length - 1, j));
+    let m = scale[j];
+    const prev = midis[midis.length - 1];
+    if (d >= 5 && rng() < 0.15) {
+      const c = m + (rng() < 0.5 ? 1 : -1); // chromatic neighbor, color only
+      if (c >= lo && c <= hi && Math.abs(c - prev) <= 12 && c !== prev) m = c;
+    }
+    // A chromatically-shifted prev can push this diatonic-anchored m one
+    // semitone past the octave cap; redraw rather than let it slip through.
+    if (m === prev || Math.abs(m - prev) > 12) continue;
+    midis.push(m);
+    i = j;
+  }
+  return midis;
+}
+
 // One round: targets in gradeLine's shape, the prompt in playSequence's shape.
 // `diff` is the item's *current* difficulty, so the engine's level-up
 // suggestions walk this ladder with no ear-specific code.
 export function generateRound({ diff, ear, rng }) {
   const [lo, hi] = ear.range;
-  const midis = intervalMidis(diff, lo, hi, rng); // phrases (diff >= 3) arrive in the next task
+  const midis = diff <= 2 ? intervalMidis(diff, lo, hi, rng) : phraseMidis(diff, ear.keys, lo, hi, rng);
   return {
     targets: midis.map((m) => ({ midi: m, label: noteLabel(m) })),
     promptVoices: midis.map((m) => [midiToFreq(m)]),
