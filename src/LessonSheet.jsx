@@ -6,6 +6,7 @@ import { playChords, playSequence, playClick, stop } from "./lessonAudio.js";
 import { ChordDiagram, Keyboard, FretboardPattern } from "./diagrams.jsx";
 import { INSTRUMENTS, TYPE_LABEL } from "./seed.js";
 import CoachPanel from "./CoachPanel.jsx";
+import EarPanel from "./EarPanel.jsx";
 import { isCoachable } from "./audio/notes.js";
 
 function ShapeView({ shape }) {
@@ -64,9 +65,20 @@ export default function LessonSheet({ item, href, onClose, sessions = [], onCoac
           />
         )}
 
-        <button className={`ws-btn ${playing ? "ghost" : "primary"} sm ws-hear`} onClick={hear} aria-pressed={playing}>
-          {playing ? "■ Stop" : "▶ Hear it"}
-        </button>
+        {lesson.ear && onCoachResult && onRequestLog && (
+          <EarPanel
+            item={item}
+            lesson={lesson}
+            sessions={sessions}
+            onLog={(res) => { onCoachResult(item.id, res); onRequestLog(); }}
+          />
+        )}
+
+        {!lesson.ear && (
+          <button className={`ws-btn ${playing ? "ghost" : "primary"} sm ws-hear`} onClick={hear} aria-pressed={playing}>
+            {playing ? "■ Stop" : "▶ Hear it"}
+          </button>
+        )}
 
         {lesson.prescribe && <div className="ws-lesson-prescribe mono">{lesson.prescribe}</div>}
 
