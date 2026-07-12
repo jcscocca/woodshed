@@ -76,7 +76,7 @@ export const SEED = [
   { id: "pno-ear-phr", inst: "piano",     title: "Echo: short phrases", type: "ear", diff: 3, min: 8, desc: "Hear a short melody and play it back by ear. Phrases grow as you level up." },
   { id: "gtr-ear-int", inst: "guitar",    title: "Echo: intervals",     type: "ear", diff: 1, min: 6, desc: "Echo the app's prompt on one string or across strings — wherever your hands find it." },
   { id: "gtr-ear-phr", inst: "guitar",    title: "Echo: short phrases", type: "ear", diff: 3, min: 8, desc: "Play back a short melodic phrase by ear. Sing it first if it helps — it does." },
-  { id: "bs-ear-int",  inst: "bass",      title: "Echo: intervals",     type: "ear", diff: 1, min: 6, desc: "Echo two notes by ear. Interval recognition is half of learning lines off records." },
+  { id: "bs-ear-int",  inst: "bass",      title: "Echo: intervals",     type: "ear", diff: 1, min: 6, desc: "Echo the app's prompt by ear. Interval recognition is half of learning lines off records." },
   { id: "bs-ear-phr",  inst: "bass",      title: "Echo: short phrases", type: "ear", diff: 3, min: 8, desc: "Short phrases to catch and play back — the transcription muscle, one lick at a time." },
   { id: "acc-ear-int", inst: "accordion", title: "Echo: intervals",     type: "ear", diff: 1, min: 6, desc: "A short prompt on the right hand; play it back." },
   { id: "acc-ear-phr", inst: "accordion", title: "Echo: short phrases", type: "ear", diff: 3, min: 8, desc: "Echo short right-hand phrases by ear, one round at a time." },
