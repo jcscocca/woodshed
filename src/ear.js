@@ -26,3 +26,34 @@ export function intervalLabel(prevMidi, curMidi) {
   const name = INTERVAL_NAMES[Math.min(Math.abs(d), 12)];
   return d === 0 ? name : (d > 0 ? "↑" : "↓") + name;
 }
+
+const SMALL_INTERVALS = [2, 3, 4, 5, 7];                    // M2 m3 M3 P4 P5
+const ALL_INTERVALS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+const noteLabel = (m) => { const n = midiToNote(m); return `${n.name}${n.octave}`; };
+const pick = (arr, rng) => arr[Math.floor(rng() * arr.length)];
+
+// Two notes: draw an interval, a direction, then a start that keeps both ends
+// in range. Configs are schema-checked to span >= 12 semitones, so max never
+// dips below min.
+function intervalMidis(diff, lo, hi, rng) {
+  const step = pick(diff <= 1 ? SMALL_INTERVALS : ALL_INTERVALS, rng);
+  const up = rng() < 0.5;
+  const min = up ? lo : lo + step;
+  const max = up ? hi - step : hi;
+  const start = min + Math.floor(rng() * (max - min + 1));
+  return [start, up ? start + step : start - step];
+}
+
+// One round: targets in gradeLine's shape, the prompt in playSequence's shape.
+// `diff` is the item's *current* difficulty, so the engine's level-up
+// suggestions walk this ladder with no ear-specific code.
+export function generateRound({ diff, ear, rng }) {
+  const [lo, hi] = ear.range;
+  const midis = intervalMidis(diff, lo, hi, rng); // phrases (diff >= 3) arrive in the next task
+  return {
+    targets: midis.map((m) => ({ midi: m, label: noteLabel(m) })),
+    promptVoices: midis.map((m) => [midiToFreq(m)]),
+    bpm: ear.bpm || 80,
+  };
+}
