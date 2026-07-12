@@ -149,7 +149,7 @@ export default function EarPanel({ item, lesson, sessions = [], onLog }) {
           <div className="ws-coach-band">
             {sum.accuracy >= 90 ? "Sharp ears" : sum.accuracy >= 60 ? "Getting there — a few slipped past" : "Keep at it — ears take reps"}
           </div>
-          <div className="ws-coach-score mono"><b>{sum.accuracy}</b>% over {sum.rounds.length} rounds</div>
+          <div className="ws-coach-score mono"><b>{sum.accuracy}</b>% over {sum.rounds.length} rounds · {sum.rounds.filter((x) => x.accuracy === 100).length} clean</div>
           {sum.missed.length > 0 && <div className="ws-coach-missed">to revisit: {sum.missed.join(", ")}</div>}
           <div className="ws-coach-actions">
             <button className="ws-btn ghost sm" onClick={begin}>↻ Try again</button>
