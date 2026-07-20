@@ -76,3 +76,9 @@ export function saveOffset(ms)
 ---
 
 **Done criteria:** Stethoscope opens from the ♩ sheet, live readouts move (verifiable in a browser by the reviewer via synthesized audio only to the extent possible — real verification is Jacob playing), calibration routine runs end-to-end and persists, all tests green, zero changes to existing test results. Final message: summary + deviations (or none).
+
+---
+
+## Gate result (2026-07-19)
+
+Jacob verified **piano** live: readouts behave, passed. **Guitar, bass, and accordion were not verified** — the gate passed provisionally on piano evidence alone. Revisit the remaining instruments before final brush tuning; keep their TUNING conservative (clarity gating does the heavy lifting) until then.
