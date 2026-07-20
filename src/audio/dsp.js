@@ -247,3 +247,13 @@ export function bpmFromOnsets(times, { min = 40, max = 240 } = {}) {
   const bpm = Math.round(60000 / med);
   return bpm >= min && bpm <= max ? bpm : null;
 }
+
+// Amplitude-weighted mean frequency of an analyser's frequency bins.
+export function spectralCentroid(freqData, sampleRate, fftSize) {
+  let energy = 0, weighted = 0;
+  for (let i = 0; i < freqData.length; i++) {
+    energy += freqData[i];
+    weighted += freqData[i] * i * sampleRate / fftSize;
+  }
+  return energy ? weighted / energy : 0;
+}

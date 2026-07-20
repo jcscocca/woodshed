@@ -12,6 +12,7 @@ import { loadState, saveState, migrate } from "./storage.js";
 import { useMetronome } from "./useMetronome.js";
 import { useListener } from "./useListener.js";
 import { useDialog } from "./useDialog.js";
+import Stethoscope from "./loom/Stethoscope.jsx";
 
 // Resource links are user-entered and ride along in exported/imported backups,
 // so treat them as untrusted. Only http(s) URLs ever reach an href — a
@@ -247,7 +248,7 @@ export default function Woodshed() {
       </nav>
 
       {logging && <LogSheet session={session} itemById={itemById} lastTempo={lastTempo} coachResults={coachResults} onCancel={() => setLogging(false)} onCommit={commitLog} />}
-      {practiceOpen && <PracticeSheet onClose={() => setPracticeOpen(false)} onTempo={setLastTempo} onOpenListen={() => { setPracticeOpen(false); setListenOpen(true); }} />}
+      {practiceOpen && <PracticeSheet initialInstrument={itemById(session.items[0]?.itemId)?.inst || "piano"} onClose={() => setPracticeOpen(false)} onTempo={setLastTempo} onOpenListen={() => { setPracticeOpen(false); setListenOpen(true); }} />}
       {listenOpen && <ListenSheet onClose={() => setListenOpen(false)} onTempo={setLastTempo} />}
       {showProposals && (
         <ProposalSheet proposals={proposals} onAccept={applyProposal} onDismiss={dismissProposal} onClose={() => setShowProposals(false)} />
@@ -395,10 +396,11 @@ function Dots({ n }) {
 }
 
 /* ----------------------- practice tools (metronome + timer) ----------------------- */
-function PracticeSheet({ onClose, onTempo, onOpenListen }) {
+function PracticeSheet({ initialInstrument, onClose, onTempo, onOpenListen }) {
   const m = useMetronome(90, 4);
   const [sec, setSec] = useState(0);
   const [running, setRunning] = useState(false);
+  const [loomOpen, setLoomOpen] = useState(false);
 
   useEffect(() => {
     if (!running) return;
@@ -409,19 +411,25 @@ function PracticeSheet({ onClose, onTempo, onOpenListen }) {
   // remember the tempo while the metronome is running, to prefill the log
   useEffect(() => { if (m.playing && onTempo) onTempo(m.bpm); }, [m.playing, m.bpm, onTempo]);
 
-  const close = () => { m.stop(); onClose(); };
+  const close = () => {
+    if (loomOpen) { setLoomOpen(false); return; }
+    m.stop(); onClose();
+  };
   const dlgRef = useDialog(close);
   const mm = String(Math.floor(sec / 60)).padStart(2, "0");
   const ss = String(sec % 60).padStart(2, "0");
 
   return (
-    <div className="ws-sheet-wrap ws-practice-wrap">
-      <div className="ws-sheet ws-practice" onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label="Practice tools" tabIndex={-1}>
-        <div className="ws-sheet-grip" />
-        <div className="ws-practice-head">
-          <h2 className="ws-sheet-title" style={{ margin: 0 }}>Practice</h2>
-          <button className="ws-x" onClick={close} aria-label="Close">✕</button>
-        </div>
+    <div className={`ws-sheet-wrap ws-practice-wrap ${loomOpen ? "ws-loom-wrap" : ""}`}>
+      <div className={`ws-sheet ws-practice ${loomOpen ? "ws-loom" : ""}`} onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label={loomOpen ? "Loom stethoscope" : "Practice tools"} tabIndex={-1}>
+        {loomOpen ? (
+          <Stethoscope initialInstrument={initialInstrument} metronomePlaying={m.playing} beatTimesRef={m.beatTimesRef} onClose={() => setLoomOpen(false)} />
+        ) : (<>
+          <div className="ws-sheet-grip" />
+          <div className="ws-practice-head">
+            <h2 className="ws-sheet-title" style={{ margin: 0 }}>Practice</h2>
+            <button className="ws-x" onClick={close} aria-label="Close">✕</button>
+          </div>
 
         <div className="ws-metro">
           <div className="ws-beatdots">
@@ -458,9 +466,13 @@ function PracticeSheet({ onClose, onTempo, onOpenListen }) {
           <p className="ws-stop-note">Time your session here, then enter the minutes when you log.</p>
         </div>
 
-        <button className="ws-listen-open" onClick={() => { m.stop(); onOpenListen(); }}>
-          <span className="ws-listen-dot" /> Tuner &amp; listener <span className="ws-beta">beta</span>
-        </button>
+          <button className="ws-listen-open" onClick={() => { m.stop(); onOpenListen(); }}>
+            <span className="ws-listen-dot" /> Tuner &amp; listener <span className="ws-beta">beta</span>
+          </button>
+          <button className="ws-listen-open ws-loom-open" onClick={() => setLoomOpen(true)}>
+            <span className="ws-listen-dot" /> Loom stethoscope <span className="ws-beta">(beta)</span>
+          </button>
+        </>)}
       </div>
     </div>
   );
