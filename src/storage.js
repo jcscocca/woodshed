@@ -38,6 +38,9 @@ export function migrate(state) {
   };
   s.settings.reminder = { enabled: false, time: "18:00", ...(s.settings.reminder || {}) };
   s.sessions = Array.isArray(s.sessions) ? s.sessions : [];
+  // v4 -> v5: Loom stores only a small newest-first thumbnail history. Older
+  // state gets an empty gallery, and hand-edited/oversize state is bounded.
+  s.loomPaintings = Array.isArray(s.loomPaintings) ? s.loomPaintings.slice(0, 12) : [];
   s.progress = { acked: {}, ...(s.progress || {}) };
   if (!s.progress.acked || typeof s.progress.acked !== "object") s.progress.acked = {};
   // v3 -> v4: session entries gained optional coach fields (accuracy, coached,

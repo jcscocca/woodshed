@@ -45,6 +45,10 @@ export function xFromT(t) {
   return wrapped / 40 * CANVAS_W;
 }
 
+function xFromFrame(frame) {
+  return xFromT(frame.t) + (Number.isFinite(frame.xOffset) ? frame.xOffset : 0);
+}
+
 export function yFromMidi(midi) {
   const safeMidi = clamp(Number.isFinite(midi) ? midi : 36, 36, 96);
   return ((96 - safeMidi) / 60) * CANVAS_H;
@@ -73,12 +77,13 @@ function pianoStep(state, frame) {
   const y = sounding ? placement(frame, state.lastY) : state.lastY;
   const marks = onset ? [{
     type: "block",
-    x: xFromT(frame.t),
+    x: xFromFrame(frame),
     y,
     w: 14 + frame.level * 90,
     h: 10 + frame.level * 44,
     color: COLOR_HEX.piano,
     alpha: 0.85,
+    ...(Number.isFinite(frame.deltaMs) ? { deltaMs: frame.deltaMs } : {}),
   }] : [];
 
   return {
@@ -98,6 +103,7 @@ function ribbonMark(current) {
     widths: current.widths,
     color: COLOR_HEX.guitar,
     alpha: 0.76,
+    ...(Number.isFinite(current.deltaMs) ? { deltaMs: current.deltaMs } : {}),
   };
 }
 
@@ -117,17 +123,23 @@ function guitarStep(state, frame) {
 
   if (sounding) {
     const y = placement(frame, lastY);
-    const point = { x: xFromT(frame.t), y };
+    const point = {
+      x: xFromFrame(frame),
+      y,
+      ...(Number.isFinite(frame.deltaMs) ? { deltaMs: frame.deltaMs } : {}),
+    };
     current = current ? {
       ...current,
       lastSoundT: frame.t,
       points: [...current.points, point],
       widths: [...current.widths, 2 + frame.level * 10],
+      deltaMs: Number.isFinite(frame.deltaMs) ? frame.deltaMs : current.deltaMs,
     } : {
       startedAt: frame.t,
       lastSoundT: frame.t,
       points: [point],
       widths: [2 + frame.level * 10],
+      deltaMs: Number.isFinite(frame.deltaMs) ? frame.deltaMs : null,
     };
     lastY = y;
   }
@@ -139,7 +151,7 @@ function bassStep(state, frame) {
   const heights = Float32Array.from(state.heights, (height) => height * TUNING.bassDecay);
   if (frame.level > TUNING.floor) {
     const columnWidth = CANVAS_W / heights.length;
-    const center = clamp(Math.round(xFromT(frame.t) / columnWidth), 0, heights.length - 1);
+    const center = clamp(Math.round(xFromFrame(frame) / columnWidth), 0, heights.length - 1);
     for (let offset = -4; offset <= 4; offset += 1) {
       const column = center + offset;
       if (column < 0 || column >= heights.length) continue;
@@ -150,17 +162,20 @@ function bassStep(state, frame) {
 
   const lastSnapshot = state.lastSnapshot ?? frame.t;
   const shouldSnapshot = frame.t - lastSnapshot >= TUNING.bassSnapshotSeconds;
+  const lastDeltaMs = Number.isFinite(frame.deltaMs) ? frame.deltaMs : state.lastDeltaMs;
   const marks = shouldSnapshot ? [{
     type: "terrain",
     heights: Float32Array.from(heights),
     color: COLOR_HEX.bass,
     alpha: 0.7,
+    ...(Number.isFinite(lastDeltaMs) ? { deltaMs: lastDeltaMs } : {}),
   }] : [];
 
   return {
     state: {
       heights,
       lastSnapshot: shouldSnapshot ? frame.t : lastSnapshot,
+      lastDeltaMs,
     },
     marks,
   };
@@ -175,6 +190,8 @@ function initialAccordionState() {
     levelSum: 0,
     centroidSum: 0,
     sampleCount: 0,
+    deltaMs: null,
+    xOffset: 0,
   };
 }
 
@@ -193,6 +210,8 @@ function accordionStep(state, frame) {
         levelSum: frame.level,
         centroidSum: Number.isFinite(frame.centroid) ? frame.centroid : 0,
         sampleCount: 1,
+        deltaMs: Number.isFinite(frame.deltaMs) ? frame.deltaMs : null,
+        xOffset: Number.isFinite(frame.xOffset) ? frame.xOffset : 0,
       };
     } else {
       next = {
@@ -214,7 +233,7 @@ function accordionStep(state, frame) {
     if (frame.t - quietSince >= TUNING.accordionReleaseSeconds) {
       const meanLevel = state.levelSum / state.sampleCount;
       const meanCentroid = state.centroidSum / state.sampleCount;
-      const startX = xFromT(state.startedAt);
+      const startX = xFromT(state.startedAt) + state.xOffset;
       const endX = xFromT(state.lastSoundT);
       const breath = 8 + meanCentroid / 260;
       marks.push({
@@ -225,6 +244,7 @@ function accordionStep(state, frame) {
         h: CANVAS_H,
         color: COLOR_HEX.accordion,
         alpha: 0.12 + meanLevel * 0.35,
+        ...(Number.isFinite(state.deltaMs) ? { deltaMs: state.deltaMs } : {}),
       });
       next = initialAccordionState();
     } else {
@@ -247,7 +267,7 @@ export function makeBrush(instrument) {
   }
   if (instrument === "bass") {
     return {
-      state: { heights: new Float32Array(240), lastSnapshot: null },
+      state: { heights: new Float32Array(240), lastSnapshot: null, lastDeltaMs: null },
       step: bassStep,
     };
   }

@@ -12,7 +12,15 @@ import {
   yFromMidi,
 } from "../src/loom/brushes.js";
 import { drawMarks } from "../src/loom/renderer.js";
+import {
+  WEAVE_TUNING,
+  alignment,
+  isBleed,
+  shearState,
+  weaveColumns,
+} from "../src/loom/weave.js";
 import { COLOR_HEX } from "../src/seed.js";
+import { migrate } from "../src/storage.js";
 
 let failures = 0;
 const test = (name, fn) => { try { fn(); console.log(`ok   ${name}`); } catch (e) { failures++; console.error(`FAIL ${name}\n     ${e.message}`); } };
@@ -81,6 +89,48 @@ test("latency storage helpers persist the offset when storage exists", () => {
   assert.doesNotThrow(() => saveOffset(50));
 });
 
+test("weave bleed detection only suppresses quiet corrected-beat onsets", () => {
+  const beats = [1_000, 1_500, 2_000];
+  assert.equal(isBleed(1_546, 0.04, beats, 45), true);
+  assert.equal(isBleed(1_546, 0.08, beats, 45), false);
+  assert.equal(isBleed(1_610, 0.04, beats, 45), false);
+});
+
+test("weave alignment picks the nearest corrected beat with a signed delta", () => {
+  const beats = [1_000, 1_500, 2_000];
+  assert.deepEqual(alignment(1_572, beats, 45), { deltaMs: 27, beatIndex: 1 });
+  assert.deepEqual(alignment(1_520, beats, 45), { deltaMs: -25, beatIndex: 1 });
+  assert.equal(alignment(2_500, beats, 45), null);
+});
+
+test("weave shear follows sustained drag and recovers toward zero", () => {
+  let state = null;
+  for (let index = 0; index < WEAVE_TUNING.shearWindow; index += 1) state = shearState(state, 60);
+  assert.equal(state.meanMs, 60);
+  assert.ok(Math.abs(state.shear - (60 / WEAVE_TUNING.shearMaxMs)) < 0.0001);
+  for (let index = 0; index < WEAVE_TUNING.shearWindow; index += 1) state = shearState(state, 0);
+  assert.equal(state.meanMs, 0);
+  assert.equal(state.shear, 0);
+});
+
+test("weave columns map beats in the view window to ratios", () => {
+  assert.deepEqual(weaveColumns([500, 1_000, 1_500, 2_000, 2_500], 2_000, 1_000), [
+    { xRatio: 0, ageMs: 1_000 },
+    { xRatio: 0.5, ageMs: 500 },
+    { xRatio: 1, ageMs: 0 },
+  ]);
+});
+
+test("loom painting migration defaults old state and caps newest-first history", () => {
+  const oldState = migrate({ version: 4, items: [], settings: {}, sessions: [], progress: {} });
+  assert.deepEqual(oldState.loomPaintings, []);
+
+  const paintings = Array.from({ length: 14 }, (_, index) => ({ id: `painting-${index}` }));
+  const capped = migrate({ ...oldState, loomPaintings: paintings });
+  assert.equal(capped.loomPaintings.length, 12);
+  assert.deepEqual(capped.loomPaintings.map(({ id }) => id), paintings.slice(0, 12).map(({ id }) => id));
+});
+
 const brushFrame = (t, { midi = 60, clarity = 1, level = 0, centroid = 1_200, onset = false } = {}) => ({
   t, midi, clarity, level, centroid, onset,
 });
@@ -114,6 +164,16 @@ test("piano blocks stamp exactly once for each clean onset", () => {
   const { marks } = runBrush("piano", frames);
   assert.equal(marks.length, 3);
   assert.ok(marks.every(({ type }) => type === "block"));
+});
+
+test("timed piano onsets carry alignment and a mark-scale horizontal nudge", () => {
+  const { marks } = runBrush("piano", [{
+    ...brushFrame(1, { midi: 60, clarity: 0.9, level: 0.4, onset: true }),
+    deltaMs: 60,
+    xOffset: 4,
+  }]);
+  assert.equal(marks[0].deltaMs, 60);
+  assert.equal(marks[0].x, xFromT(1) + 4);
 });
 
 test("piano blocks do not repeat for a steady sustained note", () => {

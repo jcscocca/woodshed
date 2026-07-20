@@ -2,12 +2,15 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { todayStr } from "../dateUtils.js";
 import { COLOR_HEX, INSTRUMENTS } from "../seed.js";
 import { CANVAS_H, CANVAS_W, makeBrush } from "./brushes.js";
+import { loadOffset } from "./latency.js";
 import { compositeLayers, drawMarks, POSTER_BACKGROUND } from "./renderer.js";
 import Stethoscope from "./Stethoscope.jsx";
 import { useLoomInput } from "./useLoomInput.js";
+import { WEAVE_TUNING, alignment, isBleed, shearState, weaveColumns } from "./weave.js";
 
 const INSTRUMENT_KEYS = ["piano", "guitar", "bass", "accordion"];
 const MAX_TAKE_MS = 20 * 60 * 1_000;
+const WEAVE_VIEW_MS = 40_000;
 
 const makeLayer = () => {
   const canvas = document.createElement("canvas");
@@ -16,11 +19,12 @@ const makeLayer = () => {
   return canvas;
 };
 
-export default function LoomScreen({ initialInstrument = "piano", metronomePlaying = false, beatTimesRef, onClose }) {
+export default function LoomScreen({ initialInstrument = "piano", metronomePlaying = false, beatTimesRef, bpm = 90, onClose, onSavePainting }) {
   const [instrument, setInstrument] = useState(INSTRUMENT_KEYS.includes(initialInstrument) ? initialInstrument : "piano");
   const [taking, setTaking] = useState(false);
   const [layerCount, setLayerCount] = useState(0);
   const [diagnostics, setDiagnostics] = useState(false);
+  const [saved, setSaved] = useState(false);
   const { frame, running, error } = useLoomInput({ enabled: taking, instrument });
 
   const displayCanvas = useRef(null);
@@ -29,6 +33,9 @@ export default function LoomScreen({ initialInstrument = "piano", metronomePlayi
   const brush = useRef(null);
   const takeStartedAt = useRef(0);
   const lastFrameT = useRef(0);
+  const weaveOrigin = useRef(0);
+  const shear = useRef({ deltas: [], meanMs: 0, shear: 0 });
+  const offsetMs = useRef(loadOffset() ?? 0);
 
   const redraw = useCallback(() => {
     const canvas = displayCanvas.current;
@@ -48,8 +55,33 @@ export default function LoomScreen({ initialInstrument = "piano", metronomePlayi
     ctx.setTransform(canvas.width / CANVAS_W, 0, 0, canvas.height / CANVAS_H, 0, 0);
     ctx.fillStyle = POSTER_BACKGROUND;
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    if (metronomePlaying) {
+      const now = performance.now();
+      if (!weaveOrigin.current) weaveOrigin.current = now;
+      const elapsed = Math.max(0, now - weaveOrigin.current);
+      const cycleStart = weaveOrigin.current + Math.floor(elapsed / WEAVE_VIEW_MS) * WEAVE_VIEW_MS;
+      const beats = beatTimesRef?.current || [];
+      const columns = weaveColumns(beats, cycleStart + WEAVE_VIEW_MS, WEAVE_VIEW_MS);
+      const beatPeriod = 60_000 / Math.max(1, bpm);
+      const nearestDistance = beats.reduce((nearest, beatTime) => (
+        Number.isFinite(beatTime) ? Math.min(nearest, Math.abs(now - beatTime)) : nearest
+      ), beatPeriod / 2);
+      const breath = Math.cos((nearestDistance / beatPeriod) * Math.PI * 2);
+      ctx.save();
+      ctx.strokeStyle = COLOR_HEX[instrument];
+      ctx.globalAlpha = 0.12 + breath * 0.04;
+      ctx.lineWidth = 1;
+      for (const column of columns) {
+        const x = column.xRatio * CANVAS_W;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x + shear.current.shear * 4, CANVAS_H);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
     compositeLayers(ctx, layers.current, liveLayer.current);
-  }, []);
+  }, [beatTimesRef, bpm, instrument, metronomePlaying]);
 
   useEffect(() => {
     redraw();
@@ -65,21 +97,53 @@ export default function LoomScreen({ initialInstrument = "piano", metronomePlayi
   }, [redraw]);
 
   useEffect(() => {
+    if (!metronomePlaying) {
+      shear.current = { deltas: [], meanMs: 0, shear: 0 };
+      redraw();
+      return undefined;
+    }
+    let animationFrame;
+    const animate = () => {
+      redraw();
+      animationFrame = requestAnimationFrame(animate);
+    };
+    animate();
+    return () => cancelAnimationFrame(animationFrame);
+  }, [metronomePlaying, redraw]);
+
+  useEffect(() => {
+    if (!diagnostics) offsetMs.current = loadOffset() ?? 0;
+  }, [diagnostics]);
+
+  useEffect(() => {
     if (!taking || !frame || !brush.current || !liveLayer.current) return;
     const t = Math.max(0, (frame.t - takeStartedAt.current) / 1_000);
     lastFrameT.current = t;
-    const result = brush.current.step(brush.current.state, { ...frame, t });
+    let timedFrame = { ...frame, t };
+    if (metronomePlaying && frame.onset) {
+      const beats = beatTimesRef?.current || [];
+      if (isBleed(frame.t, frame.level, beats, offsetMs.current)) return;
+      const hit = alignment(frame.t, beats, offsetMs.current);
+      if (hit) {
+        shear.current = shearState(shear.current, hit.deltaMs);
+        const scaledDelta = Math.max(-1, Math.min(1, hit.deltaMs / WEAVE_TUNING.shearMaxMs));
+        timedFrame = { ...timedFrame, deltaMs: hit.deltaMs, xOffset: scaledDelta * 6 };
+      }
+    }
+    const result = brush.current.step(brush.current.state, timedFrame);
     brush.current.state = result.state;
     drawMarks(liveLayer.current.getContext("2d"), result.marks, instrument);
     redraw();
-  }, [frame, instrument, redraw, taking]);
+  }, [beatTimesRef, frame, instrument, metronomePlaying, redraw, taking]);
 
   const startTake = () => {
     liveLayer.current = makeLayer();
     brush.current = makeBrush(instrument);
     takeStartedAt.current = performance.now();
+    weaveOrigin.current = takeStartedAt.current;
     lastFrameT.current = 0;
     setTaking(true);
+    setSaved(false);
     redraw();
   };
 
@@ -109,12 +173,14 @@ export default function LoomScreen({ initialInstrument = "piano", metronomePlayi
   const undo = () => {
     layers.current = layers.current.slice(0, -1);
     setLayerCount(layers.current.length);
+    setSaved(false);
     redraw();
   };
 
   const clear = () => {
     layers.current = [];
     setLayerCount(0);
+    setSaved(false);
     if (liveLayer.current) {
       liveLayer.current.getContext("2d").clearRect(0, 0, CANVAS_W, CANVAS_H);
       brush.current = makeBrush(instrument);
@@ -146,12 +212,28 @@ export default function LoomScreen({ initialInstrument = "piano", metronomePlayi
     }, "image/png");
   };
 
+  const saveToLog = () => {
+    if (!onSavePainting || layers.current.length === 0 || !displayCanvas.current) return;
+    redraw();
+    const thumb = document.createElement("canvas");
+    thumb.width = 300;
+    thumb.height = 200;
+    thumb.getContext("2d").drawImage(displayCanvas.current, 0, 0, thumb.width, thumb.height);
+    onSavePainting({
+      id: `loom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      dateISO: todayStr(),
+      inst: instrument,
+      thumb: thumb.toDataURL("image/jpeg", 0.82),
+    });
+    setSaved(true);
+  };
+
   if (diagnostics) {
     return <Stethoscope initialInstrument={instrument} metronomePlaying={metronomePlaying} beatTimesRef={beatTimesRef} onClose={() => setDiagnostics(false)} />;
   }
 
   return (
-    <div className={`ws-loom-canvas-mode ${taking ? "taking" : ""}`} style={{ "--accent": COLOR_HEX[instrument] }}>
+    <div className={`ws-loom-canvas-mode ${taking ? "taking" : ""} ${metronomePlaying ? "weaving" : ""}`} style={{ "--accent": COLOR_HEX[instrument] }}>
       <div className="ws-loom-canvas-chrome ws-loom-canvas-head">
         <div>
           <h2 className="ws-sheet-title">Loom <span className="ws-beta">beta</span></h2>
@@ -169,7 +251,7 @@ export default function LoomScreen({ initialInstrument = "piano", metronomePlayi
       <div className="ws-loom-canvas-chrome ws-loom-canvas-controls">
         <div className="ws-loom-chips" aria-label="Instrument">
           {INSTRUMENT_KEYS.map((key) => (
-            <button key={key} className={`ws-loom-chip ${instrument === key ? "on" : ""}`} style={{ "--accent": INSTRUMENTS[key].color }} aria-pressed={instrument === key} onClick={() => setInstrument(key)} disabled={taking}>
+            <button key={key} className={`ws-loom-chip ${instrument === key ? "on" : ""}`} style={{ "--accent": INSTRUMENTS[key].color }} aria-pressed={instrument === key} onClick={() => { setInstrument(key); setSaved(false); }} disabled={taking}>
               <span />{INSTRUMENTS[key].name}
             </button>
           ))}
@@ -180,6 +262,7 @@ export default function LoomScreen({ initialInstrument = "piano", metronomePlayi
           </button>
           <button className="ws-btn ghost" onClick={undo} disabled={taking || layerCount === 0}>Undo layer</button>
           <button className="ws-btn ghost" onClick={clear} disabled={!taking && layerCount === 0}>Clear</button>
+          <button className="ws-btn ghost" onClick={saveToLog} disabled={taking || layerCount === 0 || saved || !onSavePainting}>{saved ? "Saved to log" : "Save to log"}</button>
           <button className="ws-btn ghost" onClick={exportPng}>Export PNG</button>
         </div>
         <div className="ws-loom-layer-count mono">{taking ? "painting live" : `${layerCount} layer${layerCount === 1 ? "" : "s"}`}</div>
