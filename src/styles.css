@@ -496,3 +496,33 @@ body{
   .ws-loom-note{ min-height:110px; }
   .ws-loom-chip{ min-width:calc(50% - 4px); }
 }
+
+/* ----- Loom ambient canvas ----- */
+.ws-loom-canvas-mode{ width:100%; height:100%; max-width:1500px; margin:0 auto; display:flex; flex-direction:column; min-height:0; }
+.ws-loom-canvas-chrome{ transition:opacity .25s ease; }
+.ws-loom-canvas-mode.taking .ws-loom-canvas-chrome{ opacity:.15; }
+.ws-loom-canvas-mode.taking .ws-loom-canvas-chrome:hover,
+.ws-loom-canvas-mode.taking .ws-loom-canvas-chrome:focus-within{ opacity:1; }
+.ws-loom-canvas-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:18px; flex:none; }
+.ws-loom-canvas-head .ws-sheet-title{ margin:0; }
+.ws-loom-diagnostics{ display:block; background:none; border:none; color:var(--muted2); font:inherit; font-size:11.5px; padding:3px 0; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+.ws-loom-diagnostics:hover{ color:var(--text); }
+.ws-loom-poster-stage{ position:relative; min-height:220px; flex:1; display:flex; align-items:center; justify-content:center; padding:12px 0 16px; }
+.ws-loom-poster{ display:block; width:min(100%,calc((100vh - 240px) * 1.5)); max-width:1200px; aspect-ratio:3/2; background:#171513; border:1px solid var(--line); box-shadow:0 22px 70px rgba(0,0,0,.36); }
+.ws-loom-canvas-status{ position:absolute; left:50%; bottom:28px; transform:translateX(-50%); padding:7px 11px; border-radius:8px; background:rgba(27,25,22,.82); color:var(--muted); font-size:12px; white-space:nowrap; }
+.ws-loom-canvas-status.error{ color:#e09aa6; border:1px solid rgba(208,90,110,.4); }
+.ws-loom-canvas-controls{ flex:none; width:100%; max-width:920px; margin:0 auto; }
+.ws-loom-canvas-controls .ws-loom-chips{ margin-bottom:9px; }
+.ws-loom-chip:disabled{ cursor:default; }
+.ws-loom-canvas-actions{ display:grid; grid-template-columns:1.25fr repeat(3,1fr); gap:8px; }
+.ws-loom-canvas-actions .ws-btn{ padding:10px 12px; }
+.ws-loom-canvas-actions .ws-btn:disabled{ opacity:.36; cursor:not-allowed; }
+.ws-loom-layer-count{ min-height:18px; padding-top:7px; color:var(--muted2); font-size:10.5px; text-align:center; }
+
+@media (max-width:640px){
+  .ws-sheet.ws-loom{ padding-left:12px; padding-right:12px; }
+  .ws-loom-poster-stage{ min-height:180px; padding:8px 0 12px; }
+  .ws-loom-poster{ width:min(100%,calc((100vh - 340px) * 1.5)); min-width:260px; }
+  .ws-loom-canvas-actions{ grid-template-columns:1fr 1fr; }
+  .ws-loom-canvas-actions .ws-btn{ font-size:12.5px; }
+}

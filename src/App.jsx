@@ -12,7 +12,7 @@ import { loadState, saveState, migrate } from "./storage.js";
 import { useMetronome } from "./useMetronome.js";
 import { useListener } from "./useListener.js";
 import { useDialog } from "./useDialog.js";
-import Stethoscope from "./loom/Stethoscope.jsx";
+import LoomScreen from "./loom/LoomScreen.jsx";
 
 // Resource links are user-entered and ride along in exported/imported backups,
 // so treat them as untrusted. Only http(s) URLs ever reach an href — a
@@ -421,9 +421,9 @@ function PracticeSheet({ initialInstrument, onClose, onTempo, onOpenListen }) {
 
   return (
     <div className={`ws-sheet-wrap ws-practice-wrap ${loomOpen ? "ws-loom-wrap" : ""}`}>
-      <div className={`ws-sheet ws-practice ${loomOpen ? "ws-loom" : ""}`} onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label={loomOpen ? "Loom stethoscope" : "Practice tools"} tabIndex={-1}>
+      <div className={`ws-sheet ws-practice ${loomOpen ? "ws-loom" : ""}`} onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label={loomOpen ? "Loom canvas" : "Practice tools"} tabIndex={-1}>
         {loomOpen ? (
-          <Stethoscope initialInstrument={initialInstrument} metronomePlaying={m.playing} beatTimesRef={m.beatTimesRef} onClose={() => setLoomOpen(false)} />
+          <LoomScreen initialInstrument={initialInstrument} metronomePlaying={m.playing} beatTimesRef={m.beatTimesRef} onClose={() => setLoomOpen(false)} />
         ) : (<>
           <div className="ws-sheet-grip" />
           <div className="ws-practice-head">
@@ -470,7 +470,7 @@ function PracticeSheet({ initialInstrument, onClose, onTempo, onOpenListen }) {
             <span className="ws-listen-dot" /> Tuner &amp; listener <span className="ws-beta">beta</span>
           </button>
           <button className="ws-listen-open ws-loom-open" onClick={() => setLoomOpen(true)}>
-            <span className="ws-listen-dot" /> Loom stethoscope <span className="ws-beta">(beta)</span>
+            <span className="ws-listen-dot" /> Loom <span className="ws-beta">beta</span>
           </button>
         </>)}
       </div>
