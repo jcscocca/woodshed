@@ -41,7 +41,7 @@ src/loom/
 
 - **Entry point**: the ♩ practice-tools sheet gains a "Loom" button next to metronome/stopwatch/tuner. Loom opens full-screen (Escape closes, per woodshed sheet conventions). Instrument chips preselect the first instrument in today's generated set (falling back to the most recently logged instrument); one tap to change.
 - **Metronome**: Loom reads the running metronome's beat schedule (shared clock). It never starts/stops the metronome itself.
-- **Persistence**: stopping a take offers Save — stores a thumbnail (dataURL, ~300px) and the feature stream (JSON, capped) keyed by date+instrument via `storage.js` (with a `migrate()` step). Progress → Recent sessions shows the thumbnail when one exists. Keep last 12 paintings; PNG export at 2× anytime.
+- **Persistence**: stopping a take offers Save — stores a thumbnail (dataURL, ~300px) keyed by date+instrument via `storage.js` (with a `migrate()` step); feature streams are deliberately NOT stored (localStorage is per-device practice history — keep it light; revisit if replay ever matters). Progress → Recent sessions shows the thumbnail when one exists. Keep last 12 paintings; PNG export at 2× anytime.
 - **Accessibility**: chips and controls follow woodshed's ARIA/focus conventions; Escape closes; the canvas is `role="img"` with a live-region-free text alternative ("Loom painting in progress").
 
 ## Phases (codex-executable, review gates between)
