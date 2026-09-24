@@ -467,3 +467,10 @@ body{
 .ws-desk .ws-cards{ display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); }
 .ws-card.sel{ border-color:var(--gold); }
 .ws-stage.sel .ws-stage-title, .ws-lib-item.sel .ws-lib-title{ color:var(--gold); }
+.ws-desk .ws-progress{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); column-gap:28px; align-items:start; }
+.ws-desk .ws-progress > :not(.ws-block){ grid-column:1 / -1; }
+@media (min-width:1024px){
+  .ws-sheet-wrap{ align-items:center; }
+  .ws-sheet{ max-width:560px; max-height:86vh; border-radius:20px; border-bottom:1px solid var(--line2); padding-bottom:26px; animation:fade .2s ease; }
+  .ws-sheet-grip{ display:none; }
+}

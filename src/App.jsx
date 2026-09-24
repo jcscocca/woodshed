@@ -646,7 +646,7 @@ function Progress({ data, live, streak, onEditSession }) {
     return <Empty title="No sessions yet" body="Your first practice will show up here — streak, minutes, and where each instrument stands." />;
 
   return (
-    <>
+    <div className="ws-progress">
       <h2 className="ws-h2">Progress</h2>
 
       <div className="ws-stat-row">
@@ -704,7 +704,7 @@ function Progress({ data, live, streak, onEditSession }) {
       <Heatmap sessions={data.sessions} />
       <TempoTrends sessions={data.sessions} items={live.items} />
       <AccuracyTrends sessions={data.sessions} items={live.items} />
-    </>
+    </div>
   );
 }
 
