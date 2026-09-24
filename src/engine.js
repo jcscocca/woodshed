@@ -155,8 +155,8 @@ export function levelFor(inst, sessions) {
   let lvl = INSTRUMENTS[inst].base;
   for (const s of sessions) {
     if (s.inst !== inst) continue;
-    if (s.rating === "easy") lvl += 0.5;
-    else if (s.rating === "hard") lvl -= 0.5;
+    if (s.rating === "easy") lvl = Math.min(5, lvl + 0.5);
+    else if (s.rating === "hard") lvl = Math.max(1, lvl - 0.5);
   }
   return Math.max(1, Math.min(5, Math.round(lvl)));
 }

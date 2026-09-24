@@ -24,4 +24,11 @@ test("streak: a rest day across the UK October DST change doesn't break the run"
   assert.equal(streakInfo([on("2025-10-25"), on("2025-10-27")]).longest, 2);
 });
 
+test("levelFor: 'tough' pulls the level back down after a long run of 'too easy'", () => {
+  const easy = Array.from({ length: 20 }, () => on(today, { rating: "easy" }));
+  const hard = Array.from({ length: 4 }, () => on(today, { rating: "hard" }));
+  assert.equal(levelFor("piano", easy), 5);
+  assert.equal(levelFor("piano", [...easy, ...hard]), 3);
+});
+
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });
