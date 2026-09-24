@@ -1,6 +1,6 @@
 // Guitar lessons. strings/fingers: low->high [E A D G B e]; fret number, 0 open,
 // "x" muted. fingers: 1=index 2=middle 3=ring 4=pinky (0 on open/muted strings).
-const G  = { name: "G",  strings: [3, 2, 0, 0, 0, 3],           fingers: [2, 1, 0, 0, 0, 3] };
+const G  = { name: "G",  strings: [3, 2, 0, 0, 0, 3],           fingers: [3, 2, 0, 0, 0, 4] };
 const D  = { name: "D",  strings: ["x", "x", 0, 2, 3, 2],       fingers: [0, 0, 0, 1, 3, 2] };
 const Em = { name: "Em", strings: [0, 2, 2, 0, 0, 0],           fingers: [0, 2, 3, 0, 0, 0] };
 const C  = { name: "C",  strings: ["x", 3, 2, 0, 1, 0],         fingers: [0, 3, 2, 0, 1, 0] };
@@ -29,7 +29,7 @@ export default {
     bpm: 60,
     steps: [
       "Slow click. On each click, change to the next chord and strum once.",
-      "Hunt for shared fingers: C→G the ring finger pivots; C→Em two fingers barely move.",
+      "Hunt for shortcuts: C→G, ring and middle shift one string toward the bass as a pair and the pinky lands on the high e; Em→C, middle and ring trade strings and the index drops onto the B string.",
       "Miss a change? Slow down until every change lands on the click — never speed up through mistakes.",
     ],
     watch: ["Move the whole shape as one unit, not a finger at a time.", "Speed is a by-product of clean changes, not a target."],
@@ -103,7 +103,7 @@ export default {
       "Count '1-2-3-4' out loud so the change lands on beat 1 of the next bar, not whenever your hand is ready.",
       "Once it flows, sing or hum a melody over the top — that's a song.",
     ],
-    watch: ["The G→C jump is the hardest; anchor your ring finger, it barely moves between them.", "Don't freeze the strumming hand to change — keep it moving and let the next chord arrive."],
+    watch: ["C back to G is the change to drill — ring and middle shift one string toward the bass together, and the pinky drops onto the high e.", "Don't freeze the strumming hand to change — keep it moving and let the next chord arrive."],
   },
   "gtr-finger": {
     summary: "Travis picking on C and G: a steady alternating thumb under fingers picking the melody.",
