@@ -200,8 +200,8 @@ the builder tries to pair one of each.
 
 [docs/DIRECTION.md](docs/DIRECTION.md) is the current plan. In short:
 
-- **Next:** a desktop layout (a wide three-pane view; the phone layout stays
-  below 1024px), then **piano over USB-MIDI**.
+- **The desktop layout is done** (see *On the desktop* above). **Next: piano
+  over USB-MIDI** (piano only), then deeper piano and guitar content.
 - **Pitch coach and Echo** are disabled pending a rethink — whether they come
   back piano-first over MIDI, and what's worth keeping on guitar. The code stays
   behind `COACH_ENABLED` in `src/features.js`.
