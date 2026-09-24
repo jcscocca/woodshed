@@ -37,7 +37,7 @@ const normalizeUrl = (raw) => {
 export default function Woodshed() {
   const [data, setData] = useState(null);
   const [view, setView] = useState("today");
-  const [logging, setLogging] = useState(false);
+  const [logging, setLogging] = useState(false);    // true = today's set, or { items } for one coached item
   const [showSettings, setShowSettings] = useState(false);
   const [practiceOpen, setPracticeOpen] = useState(false);
   const [listenOpen, setListenOpen] = useState(false);
@@ -124,7 +124,7 @@ export default function Woodshed() {
           accuracy: e.accuracy ?? null, coached: e.accuracy != null, missed: e.missed ?? [],
         });
       }
-      return { ...d, sessions, currentSession: { ...d.currentSession, completed: true } };
+      return { ...d, sessions, currentSession: logging === true ? { ...d.currentSession, completed: true } : d.currentSession };
     });
     setCoachResults((m) => {
       const next = { ...m };
@@ -249,7 +249,7 @@ export default function Woodshed() {
         ))}
       </nav>
 
-      {logging && <LogSheet session={session} itemById={itemById} lastTempo={lastTempo} coachResults={coachResults} onCancel={() => setLogging(false)} onCommit={commitLog} />}
+      {logging && <LogSheet session={logging === true ? session : logging} itemById={itemById} lastTempo={lastTempo} coachResults={coachResults} onCancel={() => setLogging(false)} onCommit={commitLog} />}
       {practiceOpen && <PracticeSheet initialInstrument={itemById(session.items[0]?.itemId)?.inst || "piano"} onClose={() => setPracticeOpen(false)} onTempo={setLastTempo} onOpenListen={() => { setPracticeOpen(false); setListenOpen(true); }} onSavePainting={saveLoomPainting} />}
       {listenOpen && <ListenSheet onClose={() => setListenOpen(false)} onTempo={setLastTempo} />}
       {showProposals && (
@@ -285,7 +285,11 @@ export default function Woodshed() {
           sessions={data.sessions.filter((s) => s.itemId === lessonFor.id)}
           onClose={() => setLessonFor(null)}
           onCoachResult={recordCoachResult}
-          onRequestLog={() => { setLessonFor(null); setLogging(true); }}
+          onRequestLog={() => {
+            const inSet = !session.completed && session.items.some((x) => x.itemId === lessonFor.id);
+            setLessonFor(null);
+            setLogging(inSet ? true : { items: [{ itemId: lessonFor.id, minutes: lessonFor.min }] });
+          }}
         />
       )}
     </Shell>
