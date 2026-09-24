@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 const { parseMidi, createKeyState, toNoteEvent, groupChords, createTakeBuffer } = await import("../src/midi/midiModel.js");
-const { nameChord } = await import("../src/midi/chords.js");
+const { nameChord, spellChord } = await import("../src/midi/chords.js");
 const { createMidiConnection } = await import("../src/midi/connection.js");
 
 let failures = 0;
@@ -83,6 +83,15 @@ const CHORDS = [
 ];
 test("nameChord: the table", () => {
   for (const [midis, want] of CHORDS) assert.equal(nameChord(midis), want, `${midis.join(",")}`);
+});
+const SPELLINGS = [
+  [[64, 68, 71], ["E", "G#", "B"]], [[59, 63, 66], ["B", "D#", "F#"]], [[63, 67, 70], ["Eb", "G", "Bb"]],
+  [[66, 69, 73], ["F#", "A", "C#"]], [[61, 65, 68], ["Db", "F", "Ab"]], [[59, 62, 65, 68], ["B", "D", "F", "Ab"]],
+  [[60, 64, 68], ["C", "E", "G#"]], [[64, 67, 72], ["E", "G", "C"]], [[55, 65, 71], ["G", "F", "B"]],
+  [[48, 60, 64, 67, 72], ["C", "C", "E", "G", "C"]], [[60, 61, 62], null],
+];
+test("spellChord: held chords spelled from the chord", () => {
+  for (const [midis, want] of SPELLINGS) assert.deepEqual(spellChord(midis), want, `${midis.join(",")}`);
 });
 
 const fakeInput = (id, name) => ({ id, name, state: "connected", onmidimessage: null });

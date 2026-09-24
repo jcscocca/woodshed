@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useMidi, useOverlay } from "./MidiProvider.jsx";
 import { createKeyState } from "./midiModel.js";
-import { nameChord, ROOTS } from "./chords.js";
+import { nameChord, spellChord, ROOTS } from "./chords.js";
 import { midiToNote } from "../audio/notes.js";
 
 // A0–C8: 52 white keys by percentage; a black key straddles its left white key's right edge.
@@ -12,9 +12,10 @@ for (let m = 21, w = 0; m <= 108; m++) {
   else KEYS.push({ m, black: false, left: w++ * W, width: W });
 }
 
-const noteNames = (notes, octave) => notes.map((m) => `${ROOTS[((m % 12) + 12) % 12]}${octave ? midiToNote(m).octave : ""}`);
+// a spelled note's octave follows its letter: Cb4 is MIDI 59, B#3 is MIDI 60
+const withOctave = (name, m) => `${name}${midiToNote(m + (name[1] === "b" ? name.length - 1 : 1 - name.length)).octave}`;
 
-function Keys({ notes, held, ov }) {
+function Keys({ label, held, ov }) {
   const mark = {};
   if (!ov.hideTargets) ov.targets.forEach((t, i) => {
     const k = mark[t.midi] || (mark[t.midi] = { finger: t.finger });
@@ -25,7 +26,7 @@ function Keys({ notes, held, ov }) {
   const vel = new Map(held.map((h) => [h.note, h.velocity]));
   const range = !ov.hideTargets && ov.range && [KEYS[ov.range[0] - 21], KEYS[ov.range[1] - 21]];
   return (
-    <div className="ws-midi-keys" role="img" aria-label={`Keyboard: ${notes.length ? `${noteNames(notes, true).join(" ")} held` : "nothing held"}`}>
+    <div className="ws-midi-keys" role="img" aria-label={`Keyboard: ${label ? `${label} held` : "nothing held"}`}>
       {KEYS.map(({ m, black, left, width }) => {
         const k = mark[m], v = vel.get(m);
         return (
@@ -70,17 +71,19 @@ export default function MidiBand() {
   if (!midi || midi.status === "unsupported") return null;
   const notes = held.map((h) => h.note);
   const chord = nameChord(notes);
-  const head = (ov.readout && ov.readout.head) || chord || noteNames(notes, true).join(" ") || "—";
+  const names = spellChord(notes) || notes.map((m) => ROOTS[((m % 12) + 12) % 12]);
+  const named = names.map((n, i) => withOctave(n, notes[i])).join(" ");
+  const head = (ov.readout && ov.readout.head) || chord || named || "—";
   const toggle = (e) => { refocus.current = e.currentTarget === document.activeElement; setBandOpen((o) => !o); };
   const device = <span className="ws-midi-device"><span className="ws-midi-dot">●</span> {midi.deviceName}{open ? "" : ` · ${head} ·`}</span>;
   return (
     <div className={`ws-midi-band ${open ? "" : "collapsed"}`}>
-      {open && <Keys notes={notes} held={held} ov={ov} />}
+      {open && <Keys label={named} held={held} ov={ov} />}
       <div className="ws-midi-readout">
         {open ? (
           <>
             <div className="ws-midi-head">{head}</div>
-            <div className="ws-midi-line mono">{(ov.readout && ov.readout.line) || [...new Set(noteNames(notes))].join(" ")}</div>
+            <div className="ws-midi-line mono">{(ov.readout && ov.readout.line) || [...new Set(names)].join(" ")}</div>
             <div className="ws-midi-row">
               <button className="ws-btn ghost sm" onClick={midi.playLastTake}>▶ Play back</button>
               {device}
