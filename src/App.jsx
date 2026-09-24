@@ -1057,6 +1057,7 @@ function Settings({ settings, onChange, onToggle, onReset, onClose, onExport, on
   const [pending, setPending] = useState(null); // parsed backup awaiting confirmation
   const [msg, setMsg] = useState("");
   const [, force] = useState(0);
+  const fileRef = useRef(null);
   const dlgRef = useDialog(onClose);
   const lengths = [10, 15, 20, 30, 45];
   const goals = [3, 4, 5, 6, 7];
@@ -1160,7 +1161,8 @@ function Settings({ settings, onChange, onToggle, onReset, onClose, onExport, on
           <p className="ws-set-note">Saved on this device. Export to move it to another machine or keep a backup.</p>
           <div className="ws-data-row">
             <button className="ws-btn ghost sm" onClick={onExport}>Export backup</button>
-            <label className="ws-btn ghost sm ws-file-btn">Import<input type="file" accept="application/json" onChange={handleFile} hidden /></label>
+            <button className="ws-btn ghost sm" onClick={() => fileRef.current.click()}>Import</button>
+            <input ref={fileRef} type="file" accept="application/json" onChange={handleFile} hidden />
           </div>
           {pending ? (
             <div className="ws-confirm" style={{ marginTop: 10 }}>

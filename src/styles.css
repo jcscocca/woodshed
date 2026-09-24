@@ -150,7 +150,8 @@ body{
 .ws-log-row{ background:var(--bg); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:10px; padding:12px 13px; }
 .ws-log-row.skipped{ opacity:.5; }
 .ws-check{ display:flex; align-items:center; gap:10px; cursor:pointer; }
-.ws-check input{ display:none; }
+.ws-check input{ position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+.ws-check input:focus-visible + .ws-check-box{ outline:2px solid var(--gold); outline-offset:2px; }
 .ws-check-box{ width:19px; height:19px; border-radius:6px; border:1.5px solid var(--line2); flex:none; position:relative; transition:.15s; }
 .ws-check input:checked + .ws-check-box{ background:var(--accent); border-color:var(--accent); }
 .ws-check input:checked + .ws-check-box::after{ content:"✓"; color:#1b1916; font-size:12px; font-weight:700; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
@@ -172,7 +173,6 @@ body{
 .ws-set-label,.ws-field label{ display:block; font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted2); margin-bottom:9px; font-weight:600; }
 .ws-set-note{ font-size:12.5px; color:var(--muted); margin:-4px 0 11px; line-height:1.5; }
 .ws-data-row{ display:flex; gap:10px; }
-.ws-file-btn{ display:flex; align-items:center; justify-content:center; }
 .ws-data-msg{ font-size:12.5px; color:var(--gold); margin:10px 0 0; }
 .ws-seg{ display:flex; gap:6px; flex-wrap:wrap; }
 .ws-seg-btn{ font-family:inherit; font-size:13px; padding:9px 13px; border-radius:8px; border:1px solid var(--line2); background:none; color:var(--muted); cursor:pointer; transition:.15s; flex:1; min-width:fit-content; }
