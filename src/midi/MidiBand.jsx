@@ -21,7 +21,7 @@ function Keys({ label, held, ov }) {
     const k = mark[t.midi] || (mark[t.midi] = { finger: t.finger });
     if (i === ov.next) { k.next = true; if (t.finger) k.finger = t.finger; }
     const s = ov.statuses && ov.statuses[i];
-    if (s === "caught" || s === "missed") k.status = s;
+    if (s === "missed" || (s === "caught" && !k.status)) k.status = s;
   });
   const vel = new Map(held.map((h) => [h.note, h.velocity]));
   const range = !ov.hideTargets && ov.range && [KEYS[ov.range[0] - 21], KEYS[ov.range[1] - 21]];
