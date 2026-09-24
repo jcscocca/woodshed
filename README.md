@@ -46,6 +46,27 @@ starts/pauses the stopwatch. **1–4** switch views. **L** logs today's set.
 **Esc** closes the lesson or tuner in the rail. **?** shows the full list.
 Nothing fires while you're typing in a field or while a dialog is open.
 
+### Piano over MIDI
+
+With piano in your rotation and a USB-MIDI keyboard plugged in, the band along
+the bottom of the window shows a **Connect keyboard** button — Chrome or Edge
+only, with a one-time permission prompt. Later launches reconnect on their
+own, and plugging or unplugging the keyboard updates the band live.
+
+Connected, the band lights all 88 keys — brighter the harder you play — and
+its readout names the chord you're holding and spells its notes, or lists the
+note names when it doesn't recognize a chord. **Play back** replays your last
+phrase (everything since a 3-second pause) from an always-on 60-second
+in-memory buffer; nothing is saved. The chevron collapses the band to a thin
+bar.
+
+**K** shows/hides the band, **P** plays back — both do nothing until a
+keyboard is connected.
+
+Piano only (guitar is unchanged), desktop layout only. The app never plays
+your live notes through the speakers — the piano already makes its own sound;
+app audio stays limited to lesson demos and Play back.
+
 ---
 
 ## Run it
@@ -129,6 +150,13 @@ The code is split so the parts you'll want to change are easy to find:
 | `src/ShortcutHelp.jsx` | The `?` dialog listing every shortcut. |
 | `src/useListener.js` + `src/audio/dsp.js` | The microphone **tuner (beta)** — a thin browser shell over pure, headlessly-tested pitch detection. |
 | `src/coach.js`, `src/useCoach.js`, `src/CoachPanel.jsx`, `src/ear.js`, `src/EarPanel.jsx`, `src/lessons/ear.js` | The **pitch coach** and **Echo** ear training. Disabled behind `COACH_ENABLED`; the code and its tests are kept. |
+| `src/midi/midiModel.js` | Pure MIDI parsing (node-tested) — raw bytes to note on/off/pedal, held-key state (pedal never counts as held), chord grouping, and the take buffer behind Play back. |
+| `src/midi/chords.js` | Names the chord you're holding — triads, sixths, sevenths, shell voicings and slash chords — from the pitch classes alone. |
+| `src/midi/connection.js` | The one MIDI connection, pure: works against the browser's MIDIAccess or a fake, first-connect plus silent reconnect, follows plug/unplug. |
+| `src/midi/fakeMidi.js` | Dev-only fake MIDI device (`?fakemidi` on the dev server) so you can drive the band without hardware. Stripped from production builds. |
+| `src/midi/overlay.js` | Small subscribable store a piano lesson uses to put its targets and progress on the band, without routing through `App`. |
+| `src/midi/MidiProvider.jsx` | Mounts the MIDI connection on desktop when piano is enabled; exposes status, `connect()`, `subscribe()` and Play back via `useMidi()`. |
+| `src/midi/MidiBand.jsx` | The 88-key band and its readout — keys lit by velocity, chord/note readout, Play back, collapse to a thin bar. |
 | `src/styles.css` | All styling and the color palette (CSS variables at the top). |
 | `src/App.jsx` | The views (Today / Tracks / Library / Progress), the dialogs, and the switch between the phone and desktop layouts. |
 | `test/` | The suites `npm test` runs (DSP smoke, lessons schema, coach, ear, engine), plus the real-audio suite in `test/audio/`. |
