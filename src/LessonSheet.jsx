@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDialog } from "./useDialog.js";
 import { getLesson } from "./lessons/index.js";
-import { shapeToVoices } from "./audio/notes.js";
+import { shapeToVoices, shapeToTargets } from "./audio/notes.js";
 import { playChords, playSequence, playClick, stop } from "./lessonAudio.js";
 import { ChordDiagram, Keyboard, FretboardPattern } from "./diagrams.jsx";
 import { INSTRUMENTS, TYPE_LABEL } from "./seed.js";
@@ -9,6 +9,8 @@ import CoachPanel from "./CoachPanel.jsx";
 import EarPanel from "./EarPanel.jsx";
 import { isCoachable } from "./audio/notes.js";
 import { COACH_ENABLED } from "./features.js";
+import { overlay } from "./midi/overlay.js";
+import { useMidi } from "./midi/MidiProvider.jsx";
 
 function ShapeView({ shape }) {
   if (!shape) return null;
@@ -28,6 +30,15 @@ export function LessonBody({ item, href, sessions = [], onCoachResult, onRequest
   // Tear down audio only on unmount, not on every parent re-render — a parent
   // callback's identity changes each render, and stopping there would cut a demo mid-play.
   useEffect(() => () => { clearTimeout(timer.current); stop(); }, []);
+  const midi = useMidi();
+  const pianoShape = item.inst === "piano" && lesson && lesson.shape && lesson.shape.kind === "keyboard" ? lesson.shape : null;
+  useEffect(() => {
+    if (!pianoShape) return;
+    const targets = shapeToTargets(pianoShape).targets.map((t, i) => ({ midi: t.midi, finger: pianoShape.fingers ? pianoShape.fingers[i] : null }));
+    const midis = targets.map((t) => t.midi);
+    overlay.set({ targets, range: [Math.min(...midis), Math.max(...midis)], statuses: null, next: -1, readout: null, busy: false, hideTargets: false });
+    return () => overlay.reset();
+  }, [pianoShape]);
   if (!lesson) return null;
   const inst = INSTRUMENTS[item.inst];
 
@@ -52,7 +63,7 @@ export function LessonBody({ item, href, sessions = [], onCoachResult, onRequest
       <h2 className="ws-sheet-title">{item.title}</h2>
       <p className="ws-lesson-summary">{lesson.summary}</p>
 
-      <ShapeView shape={lesson.shape} />
+      {!(pianoShape && midi && midi.status === "connected" && midi.bandOpen) && <ShapeView shape={lesson.shape} />}
 
       {COACH_ENABLED && isCoachable(item, lesson) && onCoachResult && onRequestLog && (
         <CoachPanel

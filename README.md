@@ -60,6 +60,9 @@ phrase (everything since a 3-second pause) from an always-on 60-second
 in-memory buffer; nothing is saved. The chevron collapses the band to a thin
 bar.
 
+Open a piano lesson and the band outlines its notes with their finger numbers,
+standing in for the lesson's small keyboard diagram while the band is open.
+
 **K** shows/hides the band, **P** plays back — both do nothing until a
 keyboard is connected.
 

@@ -230,6 +230,12 @@ body{
 .ws-stop-time{ font-size:38px; font-weight:600; letter-spacing:.02em; color:var(--text); margin-bottom:12px; }
 .ws-stop-row{ display:flex; gap:10px; justify-content:center; }
 .ws-stop-note{ font-size:11.5px; color:var(--muted2); margin:12px 0 0; }
+.ws-stop-compact{ display:flex; align-items:center; gap:8px; padding:8px; }
+.ws-stop-compact .ws-stop-time{ font-size:15px; margin:0; white-space:nowrap; }
+.ws-stop-compact .ws-stop-row{ flex:1; gap:6px; align-items:center; }
+.ws-stop-compact .ws-btn.sm{ padding:7px 9px; }
+.ws-stop-compact .ws-listen-open{ width:auto; margin:0 0 0 auto; padding:7px 9px; gap:6px; font-size:13px; }
+.ws-stop-compact .ws-beta{ display:none; }
 
 /* ---- library rows now tap-to-edit; hidden state ---- */
 .ws-lib-item{ width:100%; font-family:inherit; text-align:left; color:var(--text); cursor:pointer; transition:background .15s, border-color .15s; }

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { usePractice } from "./PracticeProvider.jsx";
 import { toggleWatch, elapsedSec, RESET_WATCH } from "./stopwatch.js";
 
-export default function PracticeTools({ hints = false }) {
+export default function PracticeTools({ hints = false, compact = false, stopwatchExtra = null }) {
   const { metro: m, watch, setWatch } = usePractice();
   const [, tick] = useState(0);
   const running = watch.startedAt != null;
@@ -46,13 +46,14 @@ export default function PracticeTools({ hints = false }) {
         </div>
       </div>
 
-      <div className="ws-stop">
-        <div className="ws-stop-time mono">{mm}:{ss}</div>
+      <div className={compact ? "ws-stop ws-stop-compact" : "ws-stop"}>
+        <div className="ws-stop-time mono">{compact && "⏱ "}{mm}:{ss}</div>
         <div className="ws-stop-row">
           <button className="ws-btn ghost sm" onClick={() => setWatch(toggleWatch)}>{running ? "Pause" : sec > 0 ? "Resume" : "Start"}{hints && <kbd className="ws-kbd" aria-hidden="true">S</kbd>}</button>
           <button className="ws-btn ghost sm" onClick={() => setWatch(RESET_WATCH)}>Reset</button>
+          {stopwatchExtra}
         </div>
-        <p className="ws-stop-note">Time your session here, then enter the minutes when you log.</p>
+        {!compact && <p className="ws-stop-note">Time your session here, then enter the minutes when you log.</p>}
       </div>
     </>
   );
