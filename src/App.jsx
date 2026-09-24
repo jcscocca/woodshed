@@ -15,6 +15,8 @@ import { PracticeSheet, ListenSheet } from "./PracticeSheet.jsx";
 import { useIsDesktop } from "./useIsDesktop.js";
 import Sidebar, { VIEWS } from "./Sidebar.jsx";
 import PracticeRail from "./PracticeRail.jsx";
+import { ShortcutBridge } from "./useShortcuts.js";
+import ShortcutHelp from "./ShortcutHelp.jsx";
 
 // Resource links are user-entered and ride along in exported/imported backups,
 // so treat them as untrusted. Only http(s) URLs ever reach an href — a
@@ -51,6 +53,7 @@ export default function Woodshed() {
   const [coachResults, setCoachResults] = useState({}); // itemId -> { accuracy, missed }
   const [saveError, setSaveError] = useState(false);
   const [tunerOpen, setTunerOpen] = useState(false);
+  const [showKeys, setShowKeys] = useState(false);
   const desktop = useIsDesktop();
   const loaded = useRef(false);
 
@@ -198,6 +201,12 @@ export default function Woodshed() {
 
   const streak = streakInfo(data.sessions);
   const openLesson = (it) => { setTunerOpen(false); setLessonFor(it); };
+  const onShortcut = (a) => {
+    if (a.type === "view") setView(a.view);
+    else if (a.type === "log") { if (!session.completed && session.items.length) setLogging(true); }
+    else if (a.type === "close") { setLessonFor(null); setTunerOpen(false); }
+    else if (a.type === "help") setShowKeys(true);
+  };
   const requestLog = () => {
     const inSet = !session.completed && session.items.some((x) => x.itemId === lessonFor.id);
     setLessonFor(null);
@@ -271,7 +280,7 @@ export default function Woodshed() {
     <PracticeProvider onTempo={setLastTempo}>
       {desktop ? (
         <div className="ws-desk">
-          <Sidebar view={view} onView={setView} onSettings={() => setShowSettings(true)}><Streak streak={streak} /></Sidebar>
+          <Sidebar view={view} onView={setView} onSettings={() => setShowSettings(true)} onHelp={() => setShowKeys(true)}><Streak streak={streak} /></Sidebar>
           <div className="ws-desk-main">{saveErr}{views}</div>
           <PracticeRail
             lesson={lessonProps && <LessonBody key={lessonFor.id} {...lessonProps} />}
@@ -279,6 +288,8 @@ export default function Woodshed() {
             onOpenTuner={() => { setLessonFor(null); setTunerOpen(true); }}
             onCloseSlot={() => { setLessonFor(null); setTunerOpen(false); }}
           />
+          {showKeys && <ShortcutHelp onClose={() => setShowKeys(false)} />}
+          <ShortcutBridge onAction={onShortcut} />
         </div>
       ) : (
         <Shell>

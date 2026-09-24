@@ -474,3 +474,11 @@ body{
   .ws-sheet{ max-width:560px; max-height:86vh; border-radius:20px; border-bottom:1px solid var(--line2); padding-bottom:26px; animation:fade .2s ease; }
   .ws-sheet-grip{ display:none; }
 }
+.ws-kbd{ font-family:'JetBrains Mono',monospace; font-size:10.5px; font-weight:500; color:var(--muted2); border:1px solid var(--line2); border-radius:5px; padding:1px 5px; margin-left:6px; line-height:1.4; }
+.ws-side-tab .ws-kbd{ margin-left:auto; }
+.ws-hint-keys{ font-size:11.5px; color:var(--muted2); text-align:center; margin:-6px 0 14px; }
+.ws-side-keys{ background:none; border:none; color:var(--muted2); font-family:inherit; font-size:12px; text-align:left; padding:4px 10px; cursor:pointer; }
+.ws-side-keys:hover{ color:var(--text); }
+.ws-keys{ display:grid; grid-template-columns:auto 1fr; gap:10px 16px; margin:6px 0 18px; font-size:14px; }
+.ws-keys dt{ text-align:right; }
+.ws-keys dd{ margin:0; color:var(--muted); }

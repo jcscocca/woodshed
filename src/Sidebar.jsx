@@ -2,21 +2,22 @@ import React from "react";
 
 export const VIEWS = [["today", "Today", "◐"], ["tracks", "Tracks", "◆"], ["library", "Library", "▤"], ["progress", "Progress", "◈"]];
 
-export default function Sidebar({ view, onView, onSettings, children }) {
+export default function Sidebar({ view, onView, onSettings, onHelp, children }) {
   return (
     <aside className="ws-side">
       <div className="ws-brand"><span className="ws-logo">◐</span> Woodshed</div>
       {children}
       <nav className="ws-side-nav" aria-label="Views">
-        {VIEWS.map(([k, label, icon]) => (
+        {VIEWS.map(([k, label, icon], i) => (
           <button key={k} className={`ws-side-tab ${view === k ? "on" : ""}`} aria-current={view === k ? "page" : undefined} onClick={() => onView(k)}>
-            <span className="ws-tab-icon" aria-hidden="true">{icon}</span>{label}
+            <span className="ws-tab-icon" aria-hidden="true">{icon}</span>{label}<kbd className="ws-kbd">{i + 1}</kbd>
           </button>
         ))}
       </nav>
       <button className="ws-side-tab ws-side-settings" onClick={onSettings}>
         <span className="ws-tab-icon" aria-hidden="true">⚙</span>Settings
       </button>
+      <button className="ws-side-keys" onClick={onHelp}>Keyboard shortcuts <kbd className="ws-kbd">?</kbd></button>
     </aside>
   );
 }

@@ -8,7 +8,7 @@ export default function PracticeRail({ lesson, tunerOpen, onOpenTuner, onCloseSl
   return (
     <aside className="ws-rail" aria-label="Practice">
       <section className="ws-rail-tools">
-        <PracticeTools />
+        <PracticeTools hints />
         {!tunerOpen && (
           <button className="ws-listen-open" onClick={() => { metro.stop(); onOpenTuner(); }}>
             <span className="ws-listen-dot" /> Tuner <span className="ws-beta">beta</span>
