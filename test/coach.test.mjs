@@ -44,7 +44,7 @@ test("isCoachable: any shaped instrument (incl. accordion); prose-only no", () =
 import { runNoteStream } from "../src/coach.js";
 
 // helper: a run of frames at one frequency. dt=16ms ~ one rAF tick.
-const NOTE = { A4: 440, C5: 523.25, E4: 329.63 };
+const NOTE = { A4: 440, C4: 261.63, C5: 523.25, E4: 329.63 };
 const frames = (specs) => {
   const out = []; let t = 0;
   for (const [hz, ms] of specs) { for (let e = 0; e < ms; e += 16) { out.push({ freq: hz, clarity: hz ? 0.7 : 0, level: hz ? 0.2 : 0, t }); t += 16; } }
@@ -72,6 +72,12 @@ test("noteStream: a repeated note re-attacked after a gap emits twice", () => {
   const ev = runNoteStream(frames([[NOTE.E4, 200], [0, 120], [NOTE.E4, 200]]));
   assert.equal(ev.length, 2);
   assert.ok(ev.every((e) => e.name === "E"));
+});
+
+test("noteStream: a held note with a one-frame octave flicker emits once", () => {
+  const ev = runNoteStream(frames([[NOTE.C4, 200], [NOTE.C5, 16], [NOTE.C4, 200]]));
+  assert.equal(ev.length, 1);
+  assert.equal(ev[0].octave, 4);
 });
 
 import { gradeLine } from "../src/coach.js";

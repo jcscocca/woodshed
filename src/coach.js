@@ -14,7 +14,7 @@ import { noteFromFrequency } from "./audio/dsp.js";
 // is primarily by pitch *change* (robust to legato, where there's no new
 // attack); a re-struck same note is caught by the silent-gap reset.
 export function createNoteStream({ holdMs = 90, clarityFloor = 0.5, levelFloor = 0.02, gapMs = 70 } = {}) {
-  let cand = null, candStart = 0, candPeak = 0, confirmed = false, lastValidT = -Infinity;
+  let cand = null, candStart = 0, candPeak = 0, confirmed = false, lastValidT = -Infinity, lastEmitted = null;
   return {
     push({ freq, clarity, level, t }) {
       const valid = freq > 0 && clarity >= clarityFloor && level >= levelFloor;
@@ -23,9 +23,12 @@ export function createNoteStream({ holdMs = 90, clarityFloor = 0.5, levelFloor =
         const sameNote = cand != null && midi === cand && (t - lastValidT) <= gapMs;
         if (!sameNote) { cand = midi; candStart = t; candPeak = level; confirmed = false; }
         else if (level > candPeak) candPeak = level;
+        if (t - lastValidT > gapMs) lastEmitted = null; // a silent gap: the same note may count again
         lastValidT = t;
         if (!confirmed && t - candStart >= holdMs) {
           confirmed = true;
+          if (midi === lastEmitted) return null; // re-confirmed after a blip (e.g. an octave flicker), not re-struck
+          lastEmitted = midi;
           const n = noteFromFrequency(freq);
           return { midi: n.midi, name: n.name, octave: n.octave, tStart: candStart, peak: candPeak };
         }
