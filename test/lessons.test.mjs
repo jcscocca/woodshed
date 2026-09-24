@@ -128,6 +128,25 @@ test("line shapes never repeat a note back to back", () => {
   }
 });
 
+import { fillInstrument, freshData, swapInSession } from "../src/engine.js";
+
+test("twins point at a track stage on the same instrument, and a set never holds both", () => {
+  const stages = new Map(trackItems().map((s) => [s.id, s]));
+  const twins = SEED.filter((s) => s.twin);
+  assert.ok(twins.length >= 6, "expected the library/track twin pairs to be marked");
+  for (const s of twins) assert.equal(stages.get(s.twin)?.inst, s.inst, `${s.id}: twin ${s.twin} must be a ${s.inst} track stage`);
+  const pairs = twins.map((s) => [s.id, s.twin]);
+  const data = { ...freshData(), items: freshData().items.map((it) => ({ ...it, last: null, times: 0 })) };
+  for (const inst of ["guitar", "bass", "accordion"]) {
+    for (let run = 0; run < 30; run++) {
+      const ids = new Set(fillInstrument(inst, 500, data, "2026-01-01", true).map((it) => it.id));
+      for (const [a, b] of pairs) assert.ok(!(ids.has(a) && ids.has(b)), `${inst}: set holds both ${a} and ${b}`);
+    }
+  }
+  const session = { items: [{ itemId: "trk-bs-1" }, { itemId: "bs-roots" }] };
+  for (let run = 0; run < 30; run++) assert.notEqual(swapInSession(session, "bs-roots", data).items[1].itemId, "bs-pluck", "swap brought in trk-bs-1's twin");
+});
+
 test("lesson copy is plain text — no markdown asterisks", () => {
   for (const [id, L] of Object.entries(LESSONS))
     for (const s of [L.summary, ...L.steps, ...L.watch]) assert.ok(!s.includes("*"), `${id}: "*" renders literally in "${s}"`);
