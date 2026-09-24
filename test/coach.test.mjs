@@ -200,4 +200,35 @@ test("evenness: fewer than 3 gaps => null", () => {
   assert.equal(evenness(tsEvents([0, 200, 400])), null);
 });
 
+import { gradeChords, touchEvenness } from "../src/coach.js";
+
+test("gradeChords: exact sets are caught", () => {
+  const r = gradeChords([{ midis: [48, 60], label: "C" }, { midis: [50, 62], label: "D" }], [{ midis: [48, 60] }, { midis: [50, 62] }]);
+  assert.deepEqual(r.results.map((x) => x.status), ["caught", "caught"]); assert.equal(r.accuracy, 100); assert.equal(r.done, true);
+});
+test("gradeChords: a missing and an extra note are reported", () => {
+  const r = gradeChords([{ midis: [60, 64, 67], label: "C" }], [{ midis: [60, 64, 68] }]);
+  assert.equal(r.results[0].status, "missed"); assert.deepEqual(r.results[0].missing, [67]); assert.deepEqual(r.results[0].extra, [68]);
+  assert.deepEqual(r.missed, ["C"]);
+});
+test("gradeChords: skipping a target catches the next", () => {
+  const r = gradeChords([{ midis: [48, 60], label: "C" }, { midis: [50, 62], label: "D" }, { midis: [52, 64], label: "E" }], [{ midis: [50, 62] }]);
+  assert.deepEqual(r.results.map((x) => x.status), ["missed", "caught", "pending"]); assert.equal(r.cursor, 2);
+});
+test("hands together: right-hand notes pair with the octave below", () => {
+  const { mode, targets } = shapeToTargets({ kind: "keyboard", hands: "together", notes: [{ name: "C", octave: 4 }, { name: "D", octave: 4 }] });
+  assert.equal(mode, "chords"); assert.deepEqual(targets.map((t) => t.midis), [[48, 60], [50, 62]]);
+});
+test("touchEvenness: steady velocities are even, a spike is not", () => {
+  const ev = (ps) => ps.map((peak, i) => ({ peak, tStart: i * 250 }));
+  assert.equal(touchEvenness(ev([0.6, 0.62, 0.58, 0.6, 0.61])).band, "even");
+  assert.equal(touchEvenness(ev([0.6, 0.6, 1.0, 0.3, 0.6])).band, "uneven");
+  assert.equal(touchEvenness(ev([0.6, 0.6, 0.6])), null);
+});
+test("MIDI-shaped events grade through gradeLine unchanged", () => {
+  const targets = shapeToTargets({ kind: "keyboard", notes: [{ name: "C", octave: 4 }, { name: "D", octave: 4 }] }).targets;
+  const events = [{ midi: 60, name: "C", octave: 4, tStart: 0, peak: 0.7 }, { midi: 62, name: "D", octave: 4, tStart: 300, peak: 0.7 }];
+  assert.equal(gradeLine(targets, events, { octaveStrict: true }).accuracy, 100);
+});
+
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });

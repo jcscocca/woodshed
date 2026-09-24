@@ -78,6 +78,39 @@ export function gradeLine(targets, events, { octaveStrict = false } = {}) {
   };
 }
 
+const sameSet = (a, b) => a.length === b.length && a.every((m) => b.includes(m));
+
+// Chords-as-played grading (MIDI): each target is a note set, each event a
+// chord (onsets grouped within a small window, see groupChords). Exact match
+// -> caught. Else a one-step lookahead, as in gradeLine: if the event matches
+// the *next* target exactly, the current one was skipped clean (no diff) and
+// the next is caught; otherwise the current target is missed with the notes
+// it was short (missing) and the notes played that don't belong (extra).
+export function gradeChords(targets, chordEvents) {
+  const results = targets.map((t) => ({ target: t, status: "pending" }));
+  let cur = 0;
+  for (const e of chordEvents) {
+    if (cur >= targets.length) break;
+    if (sameSet(e.midis, targets[cur].midis)) { results[cur].status = "caught"; cur++; }
+    else if (cur + 1 < targets.length && sameSet(e.midis, targets[cur + 1].midis)) {
+      results[cur].status = "missed"; results[cur + 1].status = "caught"; cur += 2;
+    } else {
+      results[cur].status = "missed";
+      results[cur].missing = targets[cur].midis.filter((m) => !e.midis.includes(m));
+      results[cur].extra = e.midis.filter((m) => !targets[cur].midis.includes(m));
+      cur++;
+    }
+  }
+  const caught = results.filter((r) => r.status === "caught").length;
+  return {
+    results,
+    cursor: cur,
+    done: cur >= targets.length,
+    accuracy: targets.length ? Math.round((100 * caught) / targets.length) : 0,
+    missed: results.filter((r) => r.status === "missed" || r.status === "pending").map((r) => r.target.label),
+  };
+}
+
 // Soft, tempo-independent timing read: the coefficient of variation of the gaps
 // between confirmed notes. Needs >= 3 gaps (4 notes). Deliberately forgiving —
 // a nudge in the summary, never scored. Returns { band, cv } or null.
@@ -91,6 +124,18 @@ export function evenness(events) {
   const variance = iois.reduce((a, b) => a + (b - mean) ** 2, 0) / iois.length;
   const cv = Math.sqrt(variance) / mean;
   return { band: cv <= 0.2 ? "even" : "uneven", cv };
+}
+
+// Same coefficient-of-variation read as evenness, but over struck velocity
+// (peak) instead of timing — a soft touch note, never scored. Needs >= 4 events.
+export function touchEvenness(events) {
+  if (events.length < 4) return null;
+  const peaks = events.map((e) => e.peak);
+  const mean = peaks.reduce((a, b) => a + b, 0) / peaks.length;
+  if (mean <= 0) return null;
+  const variance = peaks.reduce((a, b) => a + (b - mean) ** 2, 0) / peaks.length;
+  const cv = Math.sqrt(variance) / mean;
+  return { band: cv <= 0.15 ? "even" : "uneven", cv };
 }
 
 // Step-gated, octave-aware grading for an arpeggiated chord. Events arrive in

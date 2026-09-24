@@ -65,6 +65,10 @@ export const shapeToTargets = (shape) => {
     return { mode: "line", instrument: shape.instrument, targets: shape.dots.map((d) => { const n = midiToNote(tuning[d.string] + d.fret); return { ...n, string: d.string, fret: d.fret, label: n.name }; }) };
   }
   if (shape.kind === "keyboard") {
+    if (shape.hands === "together") {
+      const targets = shape.notes.map((nn) => { const n = midiToNote(noteToMidi(nn)); return { midis: [n.midi - 12, n.midi], midi: n.midi, name: n.name, octave: n.octave, label: n.name }; });
+      return { mode: "chords", targets };
+    }
     const targets = shape.notes.map((nn) => { const n = midiToNote(noteToMidi(nn)); return { ...n, label: n.name }; });
     return { mode: shape.play === "block" ? "arpeggio" : "line", targets };
   }
