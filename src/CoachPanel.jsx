@@ -39,6 +39,9 @@ export default function CoachPanel({ item, lesson, sessions = [], onLog, source 
   const useInput = viaMidi ? useMidiCoach : useCoach; // fixed per mount: LessonBody keys the panel by source
   const coach = useInput({ mode, targets, octaveStrict });
   const r = coach.result;
+  // Over MIDI the note to play stays pending until the run ends — a stray only
+  // marks it missed provisionally (gradeLine's end-of-attempt rule).
+  const shown = viaMidi && coach.listening ? r.results.map((x, i) => (i === r.cursor ? { ...x, status: "pending" } : x)) : r.results;
   const summary = useRef(null);
 
   // Launch a run only after `dir` (hence `targets`) has settled, so a reversed
@@ -55,12 +58,12 @@ export default function CoachPanel({ item, lesson, sessions = [], onLog, source 
   // Over MIDI the band carries the run: hits and misses, the next key, and the readout.
   useEffect(() => {
     if (!viaMidi || runToken === 0) return;
-    const keys = overlay.get().targets, { statuses, at } = toBand(r.results, keys);
+    const keys = overlay.get().targets, { statuses, at } = toBand(shown, keys);
     if (!coach.listening) { overlay.set({ statuses, next: -1, readout: null, busy: false }); return; }
     const cur = r.results[r.cursor], next = at[r.cursor] ?? -1, finger = next >= 0 && keys[next].finger;
     const readout = !cur ? null : mode === "chords" ? { head: nameChord(cur.target.midis) || cur.target.label } : {
       head: finger ? `${cur.target.label} · ${finger}` : cur.target.label,
-      line: `${r.results.filter((x) => x.status === "caught" || x.status === "missed").length} / ${r.results.length}`,
+      line: `${r.cursor} / ${r.results.length}`,
     };
     overlay.set({ statuses, next, readout, busy: true });
   }, [r, coach.listening]);
@@ -102,7 +105,7 @@ export default function CoachPanel({ item, lesson, sessions = [], onLog, source 
   return (
     <div className="ws-coach" aria-live="polite">
       <div className="ws-coach-seq" role="img" aria-label={`Coaching ${item.title}`}>
-        {r.results.map((x, i) => (
+        {shown.map((x, i) => (
           <span key={i} className={`ws-coach-chip ${STATUS_CLASS[x.status]} ${coach.listening && i === cur ? "now" : ""}`}>
             {x.target.muted ? "×" : x.target.label}
             {x.target.string != null && !x.target.muted && <small>{x.target.fret === 0 ? "0" : x.target.fret}</small>}
