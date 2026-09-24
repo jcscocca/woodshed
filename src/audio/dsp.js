@@ -83,7 +83,7 @@ export function noteFromFrequency(freq) {
     midi,
     name: NOTE_NAMES[((midi % 12) + 12) % 12],
     octave: Math.floor(midi / 12) - 1,
-    cents: Math.floor(1200 * Math.log2(freq / refF)),
+    cents: Math.round(1200 * Math.log2(freq / refF)),
   };
 }
 
@@ -112,11 +112,13 @@ export function detectPitchDetailed(buf, sampleRate, { minF = 40, maxF = 1500, s
 
   let lo = Infinity, hi = -Infinity, mean = 0, cnt = 0;
   const d = new Float64Array(maxLag + 1);
-  for (let lag = minLag; lag <= maxLag; lag++) {
+  for (let lag = minLag - 1; lag <= maxLag; lag++) {
     let sum = 0;
     for (let i = 0; i + lag < n; i++) sum += Math.abs(b[i] - b[i + lag]);
     sum /= (n - lag);
-    d[lag] = sum; mean += sum; cnt++;
+    d[lag] = sum;
+    if (lag < minLag) continue;
+    mean += sum; cnt++;
     if (sum < lo) lo = sum;
     if (sum > hi) hi = sum;
   }
@@ -125,6 +127,9 @@ export function detectPitchDetailed(buf, sampleRate, { minF = 40, maxF = 1500, s
 
   const thresh = lo + sensitivity * (hi - lo);
   let lag = minLag;
+  // A low note's curve is still climbing out of the lag-0 dip at minLag (rising
+  // from minLag-1): skip that slope so it isn't mistaken for a period at maxF.
+  if (d[minLag - 1] < d[minLag]) while (lag < maxLag && d[lag] <= thresh && d[lag + 1] > d[lag]) lag++;
   while (lag <= maxLag && d[lag] > thresh) lag++;
   if (lag > maxLag) return { freq: -1, clarity: 0 };
   while (lag + 1 <= maxLag && d[lag + 1] < d[lag]) lag++;

@@ -14,7 +14,7 @@ import { noteFromFrequency } from "./audio/dsp.js";
 // is primarily by pitch *change* (robust to legato, where there's no new
 // attack); a re-struck same note is caught by the silent-gap reset.
 export function createNoteStream({ holdMs = 90, clarityFloor = 0.5, levelFloor = 0.02, gapMs = 70 } = {}) {
-  let cand = null, candStart = 0, candPeak = 0, confirmed = false, lastValidT = -Infinity;
+  let cand = null, candStart = 0, candPeak = 0, confirmed = false, lastValidT = -Infinity, lastEmitted = null;
   return {
     push({ freq, clarity, level, t }) {
       const valid = freq > 0 && clarity >= clarityFloor && level >= levelFloor;
@@ -23,9 +23,12 @@ export function createNoteStream({ holdMs = 90, clarityFloor = 0.5, levelFloor =
         const sameNote = cand != null && midi === cand && (t - lastValidT) <= gapMs;
         if (!sameNote) { cand = midi; candStart = t; candPeak = level; confirmed = false; }
         else if (level > candPeak) candPeak = level;
+        if (t - lastValidT > gapMs) lastEmitted = null; // a silent gap: the same note may count again
         lastValidT = t;
         if (!confirmed && t - candStart >= holdMs) {
           confirmed = true;
+          if (midi === lastEmitted) return null; // re-confirmed after a blip (e.g. an octave flicker), not re-struck
+          lastEmitted = midi;
           const n = noteFromFrequency(freq);
           return { midi: n.midi, name: n.name, octave: n.octave, tStart: candStart, peak: candPeak };
         }
@@ -92,13 +95,21 @@ export function evenness(events) {
 
 // Step-gated, octave-aware grading for an arpeggiated chord. Events arrive in
 // play order (low->high), as the live stream produces them. A pitched string is
-// "caught" when its exact note rings; a string whose note never rings while a
-// LATER string does is "missed" (dead/skipped); strings not yet reached stay
-// "pending" (so live display dims them rather than flashing red). Muted strings
-// should stay silent — an event at the open pitch is flagged "rang" (advisory,
-// never scored). Stray events that match no upcoming string are skipped.
+// "caught" when its exact note rings, and "missed" when it rings in the wrong
+// octave or a LATER string rings first (dead/skipped); strings not yet reached
+// stay "pending" (so live display dims them rather than flashing red). Muted
+// strings should stay silent — an event at the open pitch is flagged "rang"
+// (advisory, never scored). "Later" stays within reach — the rest of this chord
+// plus the next chord's first string (any of its strings once this chord is
+// used up) — so one slip can't match a note chords ahead and mark everything in
+// between missed. Stray events that match none of that are skipped.
 export function gradeArpeggio(targets, events) {
   const results = targets.map((t) => ({ target: t, status: "pending" }));
+  // Each chord lists every string once (muted too), so a repeated string index
+  // starts the next chord. A keyboard block shape is a single chord.
+  const chordOf = [];
+  let chord = 0, seen = new Set();
+  for (const t of targets) { if (t.string != null && seen.has(t.string)) { chord++; seen = new Set(); } seen.add(t.string); chordOf.push(chord); }
   let ei = 0;
   for (let ci = 0; ci < targets.length; ci++) {
     const t = targets[ci];
@@ -107,9 +118,12 @@ export function gradeArpeggio(targets, events) {
       else results[ci].status = "muted-ok";
       continue;
     }
-    const later = new Set(targets.slice(ci + 1).filter((x) => !x.muted).map((x) => x.midi));
-    while (ei < events.length && events[ei].midi !== t.midi && !later.has(events[ei].midi)) ei++; // skip strays
+    const rest = targets.filter((x, i) => i > ci && chordOf[i] === chordOf[ci] && !x.muted);
+    const next = targets.filter((x, i) => chordOf[i] === chordOf[ci] + 1 && !x.muted);
+    const later = new Set((rest.length ? [...rest, ...next.slice(0, 1)] : next).map((x) => x.midi));
+    while (ei < events.length && !samePitch(events[ei].midi, t.midi, false) && !later.has(events[ei].midi)) ei++; // skip strays
     if (ei < events.length && events[ei].midi === t.midi) { results[ci].status = "caught"; ei++; }
+    else if (ei < events.length && samePitch(events[ei].midi, t.midi, false)) { results[ci].status = "missed"; ei++; } // this string, wrong octave
     else if (ei < events.length && later.has(events[ei].midi)) results[ci].status = "missed"; // a later string rang -> this one was skipped
     else break; // events exhausted -> the rest simply aren't played yet (pending)
   }

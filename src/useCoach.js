@@ -14,13 +14,17 @@ export function useCoach({ mode, targets, octaveStrict, inst }) {
   const [result, setResult] = useState(null); // { results, cursor, accuracy, done, missed, lastHeard }
 
   const ac = useRef(null), analyser = useRef(null), stream = useRef(null), raf = useRef(null), buf = useRef(null);
-  const streamer = useRef(null), events = useRef([]);
+  const streamer = useRef(null), events = useRef([]), session = useRef(0);
 
   // Clamp detection to the exercise's pitch span (cheap, and keeps out-of-range
   // octave artifacts out). Guard the empty case (a hypothetical all-muted shape).
+  // Octave-forgiving grading must also *hear* the other octave (an ear prompt may
+  // sit an octave off the instrument), so widen by one; floor at the detector's
+  // 40 Hz default so the lag window never outruns the 2048-sample frame.
   const pitched = targets.filter((t) => !t.muted).map((t) => t.midi);
-  const minF = pitched.length ? midiToFreq(Math.min(...pitched) - 3) : 80;
-  const maxF = pitched.length ? midiToFreq(Math.max(...pitched) + 3) : 1500;
+  const pad = octaveStrict ? 3 : 15;
+  const minF = pitched.length ? Math.max(40, midiToFreq(Math.min(...pitched) - pad)) : 80;
+  const maxF = pitched.length ? midiToFreq(Math.max(...pitched) + pad) : 1500;
   const detect = inst === "accordion" ? detectPitchSpectral : detectPitchDetailed;
 
   const grade = () => (mode === "arpeggio" ? gradeArpeggio(targets, events.current) : gradeLine(targets, events.current, { octaveStrict }));
@@ -42,10 +46,13 @@ export function useCoach({ mode, targets, octaveStrict, inst }) {
 
   const start = useCallback(async () => {
     if (listening) return; // never open a second mic stream
+    const id = ++session.current; // stop, unmount or a newer start bump this while the mic request is pending
     setError(null); events.current = []; setResult(compute());
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { setError("This browser doesn't support microphone access."); return; }
     try {
-      stream.current = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+      const s = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+      if (id !== session.current) { s.getTracks().forEach((t) => t.stop()); return; }
+      stream.current = s;
       ac.current = new (window.AudioContext || window.webkitAudioContext)();
       const src = ac.current.createMediaStreamSource(stream.current);
       analyser.current = ac.current.createAnalyser();
@@ -56,11 +63,12 @@ export function useCoach({ mode, targets, octaveStrict, inst }) {
       setListening(true);
       raf.current = requestAnimationFrame(loop);
     } catch (e) {
-      setError(e && e.name === "NotAllowedError" ? "Microphone permission was denied." : "Couldn't access the microphone.");
+      if (id === session.current) setError(e && e.name === "NotAllowedError" ? "Microphone permission was denied." : "Couldn't access the microphone.");
     }
   }, [listening, mode, octaveStrict, targets]);
 
   const teardown = () => {
+    session.current++;
     cancelAnimationFrame(raf.current);
     if (stream.current) stream.current.getTracks().forEach((t) => t.stop());
     if (ac.current && ac.current.state !== "closed") ac.current.close();
