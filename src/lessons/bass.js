@@ -67,7 +67,7 @@ export default {
     shape: null, prescribe: "70 BPM · root of A · one note per click · 2 min on the beat, then 2 min just behind it", bpm: 70,
     steps: [
       "Quarter notes, dead-on with the metronome — your note should hide the click.",
-      "After two minutes, lay back a hair so you sit just *behind* the beat.",
+      "After two minutes, lay back a hair so you sit just behind the beat.",
       "Feel the difference: on-top is urgent, behind is laid-back. Both are tools.",
     ],
     watch: ["'Behind' means a few milliseconds, not lazy. Stay locked, just relaxed."],
@@ -87,7 +87,7 @@ export default {
     shape: null, prescribe: "A groove you love · learn it phrase by phrase · nail the rhythm first", bpm: null,
     steps: [
       "Pick a groove. Learn just the first phrase, slowly.",
-      "Get the *rhythm* locked before worrying about exact notes.",
+      "Get the rhythm locked before worrying about exact notes.",
       "Add phrases one at a time, playing along with the record.",
     ],
     watch: ["A right-note, wrong-rhythm bassline doesn't groove. Rhythm first."],

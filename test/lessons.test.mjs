@@ -116,4 +116,9 @@ test("flat chords spell their notes as flats (Bb chord -> Bb F Bb D F)", () => {
   assert.deepEqual(bb, ["Bb2", "F3", "Bb3", "D4", "F4"]);
 });
 
+test("lesson copy is plain text — no markdown asterisks", () => {
+  for (const [id, L] of Object.entries(LESSONS))
+    for (const s of [L.summary, ...L.steps, ...L.watch]) assert.ok(!s.includes("*"), `${id}: "*" renders literally in "${s}"`);
+});
+
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });

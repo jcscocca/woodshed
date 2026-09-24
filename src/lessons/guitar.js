@@ -40,7 +40,7 @@ export default {
     bpm: 70,
     steps: [
       "Hold G and strum all downstrokes in time: down, down, down, down.",
-      "Now keep the hand swinging down-up the whole time but only *hit* on: down, down-up, down.",
+      "Now keep the hand swinging down-up the whole time but only hit on: down, down-up, down.",
       "The hand never stops moving — the misses on the up-swing are what keep your time honest.",
     ],
     watch: ["Strum from the wrist, not the elbow.", "Relax your grip on the pick; a death-grip kills the groove."],
