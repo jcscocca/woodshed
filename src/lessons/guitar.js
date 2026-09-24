@@ -8,8 +8,8 @@ const E  = { name: "E",  strings: [0, 2, 2, 1, 0, 0],           fingers: [0, 2, 
 const A  = { name: "A",  strings: ["x", 0, 2, 2, 2, 0],         fingers: [0, 0, 1, 2, 3, 0] };
 const F  = { name: "F",  strings: [1, 3, 3, 2, 1, 1],           fingers: [1, 3, 4, 2, 1, 1] };
 const Bb = { name: "Bb", strings: ["x", 1, 3, 3, 3, 1],         fingers: [0, 1, 2, 3, 4, 1] };
-const E5 = { name: "E5", strings: [0, 2, "x", "x", "x", "x"],   fingers: [0, 1, 0, 0, 0, 0] };
-const A5 = { name: "A5", strings: ["x", 0, 2, "x", "x", "x"],   fingers: [0, 0, 1, 0, 0, 0] };
+const F5 = { name: "F5", strings: [1, 3, "x", "x", "x", "x"],   fingers: [1, 3, 0, 0, 0, 0] };
+const B5 = { name: "B5", strings: ["x", 2, 4, "x", "x", "x"],   fingers: [0, 1, 3, 0, 0, 0] };
 
 export default {
   "gtr-open": {
@@ -73,13 +73,13 @@ export default {
     watch: ["Keep your fingers hovering close to the frets between notes — no big lifts."],
   },
   "gtr-power": {
-    summary: "Movable power chords (E5, A5) with a tight palm mute — the engine of rock rhythm.",
-    shape: { kind: "chords", instrument: "guitar", chords: [E5, A5] },
+    summary: "Movable power chords (F5, B5) with a tight palm mute — the engine of rock rhythm.",
+    shape: { kind: "chords", instrument: "guitar", chords: [F5, B5] },
     bpm: 90,
     steps: [
       "Rest the edge of your strumming palm lightly on the strings by the bridge — that's the mute.",
       "Play steady downstroke eighth-notes. The sound should be 'chunk', not ringing.",
-      "Slide the same two-finger shape to other frets without lifting the mute.",
+      "Slide the same two-finger shape — index on the root, ring two frets up on the next string — to other frets without lifting the mute.",
     ],
     watch: ["Mute too hard and it's a click; too soft and it rings — find the chunk in between."],
   },
