@@ -4,8 +4,8 @@ import { toNoteEvent, groupChords } from "./midiModel.js";
 import { gradeLine, gradeArpeggio, gradeChords, evenness, touchEvenness } from "../coach.js";
 
 // useCoach's API fed by the keyboard: every note-on is one event (no stabilizer —
-// MIDI pitch is exact). Chord targets (hands together, or a keyboard block shape
-// taken as one chord) grade the notes struck together, via groupChords.
+// MIDI pitch is exact). Chord targets (hands together) grade the notes struck
+// together, via groupChords; a keyboard block shape is rolled, so it grades in order.
 export function useMidiCoach({ mode, targets, octaveStrict }) {
   const midi = useMidi();
   const status = midi ? midi.status : "off";
@@ -14,11 +14,9 @@ export function useMidiCoach({ mode, targets, octaveStrict }) {
   const [result, setResult] = useState(null);
   const off = useRef(null), events = useRef([]);
 
-  const block = mode === "arpeggio" && targets.every((t) => t.string == null);
-  const chordTargets = mode === "chords" ? targets : block ? [{ midis: targets.map((t) => t.midi), label: targets.map((t) => t.label).join(" ") }] : null;
   const compute = () => {
-    const ev = events.current, chords = chordTargets && groupChords(ev);
-    const graded = chords ? gradeChords(chordTargets, chords) : mode === "arpeggio" ? gradeArpeggio(targets, ev) : gradeLine(targets, ev, { octaveStrict });
+    const ev = events.current, chords = mode === "chords" && groupChords(ev);
+    const graded = chords ? gradeChords(targets, chords) : mode === "arpeggio" ? gradeArpeggio(targets, ev) : gradeLine(targets, ev, { octaveStrict });
     // timing reads the gaps between chords, not the few ms inside one
     return { ...graded, timing: evenness(chords || ev), touch: touchEvenness(ev) };
   };
