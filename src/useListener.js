@@ -15,7 +15,7 @@ export function useListener() {
   const [bpm, setBpm] = useState(null);
 
   const ac = useRef(null), analyser = useRef(null), stream = useRef(null), raf = useRef(null), buf = useRef(null);
-  const onsets = useRef([]), tracker = useRef(null), quietFrames = useRef(0);
+  const onsets = useRef([]), tracker = useRef(null), quietFrames = useRef(0), session = useRef(0);
 
   const loop = () => {
     const a = analyser.current;
@@ -42,15 +42,18 @@ export function useListener() {
   };
 
   const start = useCallback(async () => {
+    const id = ++session.current; // stop, unmount or a newer start bump this while the mic request is pending
     setError(null);
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       setError("This browser doesn't support microphone access.");
       return;
     }
     try {
-      stream.current = await navigator.mediaDevices.getUserMedia({
+      const s = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
       });
+      if (id !== session.current) { s.getTracks().forEach((t) => t.stop()); return; }
+      stream.current = s;
       ac.current = new (window.AudioContext || window.webkitAudioContext)();
       const src = ac.current.createMediaStreamSource(stream.current);
       analyser.current = ac.current.createAnalyser();
@@ -62,11 +65,12 @@ export function useListener() {
       setListening(true);
       raf.current = requestAnimationFrame(loop);
     } catch (e) {
-      setError(e && e.name === "NotAllowedError" ? "Microphone permission was denied." : "Couldn't access the microphone.");
+      if (id === session.current) setError(e && e.name === "NotAllowedError" ? "Microphone permission was denied." : "Couldn't access the microphone.");
     }
   }, []);
 
   const stop = useCallback(() => {
+    session.current++;
     cancelAnimationFrame(raf.current);
     if (stream.current) stream.current.getTracks().forEach((t) => t.stop());
     if (ac.current && ac.current.state !== "closed") ac.current.close();
@@ -75,6 +79,7 @@ export function useListener() {
   }, []);
 
   useEffect(() => () => {
+    session.current++;
     cancelAnimationFrame(raf.current);
     if (stream.current) stream.current.getTracks().forEach((t) => t.stop());
     if (ac.current && ac.current.state !== "closed") ac.current.close();
