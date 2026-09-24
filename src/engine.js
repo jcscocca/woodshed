@@ -164,6 +164,11 @@ export function levelFor(inst, sessions) {
 // Greedily pick items for one instrument to roughly fill a time budget,
 // favoring the learning edge, balancing a drill with a song, rotating
 // within the instrument, and spacing out repertoire.
+// Library items that duplicate a track stage (seed `twin`), mapped both ways.
+// Read from SEED, not saved items, so existing libraries get it without a merge.
+const TWIN = {};
+for (const s of SEED) if (s.twin) { TWIN[s.id] = s.twin; TWIN[s.twin] = s.id; }
+
 export function fillInstrument(inst, budget, data, today, relax) {
   const locked = trackLocks(data.items);
   const pool = data.items.filter((it) => it.inst === inst && !it.hidden && !locked.has(it.id) && (relax || it.last !== today));
@@ -173,7 +178,7 @@ export function fillInstrument(inst, budget, data, today, relax) {
   while (rem >= 5 && out.length < pool.length) {
     let best = null, bestScore = -1e9;
     for (const it of pool) {
-      if (out.includes(it)) continue;
+      if (out.includes(it) || out.some((o) => TWIN[o.id] === it.id)) continue;
       const dsi = daysSince(it.last, today);
       let s = Math.min(dsi, 14) * 0.6; // rotate within the instrument
       const gap = it.diff < level ? level - it.diff : it.diff > level + 1 ? it.diff - (level + 1) : 0;
@@ -240,7 +245,7 @@ export function swapInSession(session, itemId, data) {
   const inSession = new Set(session.items.map((x) => x.itemId));
   const locked = trackLocks(data.items);
   const candidates = data.items.filter(
-    (it) => it.inst === cur.inst && !it.hidden && !locked.has(it.id) && !inSession.has(it.id) && it.last !== today
+    (it) => it.inst === cur.inst && !it.hidden && !locked.has(it.id) && !inSession.has(it.id) && !inSession.has(TWIN[it.id]) && it.last !== today
   );
   const level = levelFor(cur.inst, data.sessions);
   let best = null, bestScore = -1e9;

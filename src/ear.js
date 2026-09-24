@@ -28,16 +28,18 @@ export function intervalLabel(prevMidi, curMidi) {
 }
 
 const SMALL_INTERVALS = [2, 3, 4, 5, 7];                    // M2 m3 M3 P4 P5
+const MID_INTERVALS = [1, 2, 3, 4, 5, 7, 8, 9, 12];         // + m2 m6 M6 P8; TT m7 M7 wait for diff 3
 const ALL_INTERVALS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
-const noteLabel = (m) => { const n = midiToNote(m); return `${n.name}${n.octave}`; };
+const FLAT_KEYS = new Set(["F", "Bb", "Eb"]);
+const noteLabel = (m, flats) => { const n = midiToNote(m, flats); return `${n.name}${n.octave}`; };
 const pick = (arr, rng) => arr[Math.floor(rng() * arr.length)];
 
 // Two notes: draw an interval, a direction, then a start that keeps both ends
 // in range. Configs are schema-checked to span >= 12 semitones, so max never
 // dips below min.
 function intervalMidis(diff, lo, hi, rng) {
-  const step = pick(diff <= 1 ? SMALL_INTERVALS : ALL_INTERVALS, rng);
+  const step = pick(diff <= 1 ? SMALL_INTERVALS : diff === 2 ? MID_INTERVALS : ALL_INTERVALS, rng);
   const up = rng() < 0.5;
   const min = up ? lo : lo + step;
   const max = up ? hi - step : hi;
@@ -47,8 +49,8 @@ function intervalMidis(diff, lo, hi, rng) {
 
 const MAJOR = [0, 2, 4, 5, 7, 9, 11];
 export const KEY_ROOT = { C: 0, G: 7, D: 2, A: 9, E: 4, F: 5, Bb: 10, Eb: 3 };
-const PHRASE_LEN = { 3: [3, 3], 4: [4, 5], 5: [5, 6] };
-const PHRASE_REACH = { 3: 2, 4: 5, 5: 7 }; // max scale-steps per move (2≈third, 5≈sixth, 7≈octave)
+const PHRASE_LEN = { 1: [3, 3], 2: [3, 3], 3: [3, 3], 4: [4, 5], 5: [5, 6] };
+const PHRASE_REACH = { 1: 1, 2: 2, 3: 2, 4: 5, 5: 7 }; // max scale-steps per move (1=step, 2≈third, 5≈sixth, 7≈octave)
 
 function scaleNotes(key, lo, hi) {
   const root = KEY_ROOT[key];
@@ -60,9 +62,9 @@ function scaleNotes(key, lo, hi) {
 // Random walk over the scale. No repeated adjacent notes — a legato re-strike
 // of the same pitch never re-confirms in the note stream (see coach.js gapMs),
 // so repeats would be ungradeable, not just hard.
-function phraseMidis(diff, keys, lo, hi, rng) {
+function phraseMidis(diff, key, lo, hi, rng) {
   const d = Math.min(diff, 5);
-  const scale = scaleNotes(pick(keys, rng), lo, hi);
+  const scale = scaleNotes(key, lo, hi);
   const [a, b] = PHRASE_LEN[d];
   const len = a + Math.floor(rng() * (b - a + 1));
   let i = Math.floor(rng() * scale.length);
@@ -89,13 +91,15 @@ function phraseMidis(diff, keys, lo, hi, rng) {
 }
 
 // One round: targets in gradeLine's shape, the prompt in playSequence's shape.
-// `diff` is the item's *current* difficulty, so the engine's level-up
-// suggestions walk this ladder with no ear-specific code.
+// `ear.mode` ("intervals" | "phrases") fixes what the item is; `diff` is its
+// *current* difficulty and only scales within that mode, so the engine's
+// level-up suggestions walk this ladder with no ear-specific code.
 export function generateRound({ diff, ear, rng }) {
   const [lo, hi] = ear.range;
-  const midis = diff <= 2 ? intervalMidis(diff, lo, hi, rng) : phraseMidis(diff, ear.keys, lo, hi, rng);
+  const key = ear.mode === "phrases" ? pick(ear.keys, rng) : null;
+  const midis = key ? phraseMidis(diff, key, lo, hi, rng) : intervalMidis(diff, lo, hi, rng);
   return {
-    targets: midis.map((m) => ({ midi: m, label: noteLabel(m) })),
+    targets: midis.map((m) => ({ midi: m, label: noteLabel(m, FLAT_KEYS.has(key)) })),
     promptVoices: midis.map((m) => [midiToFreq(m)]),
     bpm: ear.bpm || 80,
   };

@@ -2,18 +2,23 @@
 const cMajorScale = { kind: "keyboard",
   notes: [{ name: "C", octave: 4 }, { name: "D", octave: 4 }, { name: "E", octave: 4 }, { name: "F", octave: 4 }, { name: "G", octave: 4 }, { name: "A", octave: 4 }, { name: "B", octave: 4 }, { name: "C", octave: 5 }],
   fingers: [1, 2, 3, 1, 2, 3, 4, 5] };
+const cMajorTwoOctaves = { kind: "keyboard",
+  notes: [{ name: "C", octave: 4 }, { name: "D", octave: 4 }, { name: "E", octave: 4 }, { name: "F", octave: 4 }, { name: "G", octave: 4 }, { name: "A", octave: 4 }, { name: "B", octave: 4 },
+    { name: "C", octave: 5 }, { name: "D", octave: 5 }, { name: "E", octave: 5 }, { name: "F", octave: 5 }, { name: "G", octave: 5 }, { name: "A", octave: 5 }, { name: "B", octave: 5 }, { name: "C", octave: 6 }],
+  fingers: [1, 2, 3, 1, 2, 3, 4, 1, 2, 3, 1, 2, 3, 4, 5] };
 const fiveFinger = { kind: "keyboard",
-  notes: [{ name: "C", octave: 4 }, { name: "D", octave: 4 }, { name: "E", octave: 4 }, { name: "F", octave: 4 }, { name: "G", octave: 4 }],
-  fingers: [1, 2, 3, 4, 5] };
+  notes: [{ name: "C", octave: 4 }, { name: "D", octave: 4 }, { name: "E", octave: 4 }, { name: "F", octave: 4 }, { name: "G", octave: 4 },
+    { name: "F", octave: 4 }, { name: "E", octave: 4 }, { name: "D", octave: 4 }, { name: "C", octave: 4 }],
+  fingers: [1, 2, 3, 4, 5, 4, 3, 2, 1] };
 
 export default {
   "pno-scales": {
     summary: "Major scales hands together, two octaves — the C major scale and its thumb-under move shown here.",
-    shape: cMajorScale, bpm: 80,
+    shape: cMajorTwoOctaves, bpm: 80,
     steps: [
-      "Right hand going up: play 1-2-3, then tuck the thumb under to reach F with finger 1, then 2-3-4-5.",
-      "Hands together, two octaves, one note per click. Pick two keys for today.",
-      "Listen for even tone — no note louder than its neighbours.",
+      "Right hand, two octaves up: 1-2-3, tuck the thumb under to F, 2-3-4, thumb under to C, 2-3, thumb under to F, then 2-3-4-5 to the top C.",
+      "Hands together, two octaves, one note per click. Once C is smooth, G, D, A and E use the same fingering.",
+      "Listen for even tone — no note louder than its neighbors.",
     ],
     watch: ["Keep the wrist level and relaxed; the thumb-under should be silent and smooth."],
   },
@@ -28,12 +33,15 @@ export default {
     watch: ["Eyes on the page, not your hands. Trust your fingers to find the keys."],
   },
   "pno-hanon": {
-    summary: "A five-finger independence pattern through all fingers, slow and dead even.",
-    shape: fiveFinger, bpm: 80,
+    summary: "Hanon No. 1 — a finger-independence pattern that climbs the scale, slow and dead even.",
+    shape: { kind: "keyboard",
+      notes: [{ name: "C", octave: 4 }, { name: "E", octave: 4 }, { name: "F", octave: 4 }, { name: "G", octave: 4 }, { name: "A", octave: 4 }, { name: "G", octave: 4 }, { name: "F", octave: 4 }, { name: "E", octave: 4 }],
+      fingers: [1, 2, 3, 4, 5, 4, 3, 2] },
+    bpm: 80,
     steps: [
-      "Play C-D-E-F-G with fingers 1-2-3-4-5, then back down, one note per click.",
+      "Play C-E-F-G-A-G-F-E with fingers 1-2-3-4-5-4-3-2, one note per click, then start one note higher (D-F-G-A-B-A-G-F) and climb the octave.",
       "The goal is identical tone and timing from every finger — especially the weak 4 and 5.",
-      "Keep the hand still; only the fingers move.",
+      "Keep the hand quiet but never locked — a frozen hand is where tension starts.",
     ],
     watch: ["Relaxed wrist. If your forearm tenses, slow down."],
   },
@@ -45,13 +53,14 @@ export default {
       "Join the hands at half speed, then nudge the tempo up only when it's clean.",
       "End by playing the section in context, from a bar before to a bar after.",
     ],
-    watch: ["Practising the whole piece top-to-bottom hides the hard bar. Isolate it."],
+    watch: ["Practicing the whole piece top-to-bottom hides the hard bar. Isolate it."],
   },
   "pno-voicings": {
-    summary: "Comp a lead sheet with shell or rootless voicings instead of plain block triads.",
+    summary: "Comp (accompany) a lead sheet with shell voicings instead of plain block triads.",
     shape: null, prescribe: "Lead sheet · shell voicings (root–3rd–7th) · comp the changes in time", bpm: null,
     steps: [
       "Take a tune's chord symbols. For each, play just the root, 3rd and 7th — the shell.",
+      "ii–V–I in C: Dm7 D–F–C, G7 G–F–B, Cmaj7 C–E–B — thirds and sevenths hold or move a half step.",
       "Keep the voicings close; let the top notes move smoothly chord to chord.",
       "Comp in rhythm against a metronome or backing track.",
     ],
@@ -83,10 +92,10 @@ export default {
     shape: fiveFinger, bpm: 80,
     steps: [
       "Right hand: C-D-E-F-G with fingers 1-2-3-4-5 and back, even tone.",
-      "Then the left hand on its own, same idea.",
+      "Left hand: C-D-E-F-G an octave lower, fingers 5-4-3-2-1 — the numbers run backwards.",
       "Relax the wrist; take your eyes off the keys when you can.",
     ],
-    watch: ["No note louder than the others — listen for the weak fingers."],
+    watch: ["No note louder than the others — listen for the weak fingers.", "Forearms level with the keys, elbows just in front of the body, fingers curved, shoulders loose."],
   },
   "trk-pno-2": {
     summary: "Contrary motion: both thumbs on middle C, hands moving outward and back together.",
@@ -103,10 +112,11 @@ export default {
     shape: cMajorScale, bpm: 80,
     steps: [
       "Right hand up: 1-2-3, thumb under to F (1), then 2-3-4-5.",
-      "Add the left hand. Pick one key and make it smooth before adding another.",
+      "Left hand up: 5-4-3-2-1, then 3 crosses over the thumb onto A, 2-1 to finish.",
+      "Hands together, the right thumb goes under at F while the left 3 crosses at A — slow that bar down.",
       "One note per click, even and unhurried.",
     ],
-    watch: ["The thumb-under is where it gets bumpy — practise just that move."],
+    watch: ["The thumb-under is where it gets bumpy — practice just that move."],
   },
   "trk-pno-4": {
     summary: "Right-hand melody over left-hand block chords — keep the tune singing above.",

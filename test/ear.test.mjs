@@ -24,7 +24,8 @@ test("intervalLabel: names and directions", () => {
   assert.equal(intervalLabel(60, 60), "P1");
 });
 
-const EAR = { range: [60, 79], keys: ["C", "G", "F"], bpm: 80, rounds: 5 };
+const EAR = { mode: "intervals", range: [60, 79], keys: ["C", "G", "F"], bpm: 80, rounds: 5 };
+const PHR = { ...EAR, mode: "phrases" };
 
 test("generateRound: same seed, same round", () => {
   const a = generateRound({ diff: 1, ear: EAR, rng: mulberry32(7) });
@@ -42,13 +43,14 @@ test("generateRound diff 1: two notes, small-interval set, in range", () => {
   }
 });
 
-test("generateRound diff 2: any interval up to an octave, both directions drawn", () => {
+test("generateRound diff 2: wider intervals up to an octave, both directions drawn, no TT/m7/M7 yet", () => {
   const gaps = new Set();
   let down = 0;
   for (let s = 0; s < 300; s++) {
     const r = generateRound({ diff: 2, ear: EAR, rng: mulberry32(s) });
     const d = r.targets[1].midi - r.targets[0].midi;
     assert.ok(Math.abs(d) >= 1 && Math.abs(d) <= 12);
+    assert.ok(![6, 10, 11].includes(Math.abs(d)), `seed ${s}: ${Math.abs(d)} semitones is held back until diff 3`);
     gaps.add(Math.abs(d));
     if (d < 0) down++;
   }
@@ -56,12 +58,39 @@ test("generateRound diff 2: any interval up to an octave, both directions drawn"
   assert.ok(down > 50, "descending intervals should be common");
 });
 
+test("generateRound intervals ramp: each difficulty adds intervals, diff 3 brings in TT, m7, M7", () => {
+  const seen = (diff) => {
+    const g = new Set();
+    for (let s = 0; s < 400; s++) { const r = generateRound({ diff, ear: EAR, rng: mulberry32(s) }); g.add(Math.abs(r.targets[1].midi - r.targets[0].midi)); }
+    return g;
+  };
+  const [d1, d2, d3] = [seen(1), seen(2), seen(3)];
+  assert.ok(d1.size < d2.size && d2.size < d3.size, `sizes ${d1.size} < ${d2.size} < ${d3.size}`);
+  for (const g of d1) assert.ok(d2.has(g), `diff 2 should keep diff 1's ${g}`);
+  for (const g of [6, 10, 11]) assert.ok(d3.has(g), `diff 3 should include ${g}`);
+  assert.equal(d3.size, 12, "diff 3 covers every interval up to the octave");
+});
+
 test("generateRound: targets, prompt, bpm, labels agree", () => {
   const r = generateRound({ diff: 1, ear: EAR, rng: mulberry32(3) });
   assert.equal(r.promptVoices.length, r.targets.length);
   assert.ok(Math.abs(r.promptVoices[0][0] - midiToFreq(r.targets[0].midi)) < 1e-9);
   assert.equal(r.bpm, 80);
-  for (const t of r.targets) assert.match(t.label, /^[A-G]#?\d$/);
+  for (const t of r.targets) assert.match(t.label, /^[A-G][#b]?\d$/);
+});
+
+test("generateRound: flat keys spell black keys as flats (F major reveals Bb, never A#)", () => {
+  let sawBb = false;
+  for (let s = 0; s < 200; s++) {
+    for (const diff of [3, 4, 5]) {
+      const r = generateRound({ diff, ear: { ...PHR, keys: ["F"] }, rng: mulberry32(s) });
+      for (const t of r.targets) {
+        assert.ok(!t.label.includes("#"), `seed ${s} diff ${diff}: ${t.label} in F major`);
+        if (t.midi % 12 === 10) { assert.match(t.label, /^Bb\d$/); sawBb = true; }
+      }
+    }
+  }
+  assert.ok(sawBb, "F-major phrases should include Bb somewhere");
 });
 
 const MAJOR_STEPS = [0, 2, 4, 5, 7, 9, 11];
@@ -71,7 +100,7 @@ const gaps = (r) => r.targets.slice(1).map((t, i) => Math.abs(t.midi - r.targets
 
 test("generateRound diff 3: three diatonic notes, steps and thirds, no repeats", () => {
   for (let s = 0; s < 200; s++) {
-    const r = generateRound({ diff: 3, ear: EAR, rng: mulberry32(s) });
+    const r = generateRound({ diff: 3, ear: PHR, rng: mulberry32(s) });
     assert.equal(r.targets.length, 3, `seed ${s}`);
     assert.ok(r.targets.every((t) => t.midi >= 60 && t.midi <= 79), `seed ${s}: out of range`);
     assert.ok(Object.values(ROOTS).some((root) => r.targets.every((t) => inKey(t.midi, root))), `seed ${s}: not in any configured key`);
@@ -82,7 +111,7 @@ test("generateRound diff 3: three diatonic notes, steps and thirds, no repeats",
 test("generateRound diff 4: four-to-five notes, leaps to a sixth", () => {
   const lens = new Set();
   for (let s = 0; s < 200; s++) {
-    const r = generateRound({ diff: 4, ear: EAR, rng: mulberry32(s) });
+    const r = generateRound({ diff: 4, ear: PHR, rng: mulberry32(s) });
     lens.add(r.targets.length);
     assert.ok(r.targets.length >= 4 && r.targets.length <= 5, `seed ${s}`);
     for (const g of gaps(r)) assert.ok(g >= 1 && g <= 9, `seed ${s}: gap ${g} beyond a sixth`);
@@ -93,10 +122,28 @@ test("generateRound diff 4: four-to-five notes, leaps to a sixth", () => {
 
 test("generateRound diff 5: five-to-six notes, leaps to an octave, chromatics allowed", () => {
   for (let s = 0; s < 200; s++) {
-    const r = generateRound({ diff: 5, ear: EAR, rng: mulberry32(s) });
+    const r = generateRound({ diff: 5, ear: PHR, rng: mulberry32(s) });
     assert.ok(r.targets.length >= 5 && r.targets.length <= 6, `seed ${s}`);
     assert.ok(r.targets.every((t) => t.midi >= 60 && t.midi <= 79), `seed ${s}: out of range`);
     for (const g of gaps(r)) assert.ok(g >= 1 && g <= 12, `seed ${s}: gap ${g} beyond an octave`);
+  }
+});
+
+test("generateRound: mode keeps the item's identity at every difficulty", () => {
+  for (let diff = 1; diff <= 5; diff++) {
+    for (let s = 0; s < 100; s++) {
+      assert.equal(generateRound({ diff, ear: EAR, rng: mulberry32(s) }).targets.length, 2, `intervals diff ${diff} seed ${s}`);
+      const p = generateRound({ diff, ear: PHR, rng: mulberry32(s) });
+      assert.ok(p.targets.length >= 3, `phrases diff ${diff} seed ${s}: ${p.targets.length} notes`);
+      if (diff < 5) assert.ok(Object.values(ROOTS).some((root) => p.targets.every((t) => inKey(t.midi, root))), `phrases diff ${diff} seed ${s}: not in key`);
+    }
+  }
+});
+
+test("generateRound phrases diff 1: steps only", () => {
+  for (let s = 0; s < 200; s++) {
+    const r = generateRound({ diff: 1, ear: PHR, rng: mulberry32(s) });
+    for (const g of gaps(r)) assert.ok(g >= 1 && g <= 2, `seed ${s}: gap ${g} is more than a step`);
   }
 });
 
@@ -135,7 +182,7 @@ test("session: out-of-phase calls are ignored", () => {
 
 test("session: replay budget — unlimited at diff 1, one at diff 5, resets per round", () => {
   assert.equal(REPLAYS[1], Infinity);
-  const s5 = createEarSession({ diff: 5, ear: { ...EAR, rounds: 2 } });
+  const s5 = createEarSession({ diff: 5, ear: { ...PHR, rounds: 2 } });
   s5.begin(mulberry32(1)); s5.promptEnded();
   assert.equal(s5.replay(), true);   // back to prompt, budget spent
   s5.promptEnded();

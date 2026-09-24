@@ -7,6 +7,8 @@
 //   type:  technique (drill) | song (repertoire) | sight | ear | creative
 //   diff:  1 (beginner) .. 5 (advanced)
 //   min:   estimated minutes
+//   twin:  optional track-stage id with the same content; a daily set
+//          never holds both (see fillInstrument in engine.js)
 // ============================================================
 
 export const INSTRUMENTS = {
@@ -33,41 +35,41 @@ export const FELT = [
 
 export const SEED = [
   // ---------- PIANO ----------
-  { id: "pno-scales",   inst: "piano", title: "Scales & arpeggios, hands together", type: "technique", diff: 3, min: 8,  desc: "Run major scales hands together, 2 octaves. Pick 2 keys today; aim for even tone and a steady metronome." },
+  { id: "pno-scales",   inst: "piano", title: "Major scales, hands together",        type: "technique", diff: 3, min: 8,  desc: "Run major scales hands together, two octaves, starting in C. Aim for even tone and a steady metronome." },
   { id: "pno-sight",    inst: "piano", title: "Sight-reading",                       type: "sight",     diff: 3, min: 8,  desc: "Read through a piece you've never played, slowly, hands together. Don't stop to fix mistakes — keep the pulse." },
   { id: "pno-hanon",    inst: "piano", title: "Finger independence (Hanon)",         type: "technique", diff: 3, min: 6,  desc: "One Hanon exercise or 5-finger pattern through all positions, slow and even. Relaxed wrists." },
   { id: "pno-piece",    inst: "piano", title: "Your current piece",                  type: "song",      diff: 4, min: 12, desc: "Work the hardest section. Hands separate first, then together, slower than feels necessary." },
-  { id: "pno-voicings", inst: "piano", title: "Comping from a lead sheet",           type: "technique", diff: 3, min: 10, desc: "Take a pop or jazz lead sheet and comp the changes with shell or rootless voicings." },
-  { id: "pno-improv",   inst: "piano", title: "Improvise over a progression",        type: "creative",  diff: 4, min: 8,  desc: "Loop a ii-V-I or I-V-vi-IV and improvise a right-hand melody. Leave space." },
-  { id: "pno-ear",      inst: "piano", title: "Transcribe by ear",                   type: "ear",       diff: 3, min: 8,  desc: "Pick a short melody and figure it out by ear - no sheet music." },
+  { id: "pno-voicings", inst: "piano", title: "Comping from a lead sheet",           type: "technique", diff: 3, min: 10, desc: "Take a pop or jazz lead sheet and comp (accompany) the changes with shell voicings." },
+  { id: "pno-improv",   inst: "piano", title: "Improvise over a progression",        type: "creative",  diff: 4, min: 8,  desc: "Loop a ii–V–I or I–V–vi–IV and improvise a right-hand melody. Leave space." },
+  { id: "pno-ear",      inst: "piano", title: "Transcribe by ear",                   type: "ear",       diff: 3, min: 8,  desc: "Pick a short melody and figure it out by ear — no sheet music." },
 
   // ---------- GUITAR ----------
   { id: "gtr-open",    inst: "guitar", title: "Open chords",              type: "technique", diff: 1, min: 6,  desc: "Cycle E, A, D, G, C. Press just behind the fret; check every string rings clean." },
-  { id: "gtr-trans",   inst: "guitar", title: "Chord transitions",       type: "technique", diff: 2, min: 6,  desc: "Switch C-G-D-Em on a slow metronome. One clean change per click; speed up only when clean." },
-  { id: "gtr-strum",   inst: "guitar", title: "Strumming patterns",      type: "technique", diff: 1, min: 5,  desc: "Down, down-down-up-down on one chord. Keep the strumming hand moving the whole time." },
+  { id: "gtr-trans",   inst: "guitar", title: "Chord transitions",       type: "technique", diff: 2, min: 6,  desc: "Switch C–G–D–Em on a slow metronome: four strums per chord, change on beat 1; then two; then one. Speed up only when clean." },
+  { id: "gtr-strum",   inst: "guitar", title: "Strumming patterns",      type: "technique", diff: 1, min: 5,  desc: "One chord, one bar of 4/4: D on 1, D-U on 2&, D on 3, D-U on 4&. Keep the strumming hand moving the whole time." },
   { id: "gtr-riff",    inst: "guitar", title: "A single-note riff",      type: "song",      diff: 3, min: 8,  desc: "Learn a riff one phrase at a time. Loop the tricky bar slowly before joining it up." },
   { id: "gtr-pent",    inst: "guitar", title: "Minor pentatonic, box 1", type: "technique", diff: 2, min: 6,  desc: "Run box 1 up and down with alternate picking. Even timing beats speed." },
-  { id: "gtr-power",   inst: "guitar", title: "Power chords + palm mute", type: "technique", diff: 2, min: 6,  desc: "Move a power-chord shape around the neck with steady palm-muted downstrokes." },
-  { id: "gtr-barre",   inst: "guitar", title: "Barre chords",            type: "technique", diff: 3, min: 6,  desc: "Work the F barre. Roll the index slightly; get every string sounding before strumming." },
+  { id: "gtr-power",   inst: "guitar", title: "Power chords + palm mute", type: "technique", diff: 2, min: 6,  desc: "Move the two-finger power-chord shape around the neck with steady palm-muted downstrokes." },
+  { id: "gtr-barre",   inst: "guitar", title: "Barre chords",            type: "technique", diff: 3, min: 6,  desc: "Work the F barre. Roll the index slightly; get every string sounding before strumming.", twin: "trk-gtr-4" },
   { id: "gtr-song",    inst: "guitar", title: "A four-chord song",       type: "song",      diff: 2, min: 10, desc: "Play through a 4-chord song, counting or singing along to hold the time." },
   { id: "gtr-finger",  inst: "guitar", title: "Fingerpicking (Travis)",  type: "technique", diff: 3, min: 7,  desc: "Alternate thumb on bass strings, fingers on top. Start painfully slow." },
 
   // ---------- BASS ----------
-  { id: "bs-pluck",  inst: "bass", title: "Plucking technique",      type: "technique", diff: 1, min: 5,  desc: "Alternate index and middle on one note. Even volume, relaxed hand." },
+  { id: "bs-pluck",  inst: "bass", title: "Plucking technique",      type: "technique", diff: 1, min: 5,  desc: "Alternate index and middle on one note. Even volume, relaxed hand.", twin: "trk-bs-1" },
   { id: "bs-roots",  inst: "bass", title: "Root notes over chords",  type: "technique", diff: 1, min: 6,  desc: "Play the root of each chord in a simple progression, locked to a metronome." },
   { id: "bs-major",  inst: "bass", title: "Major scale, one octave", type: "technique", diff: 2, min: 5,  desc: "One-octave major scale up and down, one note per click." },
   { id: "bs-pent",   inst: "bass", title: "Minor pentatonic",        type: "technique", diff: 2, min: 6,  desc: "Run the minor pentatonic up and down, fretting cleanly with minimal buzz." },
   { id: "bs-oct",    inst: "bass", title: "Octave groove patterns",  type: "technique", diff: 2, min: 6,  desc: "Root-octave patterns across a progression with a steady eighth-note feel." },
   { id: "bs-lock",   inst: "bass", title: "Lock with the click",     type: "technique", diff: 2, min: 6,  desc: "Quarter notes dead-on with a metronome, then try landing slightly behind the beat." },
-  { id: "bs-walk",   inst: "bass", title: "Walking bass basics",     type: "technique", diff: 3, min: 8,  desc: "Walk a line over I-IV-V using roots, fifths and passing tones, one note per beat." },
+  { id: "bs-walk",   inst: "bass", title: "Walking bass basics",     type: "technique", diff: 4, min: 10, desc: "Walk a line over I-IV-V using roots, fifths and passing tones, one note per beat.", twin: "trk-bs-5" },
   { id: "bs-line",   inst: "bass", title: "Learn a bassline",        type: "song",      diff: 3, min: 10, desc: "Pick a groove you love and learn it phrase by phrase. Nail the rhythm before the notes." },
 
   // ---------- ACCORDION ----------
-  { id: "acc-bellows", inst: "accordion", title: "Bellows control",            type: "technique", diff: 1, min: 5,  desc: "Long, even tones; change bellows direction smoothly with no bump in volume." },
+  { id: "acc-bellows", inst: "accordion", title: "Bellows control",            type: "technique", diff: 1, min: 5,  desc: "Long, even tones; change bellows direction smoothly with no bump in volume.", twin: "trk-acc-1" },
   { id: "acc-melody",  inst: "accordion", title: "Right-hand melody",          type: "technique", diff: 1, min: 6,  desc: "Play a simple tune on the keyboard side, slowly, with even fingers." },
-  { id: "acc-strad",   inst: "accordion", title: "Bass + chords (Stradella)",  type: "technique", diff: 2, min: 6,  desc: "Find the bass note and major-chord buttons; alternate bass-chord-bass-chord steadily." },
+  { id: "acc-strad",   inst: "accordion", title: "Bass + chords (Stradella)",  type: "technique", diff: 2, min: 6,  desc: "Find the bass note and major-chord buttons; alternate bass-chord-bass-chord steadily.", twin: "trk-acc-3" },
   { id: "acc-oompah",  inst: "accordion", title: "Oom-pah pattern",            type: "technique", diff: 2, min: 6,  desc: "Bass-chord 'oom-pah' in the left hand at a slow waltz or march tempo." },
-  { id: "acc-both",    inst: "accordion", title: "Coordinate both hands",      type: "song",      diff: 3, min: 10, desc: "Simple song: melody right, oom-pah left. Hands separate first, then together." },
+  { id: "acc-both",    inst: "accordion", title: "Coordinate both hands",      type: "song",      diff: 3, min: 10, desc: "Simple song: melody right, oom-pah left. Hands separate first, then together.", twin: "trk-acc-4" },
   { id: "acc-scales",  inst: "accordion", title: "Right-hand scales",          type: "technique", diff: 2, min: 5,  desc: "A major scale on the keyboard side; keep the bellows even the whole way." },
   { id: "acc-folk",    inst: "accordion", title: "Learn a folk tune",          type: "song",      diff: 3, min: 10, desc: "A short folk melody with simple left-hand accompaniment, phrase by phrase." },
 
@@ -96,7 +98,7 @@ export const TRACKS = [
     stages: [
       { id: "trk-gtr-1", title: "Open chords: Em, C, G", type: "technique", diff: 1, min: 8, desc: "Learn Em, C, and G one at a time. Fret right behind the fret wire, press just hard enough, and pick each string to check it rings clean.", link: { label: "JustinGuitar — beginner chords", url: "https://www.justinguitar.com" } },
       { id: "trk-gtr-2", title: "One-minute chord changes", type: "technique", diff: 2, min: 8, desc: "Pick two chords and count how many clean changes you make in a minute. Repeat with different pairs. Accuracy first, speed follows." },
-      { id: "trk-gtr-3", title: "Strumming in time", type: "technique", diff: 2, min: 7, desc: "Hold one chord and keep the strumming hand moving continuously: down-down-up-up-down-up. Lock it to a metronome at a slow tempo." },
+      { id: "trk-gtr-3", title: "Strumming in time", type: "technique", diff: 2, min: 7, desc: "Hold one chord and keep the strumming hand moving continuously: D on 1, D-U on 2&, miss 3, U on 3&, D-U on 4&. Lock it to a metronome at a slow tempo." },
       { id: "trk-gtr-4", title: "The F barre chord", type: "technique", diff: 3, min: 8, desc: "Build the F barre slowly. Roll the index finger slightly onto its side, and get all six strings sounding before you strum it in time." },
       { id: "trk-gtr-5", title: "Barre chords around the neck", type: "technique", diff: 4, min: 8, desc: "Move E-shape and A-shape barre chords to different frets. Practice changing between them cleanly over a slow progression." },
     ],

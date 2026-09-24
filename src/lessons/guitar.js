@@ -1,6 +1,6 @@
 // Guitar lessons. strings/fingers: low->high [E A D G B e]; fret number, 0 open,
 // "x" muted. fingers: 1=index 2=middle 3=ring 4=pinky (0 on open/muted strings).
-const G  = { name: "G",  strings: [3, 2, 0, 0, 0, 3],           fingers: [2, 1, 0, 0, 0, 3] };
+const G  = { name: "G",  strings: [3, 2, 0, 0, 0, 3],           fingers: [3, 2, 0, 0, 0, 4] };
 const D  = { name: "D",  strings: ["x", "x", 0, 2, 3, 2],       fingers: [0, 0, 0, 1, 3, 2] };
 const Em = { name: "Em", strings: [0, 2, 2, 0, 0, 0],           fingers: [0, 2, 3, 0, 0, 0] };
 const C  = { name: "C",  strings: ["x", 3, 2, 0, 1, 0],         fingers: [0, 3, 2, 0, 1, 0] };
@@ -8,8 +8,8 @@ const E  = { name: "E",  strings: [0, 2, 2, 1, 0, 0],           fingers: [0, 2, 
 const A  = { name: "A",  strings: ["x", 0, 2, 2, 2, 0],         fingers: [0, 0, 1, 2, 3, 0] };
 const F  = { name: "F",  strings: [1, 3, 3, 2, 1, 1],           fingers: [1, 3, 4, 2, 1, 1] };
 const Bb = { name: "Bb", strings: ["x", 1, 3, 3, 3, 1],         fingers: [0, 1, 2, 3, 4, 1] };
-const E5 = { name: "E5", strings: [0, 2, "x", "x", "x", "x"],   fingers: [0, 1, 0, 0, 0, 0] };
-const A5 = { name: "A5", strings: ["x", 0, 2, "x", "x", "x"],   fingers: [0, 0, 1, 0, 0, 0] };
+const F5 = { name: "F5", strings: [1, 3, "x", "x", "x", "x"],   fingers: [1, 3, 0, 0, 0, 0] };
+const B5 = { name: "B5", strings: ["x", 2, 4, "x", "x", "x"],   fingers: [0, 1, 3, 0, 0, 0] };
 
 export default {
   "gtr-open": {
@@ -28,8 +28,8 @@ export default {
     shape: { kind: "chords", instrument: "guitar", chords: [C, G, D, Em] },
     bpm: 60,
     steps: [
-      "Slow click. On each click, change to the next chord and strum once.",
-      "Hunt for shared fingers: C→G the ring finger pivots; C→Em two fingers barely move.",
+      "Slow click. Four strums per chord, change on beat 1; then two; then one.",
+      "Hunt for shortcuts: C→G, ring and middle shift one string toward the bass as a pair and the pinky lands on the high e; Em→C, middle and ring trade strings and the index drops onto the B string.",
       "Miss a change? Slow down until every change lands on the click — never speed up through mistakes.",
     ],
     watch: ["Move the whole shape as one unit, not a finger at a time.", "Speed is a by-product of clean changes, not a target."],
@@ -40,7 +40,7 @@ export default {
     bpm: 70,
     steps: [
       "Hold G and strum all downstrokes in time: down, down, down, down.",
-      "Now keep the hand swinging down-up the whole time but only *hit* on: down, down-up, down.",
+      "Now swing the hand down-up through every count (1 & 2 & 3 & 4 &) but only hit the strings on: D on 1, D-U on 2&, D on 3, D-U on 4&.",
       "The hand never stops moving — the misses on the up-swing are what keep your time honest.",
     ],
     watch: ["Strum from the wrist, not the elbow.", "Relax your grip on the pick; a death-grip kills the groove."],
@@ -63,6 +63,9 @@ export default {
       { string: 0, fret: 5 }, { string: 0, fret: 8 }, { string: 1, fret: 5 }, { string: 1, fret: 7 },
       { string: 2, fret: 5 }, { string: 2, fret: 7 }, { string: 3, fret: 5 }, { string: 3, fret: 7 },
       { string: 4, fret: 5 }, { string: 4, fret: 8 }, { string: 5, fret: 5 }, { string: 5, fret: 8 },
+      { string: 5, fret: 5 }, { string: 4, fret: 8 }, { string: 4, fret: 5 }, { string: 3, fret: 7 },
+      { string: 3, fret: 5 }, { string: 2, fret: 7 }, { string: 2, fret: 5 }, { string: 1, fret: 7 },
+      { string: 1, fret: 5 }, { string: 0, fret: 8 }, { string: 0, fret: 5 },
     ] },
     bpm: 70,
     steps: [
@@ -73,13 +76,13 @@ export default {
     watch: ["Keep your fingers hovering close to the frets between notes — no big lifts."],
   },
   "gtr-power": {
-    summary: "Movable power chords (E5, A5) with a tight palm mute — the engine of rock rhythm.",
-    shape: { kind: "chords", instrument: "guitar", chords: [E5, A5] },
+    summary: "Movable power chords (F5, B5) with a tight palm mute — the engine of rock rhythm.",
+    shape: { kind: "chords", instrument: "guitar", chords: [F5, B5] },
     bpm: 90,
     steps: [
       "Rest the edge of your strumming palm lightly on the strings by the bridge — that's the mute.",
       "Play steady downstroke eighth-notes. The sound should be 'chunk', not ringing.",
-      "Slide the same two-finger shape to other frets without lifting the mute.",
+      "Slide the same two-finger shape — index on the root, ring two frets up on the next string — to other frets without lifting the mute.",
     ],
     watch: ["Mute too hard and it's a click; too soft and it rings — find the chunk in between."],
   },
@@ -88,11 +91,11 @@ export default {
     shape: { kind: "chords", instrument: "guitar", chords: [F] },
     bpm: 60,
     steps: [
-      "Lay the index flat across all strings at fret 1, then roll it slightly onto its bony outer edge.",
+      "Lay the index flat across all six strings at fret 1, then roll it slightly toward the headstock. Thumb low on the back of the neck, behind the middle finger.",
       "Add the other fingers, then pick each string — find which ones buzz and lean the barre toward them.",
       "Squeeze, check, release. Build it fresh each time rather than holding a cramp.",
     ],
-    watch: ["Pull the guitar neck back toward you with the fretting arm — leverage, not raw squeeze.", "It will sound bad for a week. That's normal; keep the reps short and frequent."],
+    watch: ["Pull the guitar neck back toward you with the fretting arm — leverage, not raw squeeze.", "It will sound bad for a week. That's normal; keep the reps short and frequent.", "Ache is normal; sharp pain in the thumb joint or wrist means stop."],
   },
   "gtr-song": {
     summary: "The I–V–vi–IV in G — G, D, Em, C — the four chords behind a huge slice of pop songs.",
@@ -103,14 +106,14 @@ export default {
       "Count '1-2-3-4' out loud so the change lands on beat 1 of the next bar, not whenever your hand is ready.",
       "Once it flows, sing or hum a melody over the top — that's a song.",
     ],
-    watch: ["The G→C jump is the hardest; anchor your ring finger, it barely moves between them.", "Don't freeze the strumming hand to change — keep it moving and let the next chord arrive."],
+    watch: ["C back to G is the change to drill — ring and middle shift one string toward the bass together, and the pinky drops onto the high e.", "Don't freeze the strumming hand to change — keep it moving and let the next chord arrive."],
   },
   "gtr-finger": {
     summary: "Travis picking on C and G: a steady alternating thumb under fingers picking the melody.",
     shape: { kind: "chords", instrument: "guitar", chords: [C, G] },
     bpm: 60,
     steps: [
-      "Hold C. Thumb alternates bass strings — A string, then D string — like a slow metronome.",
+      "Hold C. Thumb alternates bass strings — A string, then D string — like a slow metronome. On G, the thumb alternates the low E and D strings.",
       "Keep that thumb going and add index/middle on the higher strings between thumb beats.",
       "Start painfully slow. The thumb must stay even no matter what the fingers do.",
     ],
@@ -135,7 +138,7 @@ export default {
     steps: [
       "Pick two chords (start G and C). Change back and forth, counting each clean change for one minute.",
       "Write the number down. Tomorrow, try to beat it.",
-      "Repeat with other pairs — D and A, Em and C — so every change gets reps.",
+      "Repeat with the other pairs — Em and C, Em and G — so every change gets reps.",
     ],
     watch: ["Accuracy first: a buzzed change doesn't count. Speed follows clean reps."],
   },
@@ -144,7 +147,7 @@ export default {
     shape: { kind: "chords", instrument: "guitar", chords: [G] },
     bpm: 70,
     steps: [
-      "Hold one chord. Keep the hand moving continuously: down-down-up-up-down-up.",
+      "Hold one chord. Keep the hand swinging down-up continuously and hit: D on 1, D-U on 2&, miss 3, U on 3&, D-U on 4&.",
       "Set a slow metronome and make the downbeats land exactly on the click.",
       "Only speed up once the pattern is even and locked.",
     ],
@@ -159,7 +162,7 @@ export default {
       "Place the remaining fingers, then test every string for a clean note.",
       "Get all six sounding before you ever strum it in time.",
     ],
-    watch: ["Leverage from the arm pulling the neck back beats squeezing harder."],
+    watch: ["Leverage from the arm pulling the neck back beats squeezing harder.", "Ache is normal; sharp pain in the thumb joint or wrist means stop."],
   },
   "trk-gtr-5": {
     summary: "Move barre shapes around: the E-shape (F here) and the A-shape (Bb here).",
@@ -170,6 +173,6 @@ export default {
       "Change between them slowly over a progression, keeping every string clean.",
       "Then slide each shape up the neck — same fingering, new key.",
     ],
-    watch: ["The A-shape barre only needs strings 2–5 ringing; let the high e be soft if it fights you."],
+    watch: ["In the A-shape barre, all five strings from the A to the high e should ring — the high e is the one most likely to go dead, so check it every time."],
   },
 };

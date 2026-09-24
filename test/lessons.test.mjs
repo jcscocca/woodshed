@@ -96,7 +96,8 @@ test("ear lessons exist for all four instruments and carry a valid generator con
   const earLessons = Object.entries(LESSONS).filter(([, L]) => L.ear);
   assert.equal(earLessons.length, 8, `expected 2 ear lessons x 4 instruments, got ${earLessons.length}`);
   for (const [id, L] of earLessons) {
-    const { range, keys, bpm, rounds } = L.ear;
+    const { mode, range, keys, bpm, rounds } = L.ear;
+    assert.equal(mode, id.endsWith("-int") ? "intervals" : "phrases", `${id}: ear.mode must match the item (intervals vs phrases)`);
     assert.ok(Array.isArray(range) && range.length === 2, `${id}: ear.range must be [lo, hi]`);
     const [lo, hi] = range;
     assert.ok(Number.isInteger(lo) && Number.isInteger(hi) && hi - lo >= 12, `${id}: range must span >= an octave so P8 prompts fit`);
@@ -106,6 +107,49 @@ test("ear lessons exist for all four instruments and carry a valid generator con
     assert.ok(!L.shape, `${id}: ear lessons are shapeless — the phrase is generated`);
     assert.ok(L.prescribe, `${id}: needs a prescribe line (schema requires shape or prescription)`);
   }
+});
+
+import { shapeToTargets } from "../src/audio/notes.js";
+
+test("flat chords spell their notes as flats (Bb chord -> Bb F Bb D F)", () => {
+  const { targets } = shapeToTargets(LESSONS["trk-gtr-5"].shape);
+  const bb = targets.filter((t) => t.chordName === "Bb" && !t.muted).map((t) => `${t.label}${t.octave}`);
+  assert.deepEqual(bb, ["Bb2", "F3", "Bb3", "D4", "F4"]);
+});
+
+// A legato repeat of the same pitch never re-confirms in the coach's note
+// stream (see src/ear.js), so an up-and-down line must not repeat its top note.
+test("line shapes never repeat a note back to back", () => {
+  for (const [id, L] of Object.entries(LESSONS)) {
+    if (!L.shape) continue;
+    const { mode, targets } = shapeToTargets(L.shape);
+    if (mode !== "line") continue;
+    for (let i = 1; i < targets.length; i++) assert.notEqual(targets[i].midi, targets[i - 1].midi, `${id}: repeated ${targets[i].label}${targets[i].octave} at ${i}`);
+  }
+});
+
+import { fillInstrument, freshData, swapInSession } from "../src/engine.js";
+
+test("twins point at a track stage on the same instrument, and a set never holds both", () => {
+  const stages = new Map(trackItems().map((s) => [s.id, s]));
+  const twins = SEED.filter((s) => s.twin);
+  assert.ok(twins.length >= 6, "expected the library/track twin pairs to be marked");
+  for (const s of twins) assert.equal(stages.get(s.twin)?.inst, s.inst, `${s.id}: twin ${s.twin} must be a ${s.inst} track stage`);
+  const pairs = twins.map((s) => [s.id, s.twin]);
+  const data = { ...freshData(), items: freshData().items.map((it) => ({ ...it, last: null, times: 0 })) };
+  for (const inst of ["guitar", "bass", "accordion"]) {
+    for (let run = 0; run < 30; run++) {
+      const ids = new Set(fillInstrument(inst, 500, data, "2026-01-01", true).map((it) => it.id));
+      for (const [a, b] of pairs) assert.ok(!(ids.has(a) && ids.has(b)), `${inst}: set holds both ${a} and ${b}`);
+    }
+  }
+  const session = { items: [{ itemId: "trk-bs-1" }, { itemId: "bs-roots" }] };
+  for (let run = 0; run < 30; run++) assert.notEqual(swapInSession(session, "bs-roots", data).items[1].itemId, "bs-pluck", "swap brought in trk-bs-1's twin");
+});
+
+test("lesson copy is plain text — no markdown asterisks", () => {
+  for (const [id, L] of Object.entries(LESSONS))
+    for (const s of [L.summary, ...L.steps, ...L.watch]) assert.ok(!s.includes("*"), `${id}: "*" renders literally in "${s}"`);
 });
 
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });

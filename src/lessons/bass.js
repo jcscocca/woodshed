@@ -2,6 +2,8 @@
 const cMajorOneOctave = { kind: "fretboard", instrument: "bass", baseFret: 2, dots: [
   { string: 1, fret: 3 }, { string: 1, fret: 5 }, { string: 2, fret: 2 }, { string: 2, fret: 3 },
   { string: 2, fret: 5 }, { string: 3, fret: 2 }, { string: 3, fret: 4 }, { string: 3, fret: 5 },
+  { string: 3, fret: 4 }, { string: 3, fret: 2 }, { string: 2, fret: 5 }, { string: 2, fret: 3 },
+  { string: 2, fret: 2 }, { string: 1, fret: 5 }, { string: 1, fret: 3 },
 ] };
 
 export default {
@@ -9,7 +11,8 @@ export default {
     summary: "Alternating index and middle on one note — the foundation of a clean plucking hand.",
     shape: null, prescribe: "One note · alternate index–middle · even volume, relaxed hand", bpm: 80,
     steps: [
-      "Rest the thumb on a pickup or the E string. Pluck one note: index, middle, index, middle.",
+      "Rest your plucking thumb on the E string while you play A, D or G (on the pickup when you play E). Pluck one note: index, middle, index, middle.",
+      "Pull through so each finger comes to rest on the next string. Let your fretting fingers lightly touch the strings you're not playing — that keeps them quiet.",
       "Make every pluck the same volume — close your eyes and listen for unevenness.",
       "Keep the hand loose; the fingers do the work, not the arm.",
     ],
@@ -29,7 +32,7 @@ export default {
     summary: "A one-octave C major scale on the neck — up and down, one note per click.",
     shape: cMajorOneOctave, bpm: 70,
     steps: [
-      "Start on C (A string, 3rd fret). Play the scale up to the next C and back.",
+      "Start on C (A string, 3rd fret) with your middle finger; index covers fret 2, pinky fret 5. Play the scale up to the next C and back.",
       "One finger per fret; one note per click.",
       "Fret cleanly with minimal buzz — press just behind the fret.",
     ],
@@ -40,14 +43,16 @@ export default {
     shape: { kind: "fretboard", instrument: "bass", baseFret: 5, dots: [
       { string: 0, fret: 5 }, { string: 0, fret: 8 }, { string: 1, fret: 5 }, { string: 1, fret: 7 },
       { string: 2, fret: 5 }, { string: 2, fret: 7 }, { string: 3, fret: 5 }, { string: 3, fret: 7 },
+      { string: 3, fret: 5 }, { string: 2, fret: 7 }, { string: 2, fret: 5 }, { string: 1, fret: 7 },
+      { string: 1, fret: 5 }, { string: 0, fret: 8 }, { string: 0, fret: 5 },
     ] },
     bpm: 70,
     steps: [
-      "Index at the 5th fret, pinky reaching the 7th–8th. Run the box up and down.",
+      "At the 5th fret: index 5, ring 7, pinky 8. Run the box up and down.",
       "Alternate index–middle on the plucking hand throughout.",
       "Keep it even; buzz-free beats fast.",
     ],
-    watch: ["Don't collapse the pinky — keep it arched for the 7th/8th-fret notes."],
+    watch: ["Don't collapse the pinky — keep it arched for the 8th-fret notes."],
   },
   "bs-oct": {
     summary: "The octave shape — root and its octave, the backbone of disco and pop grooves (A shown).",
@@ -67,7 +72,7 @@ export default {
     shape: null, prescribe: "70 BPM · root of A · one note per click · 2 min on the beat, then 2 min just behind it", bpm: 70,
     steps: [
       "Quarter notes, dead-on with the metronome — your note should hide the click.",
-      "After two minutes, lay back a hair so you sit just *behind* the beat.",
+      "After two minutes, lay back a hair so you sit just behind the beat.",
       "Feel the difference: on-top is urgent, behind is laid-back. Both are tools.",
     ],
     watch: ["'Behind' means a few milliseconds, not lazy. Stay locked, just relaxed."],
@@ -78,6 +83,7 @@ export default {
     steps: [
       "Start each bar on the chord's root. Aim to land on the next chord's root on beat 1.",
       "Fill the beats between with the fifth and chromatic passing tones.",
+      "In C: C–E–G–E | F–A–C–F♯ | G–B–D–C♯ | C — each bar's last note is a half step from the next root.",
       "Keep it smooth — small steps between notes beat big jumps.",
     ],
     watch: ["The target is always the next root. Walk toward it."],
@@ -87,7 +93,7 @@ export default {
     shape: null, prescribe: "A groove you love · learn it phrase by phrase · nail the rhythm first", bpm: null,
     steps: [
       "Pick a groove. Learn just the first phrase, slowly.",
-      "Get the *rhythm* locked before worrying about exact notes.",
+      "Get the rhythm locked before worrying about exact notes.",
       "Add phrases one at a time, playing along with the record.",
     ],
     watch: ["A right-note, wrong-rhythm bassline doesn't groove. Rhythm first."],
@@ -142,6 +148,7 @@ export default {
     steps: [
       "Begin each bar on the root, aim to arrive at the next chord's root on beat 1.",
       "Fill with fifths and chromatic approach notes.",
+      "In C: C–E–G–E | F–A–C–F♯ | G–B–D–C♯ | C — each bar's last note is a half step from the next root.",
       "Smooth voice leading — step, don't leap, where you can.",
     ],
     watch: ["The walk should feel inevitable, like it's pulling to the next chord."],
