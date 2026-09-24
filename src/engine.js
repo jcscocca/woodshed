@@ -314,7 +314,6 @@ export function freshData() {
     items: [...SEED.map((s) => ({ ...s, hidden: false })), ...trackItems()],
     settings: { target: 20, weeklyGoal: 4, reminder: { enabled: false, time: "18:00" }, enabled: { piano: true, guitar: true, bass: true, accordion: true } },
     sessions: [],
-    loomPaintings: [],
     progress: { acked: {} },
     currentSession: null,
   };

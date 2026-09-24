@@ -16,7 +16,6 @@ export function useMetronome(initialBpm = 90, initialBeats = 4) {
   const tickInterval = useRef(null);
   const raf = useRef(null);
   const queue = useRef([]); // {beat, time} waiting to be shown
-  const beatTimesRef = useRef([]); // scheduled beat times on the performance clock
   const bpmRef = useRef(bpm);
   const beatsRef = useRef(beatsPer);
 
@@ -37,8 +36,6 @@ export function useMetronome(initialBpm = 90, initialBeats = 4) {
     osc.start(time);
     osc.stop(time + 0.06);
     queue.current.push({ beat: beatNumber % beatsRef.current, time });
-    const performanceTime = performance.now() + (time - ctx.currentTime) * 1000;
-    beatTimesRef.current = [...beatTimesRef.current.slice(-31), performanceTime];
   };
 
   const schedule = () => {
@@ -66,7 +63,6 @@ export function useMetronome(initialBpm = 90, initialBeats = 4) {
     if (ac.current.state === "suspended") ac.current.resume();
     counter.current = 0;
     queue.current = [];
-    beatTimesRef.current = [];
     nextNote.current = ac.current.currentTime + 0.06;
     tickInterval.current = setInterval(schedule, 25);
     raf.current = requestAnimationFrame(draw);
@@ -106,5 +102,5 @@ export function useMetronome(initialBpm = 90, initialBeats = 4) {
     if (ac.current && ac.current.state !== "closed") ac.current.close();
   }, []);
 
-  return { bpm, setBpm, beatsPer, setBeatsPer, playing, beat, start, stop, toggle, tap, beatTimesRef };
+  return { bpm, setBpm, beatsPer, setBeatsPer, playing, beat, start, stop, toggle, tap };
 }

@@ -12,7 +12,6 @@ import { loadState, saveState, migrate } from "./storage.js";
 import { useMetronome } from "./useMetronome.js";
 import { useListener } from "./useListener.js";
 import { useDialog } from "./useDialog.js";
-import LoomScreen from "./loom/LoomScreen.jsx";
 
 // Resource links are user-entered and ride along in exported/imported backups,
 // so treat them as untrusted. Only http(s) URLs ever reach an href — a
@@ -177,8 +176,6 @@ export default function Woodshed() {
     setData((d) => ({ ...d, sessions: d.sessions.map((s) => (s.id === id ? { ...s, ...patch } : s)) }));
   const deleteSession = (id) =>
     setData((d) => ({ ...d, sessions: d.sessions.filter((s) => s.id !== id) }));
-  const saveLoomPainting = (painting) =>
-    setData((d) => ({ ...d, loomPaintings: [painting, ...(d.loomPaintings || [])].slice(0, 12) }));
 
   // record that a suggestion was handled (at the current practice count) so it
   // doesn't reappear until the exercise is practiced more
@@ -274,7 +271,7 @@ export default function Woodshed() {
       </nav>
 
       {logging && <LogSheet session={logging === true ? session : logging} itemById={itemById} lastTempo={lastTempo} coachResults={coachResults} onCancel={() => setLogging(false)} onCommit={commitLog} />}
-      {practiceOpen && <PracticeSheet initialInstrument={itemById(session.items[0]?.itemId)?.inst || "piano"} watch={watch} onWatch={setWatch} onClose={() => setPracticeOpen(false)} onTempo={setLastTempo} onOpenListen={() => { setPracticeOpen(false); setListenOpen(true); }} onSavePainting={saveLoomPainting} />}
+      {practiceOpen && <PracticeSheet watch={watch} onWatch={setWatch} onClose={() => setPracticeOpen(false)} onTempo={setLastTempo} onOpenListen={() => { setPracticeOpen(false); setListenOpen(true); }} />}
       {listenOpen && <ListenSheet onClose={() => setListenOpen(false)} onTempo={setLastTempo} />}
       {showProposals && (
         <ProposalSheet proposals={proposals} onAccept={applyProposal} onDismiss={dismissProposal} onClose={() => setShowProposals(false)} />
@@ -426,10 +423,9 @@ function Dots({ n }) {
 }
 
 /* ----------------------- practice tools (metronome + timer) ----------------------- */
-function PracticeSheet({ initialInstrument, watch, onWatch, onClose, onTempo, onOpenListen, onSavePainting }) {
+function PracticeSheet({ watch, onWatch, onClose, onTempo, onOpenListen }) {
   const m = useMetronome(90, 4);
   const [, tick] = useState(0);
-  const [loomOpen, setLoomOpen] = useState(false);
   const running = watch.startedAt != null;
 
   useEffect(() => {
@@ -441,26 +437,20 @@ function PracticeSheet({ initialInstrument, watch, onWatch, onClose, onTempo, on
   // remember the tempo while the metronome is running, to prefill the log
   useEffect(() => { if (m.playing && onTempo) onTempo(m.bpm); }, [m.playing, m.bpm, onTempo]);
 
-  const close = () => {
-    if (loomOpen) { setLoomOpen(false); return; }
-    m.stop(); onClose();
-  };
+  const close = () => { m.stop(); onClose(); };
   const dlgRef = useDialog(close);
   const sec = Math.floor((watch.acc + (running ? Date.now() - watch.startedAt : 0)) / 1000);
   const mm = String(Math.floor(sec / 60)).padStart(2, "0");
   const ss = String(sec % 60).padStart(2, "0");
 
   return (
-    <div className={`ws-sheet-wrap ws-practice-wrap ${loomOpen ? "ws-loom-wrap" : ""}`}>
-      <div className={`ws-sheet ws-practice ${loomOpen ? "ws-loom" : ""}`} onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label={loomOpen ? "Loom canvas" : "Practice tools"} tabIndex={-1}>
-        {loomOpen ? (
-          <LoomScreen initialInstrument={initialInstrument} metronomePlaying={m.playing} beatTimesRef={m.beatTimesRef} bpm={m.bpm} onClose={() => setLoomOpen(false)} onSavePainting={onSavePainting} />
-        ) : (<>
-          <div className="ws-sheet-grip" />
-          <div className="ws-practice-head">
-            <h2 className="ws-sheet-title" style={{ margin: 0 }}>Practice</h2>
-            <button className="ws-x" onClick={close} aria-label="Close">✕</button>
-          </div>
+    <div className="ws-sheet-wrap ws-practice-wrap">
+      <div className="ws-sheet ws-practice" onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label="Practice tools" tabIndex={-1}>
+        <div className="ws-sheet-grip" />
+        <div className="ws-practice-head">
+          <h2 className="ws-sheet-title" style={{ margin: 0 }}>Practice</h2>
+          <button className="ws-x" onClick={close} aria-label="Close">✕</button>
+        </div>
 
         <div className="ws-metro">
           <div className="ws-beatdots">
@@ -497,13 +487,9 @@ function PracticeSheet({ initialInstrument, watch, onWatch, onClose, onTempo, on
           <p className="ws-stop-note">Time your session here, then enter the minutes when you log.</p>
         </div>
 
-          <button className="ws-listen-open" onClick={() => { m.stop(); onOpenListen(); }}>
-            <span className="ws-listen-dot" /> Tuner &amp; listener <span className="ws-beta">beta</span>
-          </button>
-          <button className="ws-listen-open ws-loom-open" onClick={() => setLoomOpen(true)}>
-            <span className="ws-listen-dot" /> Loom <span className="ws-beta">beta</span>
-          </button>
-        </>)}
+        <button className="ws-listen-open" onClick={() => { m.stop(); onOpenListen(); }}>
+          <span className="ws-listen-dot" /> Tuner &amp; listener <span className="ws-beta">beta</span>
+        </button>
       </div>
     </div>
   );
@@ -855,7 +841,7 @@ function Progress({ data, live, streak, onEditSession }) {
         ))}
       </div>
 
-      <RecentSessions sessions={data.sessions} paintings={data.loomPaintings} itemById={(id) => live.items.find((i) => i.id === id)} onEdit={onEditSession} />
+      <RecentSessions sessions={data.sessions} itemById={(id) => live.items.find((i) => i.id === id)} onEdit={onEditSession} />
 
       <Heatmap sessions={data.sessions} />
       <TempoTrends sessions={data.sessions} items={live.items} />
@@ -984,43 +970,24 @@ function Stat({ value, unit, label }) {
   );
 }
 
-function RecentSessions({ sessions, paintings = [], itemById, onEdit }) {
+function RecentSessions({ sessions, itemById, onEdit }) {
   const today = todayStr();
   const recent = [...sessions].slice(-14).reverse();
-  const [openPainting, setOpenPainting] = useState(null);
-  useEffect(() => {
-    if (!openPainting) return undefined;
-    const onKeyDown = (event) => { if (event.key === "Escape") setOpenPainting(null); };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [openPainting]);
   return (
-    <>
-      <div className="ws-block">
-        <div className="ws-block-label">Recent sessions — tap to fix or remove</div>
-        {recent.map((s) => {
-          const it = itemById(s.itemId);
-          const painting = paintings.find((candidate) => candidate.inst === s.inst && String(candidate.dateISO || "").slice(0, 10) === s.date);
-          return (
-            <div key={s.id} className="ws-rec">
-              <button className="ws-rec-main" onClick={() => onEdit(s)}>
-                <span className="ws-rec-dot" style={{ background: INSTRUMENTS[s.inst]?.color || "var(--muted2)" }} />
-                <span className="ws-rec-title">{it ? it.title : "Deleted exercise"}</span>
-                <span className="mono ws-rec-meta">{s.minutes}m · {prettyAgo(s.date, today)}</span>
-                <span className="ws-rec-chev">›</span>
-              </button>
-              {painting && <button className="ws-rec-thumb" onClick={() => setOpenPainting(painting)} aria-label={`Open ${INSTRUMENTS[s.inst]?.name || s.inst} Loom painting from ${s.date}`}><img src={painting.thumb} alt="" /></button>}
-            </div>
-          );
-        })}
-      </div>
-      {openPainting && (
-        <div className="ws-painting-overlay" onClick={() => setOpenPainting(null)} role="dialog" aria-modal="true" aria-label="Loom painting">
-          <button className="ws-x ws-painting-close" onClick={() => setOpenPainting(null)} aria-label="Close painting">✕</button>
-          <img src={openPainting.thumb} alt={`${INSTRUMENTS[openPainting.inst]?.name || openPainting.inst} Loom painting from ${String(openPainting.dateISO).slice(0, 10)}`} onClick={(event) => event.stopPropagation()} />
-        </div>
-      )}
-    </>
+    <div className="ws-block">
+      <div className="ws-block-label">Recent sessions — tap to fix or remove</div>
+      {recent.map((s) => {
+        const it = itemById(s.itemId);
+        return (
+          <button key={s.id} className="ws-rec" onClick={() => onEdit(s)}>
+            <span className="ws-rec-dot" style={{ background: INSTRUMENTS[s.inst]?.color || "var(--muted2)" }} />
+            <span className="ws-rec-title">{it ? it.title : "Deleted exercise"}</span>
+            <span className="mono ws-rec-meta">{s.minutes}m · {prettyAgo(s.date, today)}</span>
+            <span className="ws-rec-chev">›</span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -1189,7 +1156,7 @@ function Settings({ settings, onChange, onToggle, onReset, onClose, onExport, on
             <button className="ws-btn danger-ghost" onClick={() => setConfirm(true)}>Reset everything</button>
           ) : (
             <div className="ws-confirm">
-              <span>Erase everything — logs, custom exercises, edits, settings and Loom paintings? This can't be undone.</span>
+              <span>Erase everything — logs, custom exercises, edits and settings? This can't be undone.</span>
               <div>
                 <button className="ws-btn ghost sm" onClick={() => setConfirm(false)}>Keep</button>
                 <button className="ws-btn danger sm" onClick={onReset}>Erase</button>
