@@ -21,7 +21,7 @@ export default function EarPanel({ item, lesson, sessions = [], onLog }) {
 
   const st = session.current ? session.current.state : { phase: "idle" };
   const targets = st.current ? st.current.targets : [];
-  const coach = useCoach({ mode: "line", targets, octaveStrict: false, inst: item.inst });
+  const coach = useCoach({ mode: "line", targets, octaveStrict: false });
   const r = coach.result;
 
   // Start the mic only after the prompt has finished and targets have settled

@@ -1,7 +1,7 @@
 // Ear-training lessons. No shape — each round's phrase is generated at
 // practice time (src/ear.js); the `ear` block configures the generator.
 // `prescribe` satisfies the lesson schema (shape or prescription) and reads
-// as the drill line in the sheet. Two factories keep the eight entries DRY;
+// as the drill line in the sheet. Two factories keep the four entries DRY;
 // the per-instrument line and range are the only real differences.
 
 const intervals = (instLine, range) => ({
@@ -41,8 +41,4 @@ export default {
   "pno-ear-phr": phrases("Phrases start at middle C and go up, staying in one key.", [60, 79]),
   "gtr-ear-int": intervals("One string or across strings — whatever your hands find first.", [52, 71]),
   "gtr-ear-phr": phrases("Phrases sit between open position and the 7th fret; stay in position and let your ear steer.", [52, 71]),
-  "bs-ear-int":  intervals("Anywhere on the neck — low positions are fine.", [40, 59]),
-  "bs-ear-phr":  phrases("Phrases sit above open E, in classic line territory.", [40, 59]),
-  "acc-ear-int": intervals("Right hand only; keep the bellows gentle and steady.", [57, 81]),
-  "acc-ear-phr": phrases("Right hand only, one key at a time. Steady bellows keeps detection clean.", [57, 81]),
 };

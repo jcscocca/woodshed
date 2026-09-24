@@ -6,7 +6,6 @@ const NOTE_INDEX = { C: 0, "C#": 1, Db: 1, D: 2, "D#": 3, Eb: 3, E: 4, F: 5, "F#
 // Open-string MIDI numbers, low string -> high string.
 export const TUNING = {
   guitar: [40, 45, 50, 55, 59, 64], // E2 A2 D3 G3 B3 E4
-  bass: [28, 33, 38, 43],           // E1 A1 D2 G2
 };
 
 export const midiToFreq = (m) => 440 * Math.pow(2, (m - 69) / 12);
@@ -38,7 +37,7 @@ export const shapeToVoices = (shape) => {
 
 const NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 const FLAT_NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
-const STRING_NAMES = { guitar: ["E", "A", "D", "G", "B", "E"], bass: ["E", "A", "D", "G"] };
+const STRING_NAMES = { guitar: ["E", "A", "D", "G", "B", "E"] };
 // preferFlats spells black keys as flats — for flat chords (Bb) and flat keys (F, Bb, Eb).
 export const midiToNote = (m, preferFlats = false) => ({ midi: m, name: (preferFlats ? FLAT_NAMES : NAMES)[((m % 12) + 12) % 12], octave: Math.floor(m / 12) - 1 });
 
@@ -72,6 +71,5 @@ export const shapeToTargets = (shape) => {
   throw new Error(`Unknown shape kind: ${shape.kind}`);
 };
 
-// Coachable = has a shape (single-note line or chord->arpeggio). Accordion is in
-// now too — useCoach routes it to the spectral detector (see useCoach.js).
+// Coachable = has a shape (single-note line or chord->arpeggio).
 export const isCoachable = (item, lesson) => !!(lesson && lesson.shape && item);

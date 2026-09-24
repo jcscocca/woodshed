@@ -486,7 +486,7 @@ function ListenSheet({ onClose }) {
           <div className="ws-listen-err">{l.error}</div>
         ) : !l.listening ? (
           <div className="ws-listen-intro">
-            <p>Uses your microphone to show pitch. It works best on single, clearly-sounding notes — tuning a string, or a monophonic line. Chords and accordion reeds are unreliable here — the pitch coach uses a dedicated spectral detector for accordion.</p>
+            <p>Uses your microphone to show pitch. It works best on single, clearly-sounding notes — tuning a string, or a monophonic line. Chords are unreliable here.</p>
             <button className="ws-btn primary" onClick={l.start}>Start listening</button>
           </div>
         ) : (
@@ -676,7 +676,7 @@ function Tracks({ live, onComplete, onReopen, onLearn }) {
 /* ----------------------- library ----------------------- */
 function Library({ items, onOpen, onAdd, onLearn }) {
   const today = todayStr();
-  const order = ["piano", "guitar", "bass", "accordion"];
+  const order = ["piano", "guitar"];
   return (
     <>
       <div className="ws-section-head">
@@ -726,7 +726,7 @@ function Progress({ data, live, streak, onEditSession }) {
   const weekDays = weekCount(data.sessions);
   const weeklyGoal = data.settings.weeklyGoal || 4;
   const maxMin = Math.max(1, ...Object.values(mins));
-  const order = ["piano", "guitar", "bass", "accordion"].filter((i) => data.settings.enabled[i] || mins[i] > 0);
+  const order = ["piano", "guitar"].filter((i) => data.settings.enabled[i] || mins[i] > 0);
   const lastBy = lastByInstrument(data.sessions);
 
   const last14 = Array.from({ length: 14 }).map((_, k) => {

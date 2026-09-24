@@ -3,7 +3,7 @@
   --line:rgba(243,238,229,.09); --line2:rgba(243,238,229,.15);
   --text:#f3eee5; --muted:#a79d8e; --muted2:#7d7567;
   --gold:#e3a948; --gold-dim:#b9863a;
-  --piano:#5fa8a0; --guitar:#e07856; --bass:#8b7bd8; --accordion:#d05a6e;
+  --piano:#5fa8a0; --guitar:#e07856;
   --r:14px; --rs:9px;
 }
 *{ box-sizing:border-box; }
@@ -394,7 +394,7 @@ body{
 .ws-lesson-steps li::marker{ color:var(--gold); font-family:'JetBrains Mono',monospace; font-size:12px; }
 .ws-lesson-watch{ margin:0; padding:0; list-style:none; }
 .ws-lesson-watch li{ position:relative; padding:0 0 7px 18px; font-size:13px; line-height:1.45; color:var(--muted); }
-.ws-lesson-watch li::before{ content:"!"; position:absolute; left:2px; top:0; color:var(--accordion); font-weight:700; }
+.ws-lesson-watch li::before{ content:"!"; position:absolute; left:2px; top:0; color:#d05a6e; font-weight:700; }
 .ws-lesson-link{ display:inline-block; margin-top:14px; font-size:13px; color:var(--gold); text-decoration:none; }
 .ws-lesson-link:hover{ text-decoration:underline; }
 

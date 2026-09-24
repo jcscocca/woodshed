@@ -8,7 +8,7 @@
 // ============================================================
 
 import { SCHEMA_VERSION } from "./engine.js";
-import { ECHO_SEED } from "./seed.js";
+import { INSTRUMENTS, ECHO_SEED } from "./seed.js";
 import { COACH_ENABLED } from "./features.js";
 
 const KEY = "woodshed-state-v1";
@@ -36,12 +36,17 @@ export function migrate(state) {
   s.settings = {
     target: 20,
     weeklyGoal: 4,
-    enabled: { piano: true, guitar: true, bass: true, accordion: true },
+    enabled: { piano: true, guitar: true },
     ...(s.settings || {}),
   };
   // The daily reminder is gone; drop its setting from older saves.
   delete s.settings.reminder;
   s.sessions = Array.isArray(s.sessions) ? s.sessions : [];
+  // v5 -> v6: bass and accordion moved to archive/. Drop their items, sessions
+  // and rotation toggles; export a backup first to keep that history.
+  s.items = s.items.filter((it) => it.inst in INSTRUMENTS);
+  s.sessions = s.sessions.filter((x) => x.inst in INSTRUMENTS);
+  s.settings.enabled = Object.fromEntries(Object.entries(s.settings.enabled).filter(([inst]) => inst in INSTRUMENTS));
   // v5 saves may carry Loom's thumbnail history; Loom is gone, so drop it.
   delete s.loomPaintings;
   s.progress = { acked: {}, ...(s.progress || {}) };

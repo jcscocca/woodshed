@@ -255,7 +255,7 @@ export function weekCount(sessions) {
 }
 
 export function minutesByInst(sessions) {
-  const m = { piano: 0, guitar: 0, bass: 0, accordion: 0 };
+  const m = { piano: 0, guitar: 0 };
   for (const s of sessions) m[s.inst] = (m[s.inst] || 0) + (s.minutes || 0);
   return m;
 }
@@ -266,12 +266,12 @@ export function minutesInLastDays(sessions, n) {
 }
 
 // ---- fresh install state ----
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 export function freshData() {
   return {
     version: SCHEMA_VERSION,
     items: [...SEED.map((s) => ({ ...s, hidden: false })), ...trackItems()],
-    settings: { target: 20, weeklyGoal: 4, enabled: { piano: true, guitar: true, bass: true, accordion: true } },
+    settings: { target: 20, weeklyGoal: 4, enabled: { piano: true, guitar: true } },
     sessions: [],
     progress: { acked: {} },
     currentSession: null,

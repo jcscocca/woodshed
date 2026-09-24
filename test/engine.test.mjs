@@ -27,7 +27,7 @@ test("streak: a rest day across the UK October DST change doesn't break the run"
 test("generateSession: skips an overdue instrument with nothing eligible", () => {
   const d = freshData();
   d.settings.target = 15;
-  d.settings.enabled = { piano: true, guitar: true, bass: false, accordion: false };
+  d.settings.enabled = { piano: true, guitar: true };
   d.items = d.items.map((it) => (it.inst === "piano" ? { ...it, hidden: true } : it));
   d.sessions = [on(addDays(today, -1), { inst: "guitar" })];
   for (let i = 0; i < 20; i++) {

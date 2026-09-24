@@ -10,9 +10,6 @@ test("G major guitar shape -> correct MIDI (G2 B2 D3 G3 B3 G4)", () => {
 test("muted strings are dropped", () => {
   assert.deepEqual(stringsToMidi(["x", 3, 2, 0, 1, 0], "guitar"), [48, 52, 55, 60, 64]); // C major
 });
-test("bass open E is MIDI 28", () => {
-  assert.deepEqual(stringsToMidi([0, "x", "x", "x"], "bass"), [28]);
-});
 test("noteToMidi: middle C is 60", () => {
   assert.equal(noteToMidi({ name: "C", octave: 4 }), 60);
 });
@@ -31,7 +28,7 @@ import { LESSONS } from "../src/lessons/index.js";
 import { SEED, ECHO_SEED, trackItems } from "../src/seed.js";
 
 const validIds = new Set([...SEED.map((s) => s.id), ...ECHO_SEED.map((s) => s.id), ...trackItems().map((s) => s.id)]);
-const STRINGS = { guitar: 6, bass: 4 };
+const STRINGS = { guitar: 6 };
 const WHITE = new Set(["C", "D", "E", "F", "G", "A", "B"]);
 // Renderer windows (src/diagrams.jsx): ChordDiagram draws nut + 4 frets;
 // FretboardPattern spans baseFret..baseFret+4; Keyboard only maps naturals.
@@ -92,9 +89,9 @@ test("every shaped lesson produces audible voices", () => {
 
 import { KEY_ROOT } from "../src/ear.js";
 
-test("ear lessons exist for all four instruments and carry a valid generator config", () => {
+test("ear lessons exist for both instruments and carry a valid generator config", () => {
   const earLessons = Object.entries(LESSONS).filter(([, L]) => L.ear);
-  assert.equal(earLessons.length, 8, `expected 2 ear lessons x 4 instruments, got ${earLessons.length}`);
+  assert.equal(earLessons.length, 4, `expected 2 ear lessons x 2 instruments, got ${earLessons.length}`);
   for (const [id, L] of earLessons) {
     const { mode, range, keys, bpm, rounds } = L.ear;
     assert.equal(mode, id.endsWith("-int") ? "intervals" : "phrases", `${id}: ear.mode must match the item (intervals vs phrases)`);
@@ -133,18 +130,20 @@ import { fillInstrument, freshData, swapInSession } from "../src/engine.js";
 test("twins point at a track stage on the same instrument, and a set never holds both", () => {
   const stages = new Map(trackItems().map((s) => [s.id, s]));
   const twins = SEED.filter((s) => s.twin);
-  assert.ok(twins.length >= 6, "expected the library/track twin pairs to be marked");
+  assert.ok(twins.length >= 1, "expected the library/track twin pairs to be marked");
   for (const s of twins) assert.equal(stages.get(s.twin)?.inst, s.inst, `${s.id}: twin ${s.twin} must be a ${s.inst} track stage`);
   const pairs = twins.map((s) => [s.id, s.twin]);
-  const data = { ...freshData(), items: freshData().items.map((it) => ({ ...it, last: null, times: 0 })) };
-  for (const inst of ["guitar", "bass", "accordion"]) {
+  // Clear guitar stages 1-3 so trk-gtr-4 (gtr-barre's twin) is the current, unlocked stage.
+  const cleared = new Set(["trk-gtr-1", "trk-gtr-2", "trk-gtr-3"]);
+  const data = { ...freshData(), items: freshData().items.map((it) => ({ ...it, last: null, times: 0, mastered: cleared.has(it.id) })) };
+  for (const inst of ["piano", "guitar"]) {
     for (let run = 0; run < 30; run++) {
       const ids = new Set(fillInstrument(inst, 500, data, "2026-01-01", true).map((it) => it.id));
       for (const [a, b] of pairs) assert.ok(!(ids.has(a) && ids.has(b)), `${inst}: set holds both ${a} and ${b}`);
     }
   }
-  const session = { items: [{ itemId: "trk-bs-1" }, { itemId: "bs-roots" }] };
-  for (let run = 0; run < 30; run++) assert.notEqual(swapInSession(session, "bs-roots", data).items[1].itemId, "bs-pluck", "swap brought in trk-bs-1's twin");
+  const session = { items: [{ itemId: "trk-gtr-4" }, { itemId: "gtr-open" }] };
+  for (let run = 0; run < 30; run++) assert.notEqual(swapInSession(session, "gtr-open", data).items[1].itemId, "gtr-barre", "swap brought in trk-gtr-4's twin");
 });
 
 test("lesson copy is plain text — no markdown asterisks", () => {

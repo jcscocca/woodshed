@@ -2,7 +2,7 @@ import React from "react";
 
 const idxInOct = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
 const WHITE = ["C", "D", "E", "F", "G", "A", "B"];
-const STRING_COUNT = { guitar: 6, bass: 4 };
+const STRING_COUNT = { guitar: 6 };
 
 // Open-position chord box: nut + 4 frets. strings low->high; fret #, 0, or "x".
 export function ChordDiagram({ instrument = "guitar", strings, name, fingers }) {
