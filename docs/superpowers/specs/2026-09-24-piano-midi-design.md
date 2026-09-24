@@ -164,8 +164,11 @@ for 1024–1279px windows (only if the real monitor is that narrow).
   - single-note lines (scales, Hanon, five-finger): `gradeLine`, octave-strict;
   - chords as played: new `gradeChords(targets, chordEvents)` — each target is a
     note set; a played chord (onsets within 60ms) is caught when the sets match
-    exactly, otherwise missed with its missing/extra notes listed. Keyboard
-    shapes with `play: "block"` use it over MIDI;
+    exactly, otherwise missed with its missing/extra notes listed. Used for
+    hands-together targets. (Amended during build: keyboard shapes with
+    `play: "block"` — only trk-pno-5, which asks you to *roll* the chord — are
+    graded in order with `gradeArpeggio`, as on the mic path.) Timing evenness
+    for chord targets measures the gaps between chords;
   - hands together: keyboard shapes may set `hands: "together"` — each right-hand
     note pairs with the same note an octave lower as a two-note target, graded by
     `gradeChords`. Enabled on **pno-scales** and **trk-pno-3**;
@@ -196,7 +199,7 @@ for 1024–1279px windows (only if the real monitor is that narrow).
 5. **Space** keeps toggling the metronome during a run (intended).
 6. **Coach start** expands a collapsed band; a finished run scrolls the rail
    summary into view. Nothing else auto-scrolls.
-7. **Accessibility:** the band is one SVG `role="img"` with a summarizing label
+7. **Accessibility:** the band is one `role="img"` element (built from divs) with a summarizing label
    (not 88 buttons); the readout is `aria-live="polite"` and announces chord
    names and coach phases only, never every note.
 8. **Connection:** the first connect needs the button (permission prompt);
@@ -219,7 +222,7 @@ for 1024–1279px windows (only if the real monitor is that narrow).
 - **Browser (dev build, `window.__fakeMidi`):** band lights by velocity; chord
   name in the readout; K collapse; not-connected bar and Connect; P play-back
   and its no-op during Echo; a coach run (pulse, hit/miss, readout progress,
-  summary, Log it records accuracy); block and hands-together grading; an Echo
+  summary, Log it records accuracy); rolled-chord and hands-together grading; an Echo
   round with a dark band during the prompt; unplug mid-run; phone layout shows
   no MIDI UI; piano disabled → no band and no MIDI request.
 - **Owner at the piano** (end of each phase): connect; name a few known chords;
@@ -238,6 +241,6 @@ for 1024–1279px windows (only if the real monitor is that narrow).
 
 **Phase 2**
 6. With the keyboard connected, piano lessons with notes offer Coach me; without it, the connect note shows and the mic is never used for piano.
-7. Single-note, block-chord and hands-together lessons grade exactly; the summary includes timing and touch evenness; accuracy logs as before.
+7. Single-note, rolled-chord and hands-together lessons grade exactly; the summary includes timing and touch evenness; accuracy logs as before.
 8. Piano Echo rounds work over MIDI; prompts never light the band; guitar Echo stays off.
 9. Unplugging mid-run stops cleanly with a message; closing the lesson mid-run leaves no listener behind.
