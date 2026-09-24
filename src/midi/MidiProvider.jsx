@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { createMidiConnection } from "./connection.js";
 import { parseMidi, createTakeBuffer } from "./midiModel.js";
 import { overlay } from "./overlay.js";
@@ -40,13 +40,14 @@ export function MidiProvider({ enabled, children }) {
     return () => { offStatus(); offMsg(); conn.close(); };
   }, [conn]);
 
+  const connect = useCallback(() => conn.connect(), [conn]);
+  const subscribe = useCallback((f) => { subs.current.add(f); return () => subs.current.delete(f); }, []);
+  const playLastTake = useCallback(() => { if (!overlay.get().busy) playTake(take.current.lastTake()); }, []);
   const value = useMemo(() => conn && {
     ...state,
-    connect: () => conn.connect(),
-    subscribe: (f) => { subs.current.add(f); return () => subs.current.delete(f); },
-    playLastTake: () => { if (!overlay.get().busy) playTake(take.current.lastTake()); },
+    connect, subscribe, playLastTake,
     bandOpen, setBandOpen,
-  }, [conn, state, bandOpen]);
+  }, [conn, state, bandOpen, connect, subscribe, playLastTake]);
 
   return <MidiContext.Provider value={value}>{children}</MidiContext.Provider>;
 }

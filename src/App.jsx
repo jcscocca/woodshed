@@ -18,6 +18,7 @@ import PracticeRail from "./PracticeRail.jsx";
 import { ShortcutBridge } from "./useShortcuts.js";
 import ShortcutHelp from "./ShortcutHelp.jsx";
 import { MidiProvider } from "./midi/MidiProvider.jsx";
+import MidiBand from "./midi/MidiBand.jsx";
 
 // Resource links are user-entered and ride along in exported/imported backups,
 // so treat them as untrusted. Only http(s) URLs ever reach an href — a
@@ -292,6 +293,7 @@ export default function Woodshed() {
             />
             {showKeys && <ShortcutHelp onClose={() => setShowKeys(false)} />}
             <ShortcutBridge onAction={onShortcut} />
+            <MidiBand />
           </div>
         ) : (
           <Shell>

@@ -1,0 +1,104 @@
+import React, { useEffect, useState } from "react";
+import { useMidi, useOverlay } from "./MidiProvider.jsx";
+import { createKeyState } from "./midiModel.js";
+import { nameChord } from "./chords.js";
+import { midiToNote } from "../audio/notes.js";
+
+// A0–C8: 52 white keys by percentage; a black key straddles its left white key's right edge.
+const W = 100 / 52;
+const KEYS = [];
+for (let m = 21, w = 0; m <= 108; m++) {
+  if ([1, 3, 6, 8, 10].includes(m % 12)) KEYS.push({ m, black: true, left: (w - 0.3) * W, width: 0.6 * W });
+  else KEYS.push({ m, black: false, left: w++ * W, width: W });
+}
+
+const noteNames = (notes, octave) => notes.map((m) => { const n = midiToNote(m); return octave ? `${n.name}${n.octave}` : n.name; });
+
+function Keys({ notes, held, ov }) {
+  const mark = {};
+  if (!ov.hideTargets) ov.targets.forEach((t, i) => {
+    const k = mark[t.midi] || (mark[t.midi] = { finger: t.finger });
+    if (i === ov.next) { k.next = true; if (t.finger) k.finger = t.finger; }
+    const s = ov.statuses && ov.statuses[i];
+    if (s === "caught" || s === "missed") k.status = s;
+  });
+  const vel = new Map(held.map((h) => [h.note, h.velocity]));
+  const range = !ov.hideTargets && ov.range && [KEYS[ov.range[0] - 21], KEYS[ov.range[1] - 21]];
+  return (
+    <div className="ws-midi-keys" role="img" aria-label={`Keyboard: ${notes.length ? `${noteNames(notes, true).join(" ")} held` : "nothing held"}`}>
+      {KEYS.map(({ m, black, left, width }) => {
+        const k = mark[m], v = vel.get(m);
+        return (
+          <div
+            key={m}
+            className={["ws-midi-key", black && "b", k && "t", k && k.next && "next", k && k.status].filter(Boolean).join(" ")}
+            style={{ left: `${left}%`, width: `${width}%`, backgroundColor: v && `color-mix(in srgb, var(--gold) ${Math.round(45 + 55 * v / 127)}%, ${black ? "#211e1a" : "#d8d0c0"})` }}
+          >
+            {k && k.finger ? <span className="ws-midi-finger">{k.finger}</span> : null}
+            {m % 12 === 0 && <span className={`ws-midi-c ${m === 60 ? "c4" : ""}`}>C{m / 12 - 1}</span>}
+          </div>
+        );
+      })}
+      {range && <div className="ws-midi-range" style={{ left: `${range[0].left}%`, width: `${range[1].left + range[1].width - range[0].left}%` }} />}
+    </div>
+  );
+}
+
+// The keyboard band under the desktop layout: 88 keys lit by velocity, and a
+// readout under the rail. Held keys live here, so playing never re-renders App.
+export default function MidiBand() {
+  const midi = useMidi();
+  const ov = useOverlay();
+  const [held, setHeld] = useState([]);
+  const connected = !!midi && midi.status === "connected";
+  const subscribe = midi && midi.subscribe, setBandOpen = midi && midi.setBandOpen;
+
+  useEffect(() => {
+    if (!connected) return;
+    const keys = createKeyState();
+    const off = subscribe((m) => { if (m.type !== "pedal") { keys.apply(m); setHeld(keys.held()); } });
+    return () => { off(); setHeld([]); };
+  }, [connected, subscribe]);
+
+  useEffect(() => { if (connected) setBandOpen(true); }, [connected, setBandOpen]);
+
+  if (!midi || midi.status === "unsupported") return null;
+  const open = connected && midi.bandOpen;
+  const notes = held.map((h) => h.note);
+  const chord = nameChord(notes);
+  const head = (ov.readout && ov.readout.head) || chord || noteNames(notes, true).join(" ") || "—";
+  const toggle = () => setBandOpen((o) => !o);
+  const device = <span className="ws-midi-device"><span className="ws-midi-dot">●</span> {midi.deviceName}{open ? "" : ` · ${head} ·`}</span>;
+  return (
+    <div className={`ws-midi-band ${open ? "" : "collapsed"}`}>
+      {open && <Keys notes={notes} held={held} ov={ov} />}
+      <div className="ws-midi-readout">
+        {open ? (
+          <>
+            <div className="ws-midi-head">{head}</div>
+            <div className="ws-midi-line mono">{(ov.readout && ov.readout.line) || [...new Set(noteNames(notes))].join(" ")}</div>
+            <div className="ws-midi-row">
+              <button className="ws-btn ghost sm" onClick={midi.playLastTake}>▶ Play back</button>
+              {device}
+              <button className="ws-x" onClick={toggle} aria-label="Hide keyboard" aria-expanded="true">⌄</button>
+            </div>
+          </>
+        ) : connected ? (
+          <>
+            {device}
+            <button className="ws-x" onClick={midi.playLastTake} aria-label="Play back">▶</button>
+            <button className="ws-x" onClick={toggle} aria-label="Show keyboard" aria-expanded="false">⌃</button>
+          </>
+        ) : midi.status === "disconnected" ? (
+          <span className="ws-midi-off">○ Keyboard disconnected</span>
+        ) : (
+          <>
+            <button className="ws-btn ghost sm" onClick={midi.connect}>Connect keyboard</button>
+            {midi.status === "denied" && <span className="ws-midi-off">— allow MIDI in the site settings</span>}
+          </>
+        )}
+        <div className="ws-midi-live" aria-live="polite">{chord}</div>
+      </div>
+    </div>
+  );
+}
