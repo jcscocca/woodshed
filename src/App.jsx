@@ -49,7 +49,6 @@ export default function Woodshed() {
   const [watch, setWatch] = useState({ startedAt: null, acc: 0 }); // stopwatch, kept while the practice sheet is closed
   const [saveError, setSaveError] = useState(false);
   const loaded = useRef(false);
-  const remindedRef = useRef(null);
 
   // load once
   useEffect(() => {
@@ -68,30 +67,6 @@ export default function Woodshed() {
     if (!loaded.current || !data) return;
     saveState(data).then((ok) => setSaveError(!ok));
   }, [data]);
-
-  // Daily reminder. Fires a browser notification while Woodshed is open (a tab
-  // or installed app) if you haven't practiced by your chosen time. Reliable
-  // reminders when the app is fully closed would need a push backend — see README.
-  useEffect(() => {
-    const r = data && data.settings && data.settings.reminder;
-    if (!r || !r.enabled) return;
-    if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
-    const check = () => {
-      const today = todayStr();
-      if (remindedRef.current === today) return;
-      const [hh, mm] = String(r.time || "18:00").split(":").map(Number);
-      const now = new Date();
-      const due = now.getHours() > hh || (now.getHours() === hh && now.getMinutes() >= mm);
-      const practiced = data.sessions.some((s) => s.date === today);
-      if (due && !practiced) {
-        remindedRef.current = today;
-        try { new Notification("Woodshed", { body: "Time to practice — today's set is ready." }); } catch (e) { /* ignore */ }
-      }
-    };
-    check();
-    const id = setInterval(check, 60000);
-    return () => clearInterval(id);
-  }, [data && data.settings && data.settings.reminder, data && data.sessions]);
 
   // An installed app can stay open across midnight; build the new day's set when it comes back.
   useEffect(() => {
@@ -1020,28 +995,10 @@ function Settings({ settings, onChange, onToggle, onReset, onClose, onExport, on
   const [confirm, setConfirm] = useState(false);
   const [pending, setPending] = useState(null); // parsed backup awaiting confirmation
   const [msg, setMsg] = useState("");
-  const [, force] = useState(0);
   const fileRef = useRef(null);
   const dlgRef = useDialog(onClose);
   const lengths = [10, 15, 20, 30, 45];
   const goals = [3, 4, 5, 6, 7];
-  const rem = settings.reminder || { enabled: false, time: "18:00" };
-  const notifyState = typeof Notification !== "undefined" ? Notification.permission : "unsupported";
-
-  const setReminder = async (patch) => {
-    const next = { ...rem, ...patch };
-    if (next.enabled && typeof Notification !== "undefined" && Notification.permission === "default") {
-      try { await Notification.requestPermission(); } catch (e) { /* ignore */ }
-      force((n) => n + 1); // reflect the new permission state
-    }
-    onChange({ reminder: next });
-  };
-
-  const reminderNote = () => {
-    if (rem.enabled && notifyState === "denied") return "Notifications are blocked for this site — allow them in your browser settings to get reminders.";
-    if (rem.enabled && notifyState === "unsupported") return "This browser doesn't support notifications.";
-    return "Fires while Woodshed is open in a tab or installed as an app. Reminders when it's fully closed would need a server, which this version doesn't use — the surest nudge is just opening the app.";
-  };
 
   const handleFile = (e) => {
     const file = e.target.files && e.target.files[0];
@@ -1089,23 +1046,6 @@ function Settings({ settings, onChange, onToggle, onReset, onClose, onExport, on
             ))}
           </div>
           <p className="ws-set-note">Days per week you're aiming for. A single missed day won't break your streak.</p>
-        </div>
-
-        <div className="ws-set-block">
-          <div className="ws-set-label">Daily reminder</div>
-          <label className="ws-toggle-row">
-            <span className="ws-toggle-name">Remind me to practice</span>
-            <button role="switch" aria-checked={!!rem.enabled} aria-label="Daily reminder" className={`ws-switch ${rem.enabled ? "on" : ""}`} onClick={() => setReminder({ enabled: !rem.enabled })}>
-              <span className="ws-switch-knob" />
-            </button>
-          </label>
-          {rem.enabled && (
-            <div className="ws-reminder-time">
-              <label htmlFor="ws-rem-time">Remind at</label>
-              <input id="ws-rem-time" type="time" className="ws-input ws-time-input" value={rem.time || "18:00"} onChange={(e) => setReminder({ time: e.target.value })} />
-            </div>
-          )}
-          <p className="ws-set-note">{reminderNote()}</p>
         </div>
 
         <div className="ws-set-block">

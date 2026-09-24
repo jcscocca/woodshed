@@ -32,11 +32,11 @@ export function migrate(state) {
   s.settings = {
     target: 20,
     weeklyGoal: 4,
-    reminder: { enabled: false, time: "18:00" },
     enabled: { piano: true, guitar: true, bass: true, accordion: true },
     ...(s.settings || {}),
   };
-  s.settings.reminder = { enabled: false, time: "18:00", ...(s.settings.reminder || {}) };
+  // The daily reminder is gone; drop its setting from older saves.
+  delete s.settings.reminder;
   s.sessions = Array.isArray(s.sessions) ? s.sessions : [];
   // v5 saves may carry Loom's thumbnail history; Loom is gone, so drop it.
   delete s.loomPaintings;

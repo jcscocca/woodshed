@@ -375,11 +375,8 @@ body{
 .ws-weekgoal-pip.on{ background:var(--gold); }
 .ws-weekgoal-extra{ font-size:11px; color:var(--gold); margin-left:2px; flex:none; }
 
-/* ---- streak best + reminder time ---- */
+/* ---- streak best ---- */
 .ws-streak-best{ color:var(--muted2); }
-.ws-reminder-time{ display:flex; align-items:center; gap:10px; margin-top:4px; margin-bottom:2px; }
-.ws-reminder-time label{ font-size:13px; color:var(--muted); }
-.ws-time-input{ width:auto; flex:none; padding:8px 11px; }
 
 /* ----------------------- lessons ----------------------- */
 .ws-learn{ background:none; border:none; color:var(--gold); font-size:12px; font-weight:600; cursor:pointer; padding:2px 0; font-family:inherit; margin-right:auto; }
