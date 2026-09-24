@@ -18,9 +18,13 @@ export function useCoach({ mode, targets, octaveStrict, inst }) {
 
   // Clamp detection to the exercise's pitch span (cheap, and keeps out-of-range
   // octave artifacts out). Guard the empty case (a hypothetical all-muted shape).
+  // Octave-forgiving grading must also *hear* the other octave (an ear prompt may
+  // sit an octave off the instrument), so widen by one; floor at the detector's
+  // 40 Hz default so the lag window never outruns the 2048-sample frame.
   const pitched = targets.filter((t) => !t.muted).map((t) => t.midi);
-  const minF = pitched.length ? midiToFreq(Math.min(...pitched) - 3) : 80;
-  const maxF = pitched.length ? midiToFreq(Math.max(...pitched) + 3) : 1500;
+  const pad = octaveStrict ? 3 : 15;
+  const minF = pitched.length ? Math.max(40, midiToFreq(Math.min(...pitched) - pad)) : 80;
+  const maxF = pitched.length ? midiToFreq(Math.max(...pitched) + pad) : 1500;
   const detect = inst === "accordion" ? detectPitchSpectral : detectPitchDetailed;
 
   const grade = () => (mode === "arpeggio" ? gradeArpeggio(targets, events.current) : gradeLine(targets, events.current, { octaveStrict }));
