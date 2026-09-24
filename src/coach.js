@@ -78,41 +78,40 @@ export function gradeLine(targets, events, { octaveStrict = false } = {}) {
   };
 }
 
-const uniq = (ms) => [...new Set(ms)].sort((a, b) => a - b);
-const sameSet = (a, b) => uniq(a).join() === uniq(b).join();
-
-// Chords-as-played grading (MIDI): each target is a note set, each event a
-// chord (onsets grouped within a small window, see groupChords). The notes
-// struck so far on a target accumulate: an exact match -> caught; a strict
-// subset waits for the rest (a hand landing late), so the target stays pending.
-// Else a one-step lookahead, as in gradeLine: if a fresh event matches the
-// *next* target exactly, the current one was skipped clean (no diff) and the
-// next is caught; otherwise the current target is missed with the notes it was
-// short (missing) and the notes played that don't belong (extra).
-export function gradeChords(targets, chordEvents) {
-  const results = targets.map((t) => ({ target: t, status: "pending" }));
-  let cur = 0, acc = [];
-  for (const e of chordEvents) {
-    if (cur >= targets.length) break;
-    const want = uniq(targets[cur].midis), u = uniq([...acc, ...e.midis]);
-    if (sameSet(u, want)) { results[cur].status = "caught"; cur++; acc = []; }
-    else if (u.every((m) => want.includes(m))) acc = u;
-    else if (!acc.length && cur + 1 < targets.length && sameSet(e.midis, targets[cur + 1].midis)) {
-      results[cur].status = "missed"; results[cur + 1].status = "caught"; cur += 2;
-    } else {
-      results[cur].status = "missed";
-      results[cur].missing = want.filter((m) => !u.includes(m));
-      results[cur].extra = u.filter((m) => !want.includes(m));
-      cur++; acc = [];
-    }
+// Hands together (MIDI): each hand is its own line with its own cursor, graded
+// like gradeLine (exact pitch, one-step skip), so a lagging hand never shifts
+// the other. A note goes to the hand waiting for it, the hand further behind
+// first. A pair is caught when both hands caught it, missed when either missed
+// (missing = that hand's note), else pending. byHand keeps each hand's caught
+// notes, in order, for timing and touch.
+export function gradeHands(targets, events) {
+  const hands = [0, 1].map((h) => ({ h, cur: 0, status: targets.map(() => "pending"), caught: [] }));
+  const want = (H, i) => (i < targets.length ? targets[i].midis[H.h] : undefined);
+  let lastHeard = null;
+  for (const e of events) {
+    const order = [...hands].sort((a, b) => a.cur - b.cur);
+    const hit = order.find((H) => want(H, H.cur) === e.midi);
+    const skip = !hit && order.find((H) => want(H, H.cur + 1) === e.midi);
+    const H = hit || skip;
+    if (!H) { lastHeard = e; continue; }
+    if (skip) H.status[H.cur++] = "missed";
+    H.status[H.cur++] = "caught"; H.caught.push(e); lastHeard = null;
   }
+  const results = targets.map((t, i) => {
+    const s = hands.map((H) => H.status[i]);
+    const status = s.includes("missed") ? "missed" : s.every((x) => x === "caught") ? "caught" : "pending";
+    return status === "missed" ? { target: t, status, hands: s, missing: t.midis.filter((m, h) => s[h] === "missed") } : { target: t, status, hands: s };
+  });
+  const cursor = Math.min(hands[0].cur, hands[1].cur);
   const caught = results.filter((r) => r.status === "caught").length;
   return {
     results,
-    cursor: cur,
-    done: cur >= targets.length,
+    cursor,
+    lastHeard,
+    done: cursor >= targets.length,
     accuracy: targets.length ? Math.round((100 * caught) / targets.length) : 0,
     missed: results.filter((r) => r.status === "missed" || r.status === "pending").map((r) => r.target.label),
+    byHand: hands.map((H) => H.caught),
   };
 }
 

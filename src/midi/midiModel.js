@@ -31,17 +31,6 @@ export function createKeyState() {
 
 export const toNoteEvent = (m) => ({ ...midiToNote(m.note), tStart: m.t, peak: m.velocity / 127 });
 
-export function groupChords(events, windowMs = 60) {
-  const out = [];
-  for (const e of events) {
-    const last = out[out.length - 1];
-    if (last && e.tStart - last.tStart <= windowMs) { if (!last.midis.includes(e.midi)) last.midis.push(e.midi); last.peaks.push(e.peak); }
-    else out.push({ midis: [e.midi], tStart: e.tStart, peaks: [e.peak] });
-  }
-  for (const c of out) c.midis.sort((a, b) => a - b);
-  return out;
-}
-
 // Always-on recorder: raw messages for the last windowMs; lastTake() replays
 // them into notes (durations extended by the sustain pedal) and keeps only the
 // notes after the last gap of >= gapMs with no key physically held.

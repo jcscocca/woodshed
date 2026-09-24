@@ -9,20 +9,25 @@ import { nameChord } from "./midi/chords.js";
 const STATUS_CLASS = { caught: "ok", missed: "bad", rang: "warn", "muted-ok": "mute", pending: "" };
 const noteNames = (ms) => ms.map((m) => { const n = midiToNote(m); return `${n.name}${n.octave}`; }).join(" ");
 
-// Statuses per band key, matched by pitch: a hands-together pair marks its
-// right-hand key, or both hands' keys once the lesson puts both on the band.
-// at[i] lists result i's keys (both hands', for a pair on the band).
+// Statuses per band key, matched by pitch: a hands-together pair marks each
+// hand's key with that hand's own result. at[i] lists result i's keys.
 function toBand(results, keys) {
   const statuses = keys.map(() => "pending"), at = [], used = new Set();
   results.forEach((x, i) => {
     at[i] = [];
-    for (const m of x.target.midis || [x.target.midi]) {
+    (x.target.midis || [x.target.midi]).forEach((m, h) => {
       const j = keys.findIndex((k, n) => k.midi === m && !used.has(n));
-      if (j >= 0) { used.add(j); statuses[j] = x.status; at[i].push(j); }
-    }
+      if (j >= 0) { used.add(j); statuses[j] = x.hands ? x.hands[h] : x.status; at[i].push(j); }
+    });
   });
   return { statuses, at };
 }
+
+// Hands together: each hand's own next key (the hands can be at different pairs).
+const handsNext = (results, at) => [0, 1].map((h) => {
+  const i = results.findIndex((x) => x.hands[h] === "pending");
+  return i >= 0 && at[i] ? at[i][h] : undefined;
+}).filter((j) => j != null);
 
 // The coaching surface inside the lesson sheet. "Coach me" opens it; the target
 // chips light up as you play; a calm summary follows. Restraint by design: the
@@ -61,7 +66,7 @@ export default function CoachPanel({ item, lesson, sessions = [], onLog, source 
     if (!viaMidi || runToken === 0) return;
     const keys = overlay.get().targets, { statuses, at } = toBand(shown, keys);
     if (!coach.listening) { overlay.set({ statuses, next: [], readout: null, busy: false }); return; }
-    const cur = r.results[r.cursor], next = at[r.cursor] || [], finger = next.length > 0 && keys[next[next.length - 1]].finger;
+    const cur = r.results[r.cursor], next = mode === "chords" ? handsNext(r.results, at) : at[r.cursor] || [], finger = next.length > 0 && keys[next[next.length - 1]].finger;
     const readout = !cur ? null : mode === "chords" ? { head: nameChord(cur.target.midis) || cur.target.label } : {
       head: finger ? `${cur.target.label} · ${finger}` : cur.target.label,
       line: `${r.cursor} / ${r.results.length}`,
@@ -99,7 +104,7 @@ export default function CoachPanel({ item, lesson, sessions = [], onLog, source 
 
   const band = r.accuracy >= 90 ? "Clean run" : r.accuracy >= 60 ? "Solid run — a couple to clean up" : "Keep at it — this one needs reps";
   const cur = r.cursor;
-  // a wrong chord names what was missing and what didn't belong (a clean skip carries neither)
+  // a missed pair names the note that was missed (a clean skip carries none)
   const slip = mode === "chords" && r.results[cur - 1];
   const diff = slip && [["missing", slip.missing], ["extra", slip.extra]].filter(([, ms]) => ms && ms.length).map(([k, ms]) => `${k} ${noteNames(ms)}`).join(" · ");
 

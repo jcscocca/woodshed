@@ -109,8 +109,6 @@ for 1024–1279px windows (only if the real monitor is that narrow).
     `(inputId, note)`.
   - Note events for grading in the coach's existing shape:
     `{ midi, name, octave, tStart, peak }`, `peak = velocity / 127`.
-  - `groupChords(events, windowMs = 60)` → chord events `{ midis, tStart, peaks }`
-    from onsets within 60ms of the first.
   - `nameChord(midis)` → string or `null`. Triads (maj, m, dim, aug, sus2,
     sus4), 6 and m6, sevenths (maj7, 7, m7, m7♭5, dim7, m(maj7)); shell voicings
     (root–3–7, no 5th) named with a "shell" suffix; slash chords when the lowest
@@ -162,18 +160,17 @@ for 1024–1279px windows (only if the real monitor is that narrow).
   Esc) unsubscribes.
 - **Grading** (pure, in `coach.js`; existing graders unchanged):
   - single-note lines (scales, Hanon, five-finger): `gradeLine`, octave-strict;
-  - chords as played: new `gradeChords(targets, chordEvents)` — each target is a
-    note set; a played chord (onsets within 60ms) is caught when the sets match
-    exactly, otherwise missed with its missing/extra notes listed; notes that
-    are still a strict subset of the target wait for the rest, so a hand landing
-    late completes its pair (amended during build). Used for hands-together
-    targets. (Amended during build: keyboard shapes with
-    `play: "block"` — only trk-pno-5, which asks you to *roll* the chord — are
-    graded in order with `gradeArpeggio`, as on the mic path.) Timing evenness
-    for chord targets measures the gaps between chords;
+  - rolled chords: keyboard shapes with `play: "block"` — only trk-pno-5, which
+    asks you to *roll* the chord — are graded in order with `gradeArpeggio`, as on
+    the mic path (amended during build);
   - hands together: keyboard shapes may set `hands: "together"` — each right-hand
-    note pairs with the same note an octave lower as a two-note target, graded by
-    `gradeChords`. Enabled on **pno-scales** and **trk-pno-3**;
+    note pairs with the same note an octave lower. Graded by `gradeHands`
+    (amended after the final review, replacing a chords-as-played grader that
+    desynced when one hand lagged): each hand is its own line with its own
+    cursor, graded like `gradeLine`; a note goes to the hand waiting for it; a
+    pair is caught when both hands caught it, missed (with the missed note) when
+    either missed. Timing follows the right hand; touch is judged per hand.
+    Enabled on **pno-scales** and **trk-pno-3**;
   - timing: existing `evenness`; touch: new `touchEvenness(events)` from
     velocities — a soft summary note ("even touch / a little uneven"), never
     scored;
@@ -211,14 +208,14 @@ for 1024–1279px windows (only if the real monitor is that narrow).
 ## 5. Testing
 
 - **Unit (node):** `test/midi.test.mjs` — parsing (incl. velocity-0 off,
-  pedal), per-input note-off, held keys vs pedal, chord grouping at the 60ms
-  edge, take buffer (60s window, 3s split, pedal-extended durations);
+  pedal), per-input note-off, held keys vs pedal, take buffer (60s window, 3s
+  split, pedal-extended durations);
   `nameChord` table (~30 cases: triads and sevenths in several keys,
   inversions as slash chords, shells, C6/Am7 by lowest note, unknown → `null`);
   `connection.js` with a fake MIDIAccess (connect, silent reconnect, plug/unplug,
   denied, unsupported); shortcuts K/P/C and their guards.
-  Phase 2: `test/coach.test.mjs` — `gradeChords` (clean, missing, extra,
-  rolled inside/outside 60ms), hands-together targets, `touchEvenness`,
+  Phase 2: `test/coach.test.mjs` — `gradeHands` (pairs in either
+  order, a lagging hand, a wrong note, a stray), hands-together targets, `touchEvenness`,
   MIDI-shaped events through `gradeLine`/`gradeArpeggio`; `test/ear.test.mjs` —
   piano Echo items present, guitar ones absent.
 - **Browser (dev build, `window.__fakeMidi`):** band lights by velocity; chord

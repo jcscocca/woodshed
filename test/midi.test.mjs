@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-const { parseMidi, createKeyState, toNoteEvent, groupChords, createTakeBuffer } = await import("../src/midi/midiModel.js");
+const { parseMidi, createKeyState, toNoteEvent, createTakeBuffer } = await import("../src/midi/midiModel.js");
 const { nameChord, spellChord } = await import("../src/midi/chords.js");
 const { createMidiConnection } = await import("../src/midi/connection.js");
 
@@ -35,12 +35,6 @@ test("keys: note-off matches per input", () => {
 });
 test("note event matches the coach's event shape", () => {
   assert.deepEqual(toNoteEvent(on(61, 127, 12.5)), { midi: 61, name: "C#", octave: 4, tStart: 12.5, peak: 1 });
-});
-test("chords: onsets within 60ms group; 61ms starts a new chord", () => {
-  const ev = [on(60, 90, 0), on(64, 90, 30), on(67, 90, 60), on(72, 90, 121)].map(toNoteEvent);
-  const g = groupChords(ev);
-  assert.deepEqual(g.map((c) => c.midis), [[60, 64, 67], [72]]);
-  assert.equal(g[0].tStart, 0);
 });
 test("take: last take starts after the last >=3s gap with no keys held", () => {
   const b = createTakeBuffer();

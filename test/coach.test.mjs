@@ -200,21 +200,8 @@ test("evenness: fewer than 3 gaps => null", () => {
   assert.equal(evenness(tsEvents([0, 200, 400])), null);
 });
 
-import { gradeChords, touchEvenness } from "../src/coach.js";
+import { gradeHands, touchEvenness } from "../src/coach.js";
 
-test("gradeChords: exact sets are caught", () => {
-  const r = gradeChords([{ midis: [48, 60], label: "C" }, { midis: [50, 62], label: "D" }], [{ midis: [48, 60] }, { midis: [50, 62] }]);
-  assert.deepEqual(r.results.map((x) => x.status), ["caught", "caught"]); assert.equal(r.accuracy, 100); assert.equal(r.done, true);
-});
-test("gradeChords: a missing and an extra note are reported", () => {
-  const r = gradeChords([{ midis: [60, 64, 67], label: "C" }], [{ midis: [60, 64, 68] }]);
-  assert.equal(r.results[0].status, "missed"); assert.deepEqual(r.results[0].missing, [67]); assert.deepEqual(r.results[0].extra, [68]);
-  assert.deepEqual(r.missed, ["C"]);
-});
-test("gradeChords: skipping a target catches the next", () => {
-  const r = gradeChords([{ midis: [48, 60], label: "C" }, { midis: [50, 62], label: "D" }, { midis: [52, 64], label: "E" }], [{ midis: [50, 62] }]);
-  assert.deepEqual(r.results.map((x) => x.status), ["missed", "caught", "pending"]); assert.equal(r.cursor, 2);
-});
 test("hands together: right-hand notes pair with the octave below", () => {
   const { mode, targets } = shapeToTargets({ kind: "keyboard", hands: "together", notes: [{ name: "C", octave: 4 }, { name: "D", octave: 4 }] });
   assert.equal(mode, "chords"); assert.deepEqual(targets.map((t) => t.midis), [[48, 60], [50, 62]]);
@@ -231,21 +218,34 @@ test("MIDI-shaped events grade through gradeLine unchanged", () => {
   assert.equal(gradeLine(targets, events, { octaveStrict: true }).accuracy, 100);
 });
 const cdefg = shapeToTargets({ kind: "keyboard", hands: "together", notes: ["C", "D", "E", "F", "G"].map((name) => ({ name, octave: 4 })) }).targets;
-test("gradeChords: a late hand completes its pair and the run stays in step", () => {
-  const r = gradeChords(cdefg, [{ midis: [60] }, { midis: [48] }, { midis: [50, 62] }, { midis: [52, 64] }, { midis: [53, 65] }, { midis: [55, 67] }]);
-  assert.deepEqual(r.results.map((x) => x.status), ["caught", "caught", "caught", "caught", "caught"]); assert.equal(r.accuracy, 100);
+const play = (ms) => ms.map((midi, i) => ({ midi, tStart: i * 150, peak: 0.6 }));
+const statuses = (r) => r.results.map((x) => x.status);
+test("gradeHands: pairs played together are caught, in either hand order", () => {
+  const r = gradeHands(cdefg, play([48, 60, 62, 50, 52, 64, 65, 53, 55, 67]));
+  assert.deepEqual(statuses(r), ["caught", "caught", "caught", "caught", "caught"]); assert.equal(r.accuracy, 100); assert.equal(r.done, true);
 });
-test("gradeChords: a wrong note inside a pair is missed with its diff", () => {
-  const r = gradeChords(cdefg, [{ midis: [48, 61] }]);
-  assert.equal(r.results[0].status, "missed"); assert.deepEqual(r.results[0].missing, [60]); assert.deepEqual(r.results[0].extra, [61]); assert.equal(r.cursor, 1);
+test("gradeHands: a left hand lagging into the next pair doesn't shift the run", () => {
+  const r = gradeHands(cdefg, play([60, 62, 48, 50, 52, 64, 53, 65, 55, 67]));
+  assert.deepEqual(statuses(r), ["caught", "caught", "caught", "caught", "caught"]); assert.equal(r.accuracy, 100);
 });
-test("gradeChords: a lone stray outside the pair is missed at once", () => {
-  const r = gradeChords(cdefg, [{ midis: [49] }]);
-  assert.equal(r.results[0].status, "missed"); assert.equal(r.cursor, 1);
+test("gradeHands: one hand a whole run behind still grades clean", () => {
+  const r = gradeHands(cdefg, play([60, 62, 64, 65, 67, 48, 50, 52, 53, 55]));
+  assert.equal(r.accuracy, 100); assert.equal(r.done, true);
 });
-test("gradeChords: one hand of a pair leaves it pending", () => {
-  const r = gradeChords(cdefg, [{ midis: [60] }]);
-  assert.equal(r.results[0].status, "pending"); assert.equal(r.cursor, 0); assert.equal(r.done, false);
+test("gradeHands: a wrong note misses its pair, names the note, and the run stays in step", () => {
+  const r = gradeHands(cdefg, play([48, 61, 50, 62, 52, 64]));
+  assert.deepEqual(statuses(r).slice(0, 3), ["missed", "caught", "caught"]);
+  assert.deepEqual(r.results[0].missing, [60]); assert.deepEqual(r.results[0].hands, ["caught", "missed"]);
+});
+test("gradeHands: a stray waits; one hand alone leaves the pair pending", () => {
+  const stray = gradeHands(cdefg, play([49]));
+  assert.equal(stray.results[0].status, "pending"); assert.equal(stray.lastHeard.midi, 49); assert.equal(stray.cursor, 0);
+  const half = gradeHands(cdefg, play([60]));
+  assert.equal(half.results[0].status, "pending"); assert.equal(half.cursor, 0); assert.equal(half.done, false);
+});
+test("gradeHands: each hand's notes are kept apart for timing and touch", () => {
+  const r = gradeHands(cdefg, play([60, 48, 62, 50]));
+  assert.deepEqual(r.byHand.map((h) => h.map((e) => e.midi)), [[48, 50], [60, 62]]);
 });
 
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });
