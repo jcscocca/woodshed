@@ -9,14 +9,15 @@
     "build": "vite build",
     "preview": "vite preview",
     "fixtures": "bash test/audio/render-fixtures.sh",
-    "test": "npm run test:smoke && npm run test:lessons && npm run test:coach && npm run test:ear && npm run test:engine && npm run test:desktop",
+    "test": "npm run test:smoke && npm run test:lessons && npm run test:coach && npm run test:ear && npm run test:engine && npm run test:desktop && npm run test:midi",
     "test:audio": "node test/audio/dsp.realaudio.test.mjs",
     "test:smoke": "node test/audio/dsp.smoke.test.mjs",
     "test:lessons": "node test/lessons.test.mjs",
     "test:coach": "node test/coach.test.mjs",
     "test:ear": "node test/ear.test.mjs",
     "test:engine": "node test/engine.test.mjs",
-    "test:desktop": "node test/desktop.test.mjs"
+    "test:desktop": "node test/desktop.test.mjs",
+    "test:midi": "node test/midi.test.mjs"
   },
   "dependencies": {
     "@fontsource/bricolage-grotesque": "^5.3.0",
