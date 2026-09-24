@@ -279,7 +279,6 @@ export default function Woodshed() {
             onOpenTuner={() => { setLessonFor(null); setTunerOpen(true); }}
             onCloseSlot={() => { setLessonFor(null); setTunerOpen(false); }}
           />
-          {dialogs}
         </div>
       ) : (
         <Shell>
@@ -302,12 +301,12 @@ export default function Woodshed() {
               </button>
             ))}
           </nav>
-          {dialogs}
           {practiceOpen && <PracticeSheet onClose={() => setPracticeOpen(false)} onOpenListen={() => { setPracticeOpen(false); setListenOpen(true); }} />}
           {listenOpen && <ListenSheet onClose={() => setListenOpen(false)} />}
           {lessonProps && <LessonSheet {...lessonProps} onClose={() => setLessonFor(null)} />}
         </Shell>
       )}
+      {dialogs}
     </PracticeProvider>
   );
 }
