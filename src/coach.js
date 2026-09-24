@@ -78,27 +78,32 @@ export function gradeLine(targets, events, { octaveStrict = false } = {}) {
   };
 }
 
-const sameSet = (a, b) => a.length === b.length && a.every((m) => b.includes(m));
+const uniq = (ms) => [...new Set(ms)].sort((a, b) => a - b);
+const sameSet = (a, b) => uniq(a).join() === uniq(b).join();
 
 // Chords-as-played grading (MIDI): each target is a note set, each event a
-// chord (onsets grouped within a small window, see groupChords). Exact match
-// -> caught. Else a one-step lookahead, as in gradeLine: if the event matches
-// the *next* target exactly, the current one was skipped clean (no diff) and
-// the next is caught; otherwise the current target is missed with the notes
-// it was short (missing) and the notes played that don't belong (extra).
+// chord (onsets grouped within a small window, see groupChords). The notes
+// struck so far on a target accumulate: an exact match -> caught; a strict
+// subset waits for the rest (a hand landing late), so the target stays pending.
+// Else a one-step lookahead, as in gradeLine: if a fresh event matches the
+// *next* target exactly, the current one was skipped clean (no diff) and the
+// next is caught; otherwise the current target is missed with the notes it was
+// short (missing) and the notes played that don't belong (extra).
 export function gradeChords(targets, chordEvents) {
   const results = targets.map((t) => ({ target: t, status: "pending" }));
-  let cur = 0;
+  let cur = 0, acc = [];
   for (const e of chordEvents) {
     if (cur >= targets.length) break;
-    if (sameSet(e.midis, targets[cur].midis)) { results[cur].status = "caught"; cur++; }
-    else if (cur + 1 < targets.length && sameSet(e.midis, targets[cur + 1].midis)) {
+    const want = uniq(targets[cur].midis), u = uniq([...acc, ...e.midis]);
+    if (sameSet(u, want)) { results[cur].status = "caught"; cur++; acc = []; }
+    else if (u.every((m) => want.includes(m))) acc = u;
+    else if (!acc.length && cur + 1 < targets.length && sameSet(e.midis, targets[cur + 1].midis)) {
       results[cur].status = "missed"; results[cur + 1].status = "caught"; cur += 2;
     } else {
       results[cur].status = "missed";
-      results[cur].missing = targets[cur].midis.filter((m) => !e.midis.includes(m));
-      results[cur].extra = e.midis.filter((m) => !targets[cur].midis.includes(m));
-      cur++;
+      results[cur].missing = want.filter((m) => !u.includes(m));
+      results[cur].extra = u.filter((m) => !want.includes(m));
+      cur++; acc = [];
     }
   }
   const caught = results.filter((r) => r.status === "caught").length;

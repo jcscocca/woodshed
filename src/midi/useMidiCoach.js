@@ -17,15 +17,6 @@ function handsTouch(chords, events) {
   return l && r && (l.cv >= r.cv ? l : r);
 }
 
-// A pair still being struck (its notes so far a strict subset of the target the
-// grader is on) stays pending instead of flashing missed until the rest lands.
-function gradeChordsLive(targets, chords) {
-  const settled = gradeChords(targets, chords.slice(0, -1));
-  const last = chords[chords.length - 1], t = targets[settled.cursor];
-  const partial = last && t && last.midis.length < t.midis.length && last.midis.every((m) => t.midis.includes(m));
-  return partial ? settled : gradeChords(targets, chords);
-}
-
 // useCoach's API fed by the keyboard: every note-on is one event (no stabilizer —
 // MIDI pitch is exact). Chord targets (hands together) grade the notes struck
 // together, via groupChords; a keyboard block shape is rolled, so it grades in order.
@@ -39,7 +30,7 @@ export function useMidiCoach({ mode, targets, octaveStrict }) {
 
   const compute = () => {
     const ev = events.current, chords = mode === "chords" && groupChords(ev);
-    const graded = chords ? gradeChordsLive(targets, chords) : mode === "arpeggio" ? gradeArpeggio(targets, ev) : gradeLine(targets, ev, { octaveStrict });
+    const graded = chords ? gradeChords(targets, chords) : mode === "arpeggio" ? gradeArpeggio(targets, ev) : gradeLine(targets, ev, { octaveStrict });
     // timing reads the gaps between chords, not the few ms inside one
     return { ...graded, timing: evenness(chords || ev), touch: chords ? handsTouch(chords, ev) : touchEvenness(ev) };
   };
