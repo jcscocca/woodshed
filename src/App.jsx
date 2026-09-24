@@ -190,12 +190,12 @@ export default function Woodshed() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url; a.download = `woodshed-backup-${todayStr()}.json`;
-    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 40000);
   };
-  const importData = (text) => {
+  const importData = (raw) => {
     try {
-      const parsed = migrate(JSON.parse(text));
-      if (!parsed || !parsed.items || !parsed.settings) return false;
+      const parsed = migrate(raw);
+      parsed.items = mergeContent(parsed.items);
       if (!parsed.currentSession || parsed.currentSession.date !== todayStr()) parsed.currentSession = gen(parsed);
       setData(parsed);
       return true;
@@ -1037,6 +1037,7 @@ function SessionEdit({ session, itemById, onSave, onDelete, onClose }) {
 /* ----------------------- settings ----------------------- */
 function Settings({ settings, onChange, onToggle, onReset, onClose, onExport, onImport }) {
   const [confirm, setConfirm] = useState(false);
+  const [pending, setPending] = useState(null); // parsed backup awaiting confirmation
   const [msg, setMsg] = useState("");
   const [, force] = useState(0);
   const dlgRef = useDialog(onClose);
@@ -1064,9 +1065,19 @@ function Settings({ settings, onChange, onToggle, onReset, onClose, onExport, on
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => setMsg(onImport(String(reader.result)) ? "Data restored." : "Couldn't read that file.");
+    reader.onload = () => {
+      let raw = null;
+      try { raw = JSON.parse(String(reader.result)); } catch { /* not JSON */ }
+      if (Array.isArray(raw?.items) && Array.isArray(raw?.sessions)) { setPending(raw); setMsg(""); }
+      else setMsg("Couldn't read that file.");
+    };
     reader.readAsText(file);
     e.target.value = "";
+  };
+  const restore = () => {
+    const n = pending.sessions.length;
+    setMsg(onImport(pending) ? `Backup restored — ${n} session${n === 1 ? "" : "s"}.` : "Couldn't read that file.");
+    setPending(null);
   };
 
   return (
@@ -1134,7 +1145,15 @@ function Settings({ settings, onChange, onToggle, onReset, onClose, onExport, on
             <button className="ws-btn ghost sm" onClick={onExport}>Export backup</button>
             <label className="ws-btn ghost sm ws-file-btn">Import<input type="file" accept="application/json" onChange={handleFile} hidden /></label>
           </div>
-          {msg && <p className="ws-data-msg">{msg}</p>}
+          {pending ? (
+            <div className="ws-confirm" style={{ marginTop: 10 }}>
+              <span>Replace everything on this device with this backup ({pending.sessions.length} session{pending.sessions.length === 1 ? "" : "s"})?</span>
+              <div>
+                <button className="ws-btn ghost sm" onClick={() => setPending(null)}>Keep</button>
+                <button className="ws-btn danger sm" onClick={restore}>Replace</button>
+              </div>
+            </div>
+          ) : msg && <p className="ws-data-msg">{msg}</p>}
         </div>
 
         <div className="ws-set-block">
