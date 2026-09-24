@@ -47,15 +47,19 @@ export function groupChords(events, windowMs = 60) {
 // notes after the last gap of >= gapMs with no key physically held.
 export function createTakeBuffer({ windowMs = 60000, gapMs = 3000 } = {}) {
   const log = [];
+  let pedalAtStart = false;
   return {
     push(m, now = m && m.t) {
       if (!m) return;
       log.push(m);
-      while (log.length && log[0].t < now - windowMs) log.shift();
+      while (log.length && log[0].t < now - windowMs) {
+        const evicted = log.shift();
+        if (evicted.type === "pedal") pedalAtStart = evicted.down;
+      }
     },
     lastTake() {
       const notes = [], open = new Map(), sustained = [];
-      let pedal = false;
+      let pedal = pedalAtStart;
       const end = (n, t) => { n.dur = t - n.t0; };
       for (const m of log) {
         const k = `${m.inputId}:${m.note}`;

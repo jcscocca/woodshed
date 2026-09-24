@@ -1,7 +1,7 @@
 // The one MIDI connection, pure: works against any MIDIAccess-shaped object
 // (the browser's, or a fake in tests and dev). Listens on every input.
 export function createMidiConnection({ requestAccess, queryPermission }) {
-  let access = null, status = requestAccess ? "idle" : "unsupported", deviceName = "";
+  let access = null, status = requestAccess ? "idle" : "unsupported", deviceName = "", gen = 0;
   const msgFns = new Set(), statusFns = new Set();
   const set = (s) => { status = s; for (const f of statusFns) f({ status, deviceName }); };
   const onMidi = (e) => { for (const f of msgFns) f(e.data, e.timeStamp, e.target && e.target.id); };
@@ -17,15 +17,18 @@ export function createMidiConnection({ requestAccess, queryPermission }) {
     get deviceName() { return deviceName; },
     async connect() {
       if (!requestAccess) return;
-      try { attach(await requestAccess()); } catch { set("denied"); }
+      const myGen = gen;
+      try { const a = await requestAccess(); if (myGen === gen) attach(a); } catch { if (myGen === gen) set("denied"); }
     },
     async autoConnect() {
       if (!requestAccess || !queryPermission) return;
-      try { if ((await queryPermission()) === "granted") attach(await requestAccess()); } catch { /* stay idle: the button still works */ }
+      const myGen = gen;
+      try { if ((await queryPermission()) === "granted") { const a = await requestAccess(); if (myGen === gen) attach(a); } } catch { /* stay idle: the button still works */ }
     },
     onMessage(fn) { msgFns.add(fn); return () => msgFns.delete(fn); },
     onStatus(fn) { statusFns.add(fn); return () => statusFns.delete(fn); },
     close() {
+      gen++;
       if (!access) return;
       for (const i of access.inputs.values()) i.onmidimessage = null;
       access.onstatechange = null;

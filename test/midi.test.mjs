@@ -52,6 +52,17 @@ test("take: the pedal extends durations but a held pedal isn't a held key", () =
   for (const m of [pedal(true, 0), on(60, 90, 0), off(60, 200), pedal(false, 1000)]) b.push(m);
   assert.deepEqual(b.lastTake(), [{ midi: 60, t0: 0, dur: 1000, velocity: 90 }]);
 });
+test("take: pedal held across the window boundary still extends a note", () => {
+  const b = createTakeBuffer();
+  for (const m of [pedal(true, 0), on(60, 90, 100), off(60, 200), on(62, 80, 59000), off(62, 59200), pedal(false, 65000)]) b.push(m);
+  assert.deepEqual(b.lastTake(), [{ midi: 62, t0: 0, dur: 6000, velocity: 80 }]);
+});
+test("take: a note-off whose note-on aged out is ignored", () => {
+  const b = createTakeBuffer({ windowMs: 60000 });
+  b.push(on(60, 90, 0));
+  b.push(off(60, 70000));
+  assert.deepEqual(b.lastTake(), []);
+});
 test("take: events older than the window drop out", () => {
   const b = createTakeBuffer({ windowMs: 60000 });
   b.push(on(60, 90, 0)); b.push(off(60, 100));
@@ -107,6 +118,38 @@ await (async () => {
   const d = createMidiConnection({ requestAccess: async () => { throw new Error("no"); } });
   await d.connect();
   test("connection: a refused request -> denied", () => assert.equal(d.status, "denied"));
+})();
+await (async () => {
+  const input = fakeInput("p", "P"), access = fakeAccess([input]);
+  let resolveFirst, calls = 0;
+  const requestAccess = () => { calls++; return calls === 1 ? new Promise((r) => { resolveFirst = r; }) : Promise.resolve(access); };
+  const c = createMidiConnection({ requestAccess, queryPermission: async () => "granted" });
+  const seen = [];
+  c.onMessage((data) => seen.push(data[1]));
+  const pending = c.autoConnect();
+  await flush();
+  c.close();
+  resolveFirst(access);
+  await pending;
+  test("connection: close cancels a pending autoConnect", () => { assert.equal(input.onmidimessage, null); assert.notEqual(c.status, "connected"); });
+  await c.autoConnect();
+  test("connection: a later autoConnect still works after close", () => assert.equal(c.status, "connected"));
+  input.onmidimessage({ data: Uint8Array.from([0x90, 60, 100]), timeStamp: 1, target: input });
+  test("connection: messages arrive exactly once per note", () => assert.deepEqual(seen, [60]));
+})();
+await (async () => {
+  const input = fakeInput("p2", "P2"), access = fakeAccess([input]);
+  let resolveFirst, calls = 0;
+  const requestAccess = () => { calls++; return calls === 1 ? new Promise((r) => { resolveFirst = r; }) : Promise.resolve(access); };
+  const d = createMidiConnection({ requestAccess });
+  const pending = d.connect();
+  await flush();
+  d.close();
+  resolveFirst(access);
+  await pending;
+  test("connection: close cancels a pending connect", () => { assert.equal(input.onmidimessage, null); assert.notEqual(d.status, "connected"); });
+  await d.connect();
+  test("connection: a later connect still works after close", () => assert.equal(d.status, "connected"));
 })();
 
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });
