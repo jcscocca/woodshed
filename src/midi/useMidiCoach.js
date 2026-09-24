@@ -3,6 +3,20 @@ import { useMidi } from "./MidiProvider.jsx";
 import { toNoteEvent, groupChords } from "./midiModel.js";
 import { gradeLine, gradeArpeggio, gradeChords, evenness, touchEvenness } from "../coach.js";
 
+// Hands together: each hand's touch on its own (a chord's lowest note is the left
+// hand, its highest the right), reporting the worse hand.
+function handsTouch(chords, events) {
+  const lh = [], rh = [];
+  let k = 0;
+  for (const c of chords) {
+    const notes = events.slice(k, (k += c.peaks.length)); // groupChords keeps one peak per event, in order
+    lh.push(notes.reduce((a, b) => (b.midi < a.midi ? b : a)));
+    rh.push(notes.reduce((a, b) => (b.midi > a.midi ? b : a)));
+  }
+  const l = touchEvenness(lh), r = touchEvenness(rh);
+  return l && r && (l.cv >= r.cv ? l : r);
+}
+
 // useCoach's API fed by the keyboard: every note-on is one event (no stabilizer —
 // MIDI pitch is exact). Chord targets (hands together) grade the notes struck
 // together, via groupChords; a keyboard block shape is rolled, so it grades in order.
@@ -18,7 +32,7 @@ export function useMidiCoach({ mode, targets, octaveStrict }) {
     const ev = events.current, chords = mode === "chords" && groupChords(ev);
     const graded = chords ? gradeChords(targets, chords) : mode === "arpeggio" ? gradeArpeggio(targets, ev) : gradeLine(targets, ev, { octaveStrict });
     // timing reads the gaps between chords, not the few ms inside one
-    return { ...graded, timing: evenness(chords || ev), touch: touchEvenness(ev) };
+    return { ...graded, timing: evenness(chords || ev), touch: chords ? handsTouch(chords, ev) : touchEvenness(ev) };
   };
 
   // The handler captures compute from the render that called start(), as in useCoach.
