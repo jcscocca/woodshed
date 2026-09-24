@@ -9,9 +9,9 @@ import {
   trackStatus, mergeContent,
 } from "./engine.js";
 import { loadState, saveState, migrate } from "./storage.js";
-import { useMetronome } from "./useMetronome.js";
-import { useListener } from "./useListener.js";
 import { useDialog } from "./useDialog.js";
+import { PracticeProvider } from "./PracticeProvider.jsx";
+import { PracticeSheet, ListenSheet } from "./PracticeSheet.jsx";
 
 // Resource links are user-entered and ride along in exported/imported backups,
 // so treat them as untrusted. Only http(s) URLs ever reach an href — a
@@ -31,7 +31,7 @@ const normalizeUrl = (raw) => {
 };
 
 /* ============================================================
-   WOODSHED — adaptive multi-instrument practice
+   WOODSHED — piano and guitar practice
    ============================================================ */
 export default function Woodshed() {
   const [data, setData] = useState(null);
@@ -46,7 +46,6 @@ export default function Woodshed() {
   const [showProposals, setShowProposals] = useState(false);
   const [lastTempo, setLastTempo] = useState(null);
   const [coachResults, setCoachResults] = useState({}); // itemId -> { accuracy, missed }
-  const [watch, setWatch] = useState({ startedAt: null, acc: 0 }); // stopwatch, kept while the practice sheet is closed
   const [saveError, setSaveError] = useState(false);
   const loaded = useRef(false);
 
@@ -195,94 +194,96 @@ export default function Woodshed() {
   const streak = streakInfo(data.sessions);
 
   return (
-    <Shell>
-      {saveError && <div className="ws-saveerr">Couldn't save your latest change to this browser — your history may not persist.</div>}
+    <PracticeProvider onTempo={setLastTempo}>
+      <Shell>
+        {saveError && <div className="ws-saveerr">Couldn't save your latest change to this browser — your history may not persist.</div>}
 
-      <header className="ws-head">
-        <div className="ws-head-row">
-          <div className="ws-brand"><span className="ws-logo">◐</span> Woodshed</div>
-          <div className="ws-head-actions">
-            <button className="ws-gear" onClick={() => setPracticeOpen(true)} aria-label="Metronome and timer" title="Metronome & timer">♩</button>
-            <button className="ws-gear" onClick={() => setShowSettings(true)} aria-label="Settings">⚙</button>
+        <header className="ws-head">
+          <div className="ws-head-row">
+            <div className="ws-brand"><span className="ws-logo">◐</span> Woodshed</div>
+            <div className="ws-head-actions">
+              <button className="ws-gear" onClick={() => setPracticeOpen(true)} aria-label="Metronome and timer" title="Metronome & timer">♩</button>
+              <button className="ws-gear" onClick={() => setShowSettings(true)} aria-label="Settings">⚙</button>
+            </div>
           </div>
-        </div>
-        <Streak streak={streak} />
-      </header>
+          <Streak streak={streak} />
+        </header>
 
-      <main className="ws-main">
-        {view === "today" && proposals.length > 0 && (
-          <button className="ws-prop-banner" onClick={() => setShowProposals(true)}>
-            <span className="ws-prop-spark">✦</span>
-            <span className="ws-prop-banner-text">{proposals.length} suggestion{proposals.length > 1 ? "s" : ""} from your practice</span>
-            <span className="ws-prop-chev">›</span>
-          </button>
+        <main className="ws-main">
+          {view === "today" && proposals.length > 0 && (
+            <button className="ws-prop-banner" onClick={() => setShowProposals(true)}>
+              <span className="ws-prop-spark">✦</span>
+              <span className="ws-prop-banner-text">{proposals.length} suggestion{proposals.length > 1 ? "s" : ""} from your practice</span>
+              <span className="ws-prop-chev">›</span>
+            </button>
+          )}
+          {view === "today" && (
+            <Today
+              session={session} itemById={itemById} onSwap={swap} onRegenerate={regenerate}
+              onStartLog={() => setLogging(true)} onAddAnother={addAnother}
+              settings={data.settings} sessions={data.sessions} onLearn={setLessonFor}
+            />
+          )}
+          {view === "tracks" && <Tracks live={live} onComplete={completeStage} onReopen={reopenStage} onLearn={setLessonFor} />}
+          {view === "library" && (
+            <Library items={live.items} onOpen={(it) => setItemForm({ item: it })} onAdd={() => setItemForm({ item: null })} onLearn={setLessonFor} />
+          )}
+          {view === "progress" && <Progress data={data} live={live} streak={streak} onEditSession={setEditSession} />}
+        </main>
+
+        <nav className="ws-nav">
+          {[["today", "Today", "◐"], ["tracks", "Tracks", "◆"], ["library", "Library", "▤"], ["progress", "Progress", "◈"]].map(([k, label, icon]) => (
+            <button key={k} className={`ws-tab ${view === k ? "on" : ""}`} aria-current={view === k ? "page" : undefined} onClick={() => setView(k)}>
+              <span className="ws-tab-icon" aria-hidden="true">{icon}</span>{label}
+            </button>
+          ))}
+        </nav>
+
+        {logging && <LogSheet session={logging === true ? session : logging} itemById={itemById} lastTempo={lastTempo} coachResults={coachResults} onCancel={() => setLogging(false)} onCommit={commitLog} />}
+        {practiceOpen && <PracticeSheet onClose={() => setPracticeOpen(false)} onOpenListen={() => { setPracticeOpen(false); setListenOpen(true); }} />}
+        {listenOpen && <ListenSheet onClose={() => setListenOpen(false)} />}
+        {showProposals && (
+          <ProposalSheet proposals={proposals} onAccept={applyProposal} onDismiss={dismissProposal} onClose={() => setShowProposals(false)} />
         )}
-        {view === "today" && (
-          <Today
-            session={session} itemById={itemById} onSwap={swap} onRegenerate={regenerate}
-            onStartLog={() => setLogging(true)} onAddAnother={addAnother}
-            settings={data.settings} sessions={data.sessions} onLearn={setLessonFor}
+        {showSettings && (
+          <Settings
+            settings={data.settings} onChange={updateSettings} onToggle={toggleInstrument}
+            onReset={resetAll} onClose={() => setShowSettings(false)} onExport={exportData} onImport={importData}
           />
         )}
-        {view === "tracks" && <Tracks live={live} onComplete={completeStage} onReopen={reopenStage} onLearn={setLessonFor} />}
-        {view === "library" && (
-          <Library items={live.items} onOpen={(it) => setItemForm({ item: it })} onAdd={() => setItemForm({ item: null })} onLearn={setLessonFor} />
+        {itemForm && (
+          <ItemForm
+            initial={itemForm.item}
+            sessions={data.sessions}
+            hidden={itemForm.item ? !!data.items.find((i) => i.id === itemForm.item.id)?.hidden : false}
+            onSave={(fields) => (itemForm.item ? saveItem(itemForm.item.id, fields) : addCustom(fields))}
+            onDelete={itemForm.item && itemForm.item.custom ? () => { deleteItem(itemForm.item.id); setItemForm(null); } : null}
+            onToggleHidden={itemForm.item ? () => toggleHidden(itemForm.item.id) : null}
+            onClose={() => setItemForm(null)}
+            onLearn={(it) => { setItemForm(null); setLessonFor(it); }}
+          />
         )}
-        {view === "progress" && <Progress data={data} live={live} streak={streak} onEditSession={setEditSession} />}
-      </main>
-
-      <nav className="ws-nav">
-        {[["today", "Today", "◐"], ["tracks", "Tracks", "◆"], ["library", "Library", "▤"], ["progress", "Progress", "◈"]].map(([k, label, icon]) => (
-          <button key={k} className={`ws-tab ${view === k ? "on" : ""}`} aria-current={view === k ? "page" : undefined} onClick={() => setView(k)}>
-            <span className="ws-tab-icon" aria-hidden="true">{icon}</span>{label}
-          </button>
-        ))}
-      </nav>
-
-      {logging && <LogSheet session={logging === true ? session : logging} itemById={itemById} lastTempo={lastTempo} coachResults={coachResults} onCancel={() => setLogging(false)} onCommit={commitLog} />}
-      {practiceOpen && <PracticeSheet watch={watch} onWatch={setWatch} onClose={() => setPracticeOpen(false)} onTempo={setLastTempo} onOpenListen={() => { setPracticeOpen(false); setListenOpen(true); }} />}
-      {listenOpen && <ListenSheet onClose={() => setListenOpen(false)} />}
-      {showProposals && (
-        <ProposalSheet proposals={proposals} onAccept={applyProposal} onDismiss={dismissProposal} onClose={() => setShowProposals(false)} />
-      )}
-      {showSettings && (
-        <Settings
-          settings={data.settings} onChange={updateSettings} onToggle={toggleInstrument}
-          onReset={resetAll} onClose={() => setShowSettings(false)} onExport={exportData} onImport={importData}
-        />
-      )}
-      {itemForm && (
-        <ItemForm
-          initial={itemForm.item}
-          sessions={data.sessions}
-          hidden={itemForm.item ? !!data.items.find((i) => i.id === itemForm.item.id)?.hidden : false}
-          onSave={(fields) => (itemForm.item ? saveItem(itemForm.item.id, fields) : addCustom(fields))}
-          onDelete={itemForm.item && itemForm.item.custom ? () => { deleteItem(itemForm.item.id); setItemForm(null); } : null}
-          onToggleHidden={itemForm.item ? () => toggleHidden(itemForm.item.id) : null}
-          onClose={() => setItemForm(null)}
-          onLearn={(it) => { setItemForm(null); setLessonFor(it); }}
-        />
-      )}
-      {editSession && (
-        <SessionEdit
-          session={editSession} itemById={itemById}
-          onSave={editSessionSave} onDelete={deleteSession} onClose={() => setEditSession(null)}
-        />
-      )}
-      {lessonFor && (
-        <LessonSheet
-          item={lessonFor} href={safeHref(lessonFor.link?.url)}
-          sessions={data.sessions.filter((s) => s.itemId === lessonFor.id)}
-          onClose={() => setLessonFor(null)}
-          onCoachResult={recordCoachResult}
-          onRequestLog={() => {
-            const inSet = !session.completed && session.items.some((x) => x.itemId === lessonFor.id);
-            setLessonFor(null);
-            setLogging(inSet ? true : { items: [{ itemId: lessonFor.id, minutes: lessonFor.min }] });
-          }}
-        />
-      )}
-    </Shell>
+        {editSession && (
+          <SessionEdit
+            session={editSession} itemById={itemById}
+            onSave={editSessionSave} onDelete={deleteSession} onClose={() => setEditSession(null)}
+          />
+        )}
+        {lessonFor && (
+          <LessonSheet
+            item={lessonFor} href={safeHref(lessonFor.link?.url)}
+            sessions={data.sessions.filter((s) => s.itemId === lessonFor.id)}
+            onClose={() => setLessonFor(null)}
+            onCoachResult={recordCoachResult}
+            onRequestLog={() => {
+              const inSet = !session.completed && session.items.some((x) => x.itemId === lessonFor.id);
+              setLessonFor(null);
+              setLogging(inSet ? true : { items: [{ itemId: lessonFor.id, minutes: lessonFor.min }] });
+            }}
+          />
+        )}
+      </Shell>
+    </PracticeProvider>
   );
 }
 
@@ -388,125 +389,6 @@ function Dots({ n }) {
     <span className="ws-dots" title={`difficulty ${n}/5`}>
       {Array.from({ length: 5 }).map((_, i) => <span key={i} className={`ws-dot ${i < n ? "on" : ""}`} />)}
     </span>
-  );
-}
-
-/* ----------------------- practice tools (metronome + timer) ----------------------- */
-function PracticeSheet({ watch, onWatch, onClose, onTempo, onOpenListen }) {
-  const m = useMetronome(90, 4);
-  const [, tick] = useState(0);
-  const running = watch.startedAt != null;
-
-  useEffect(() => {
-    if (!running) return;
-    const id = setInterval(() => tick((n) => n + 1), 250);
-    return () => clearInterval(id);
-  }, [running]);
-
-  // remember the tempo while the metronome is running, to prefill the log
-  useEffect(() => { if (m.playing && onTempo) onTempo(m.bpm); }, [m.playing, m.bpm, onTempo]);
-
-  const close = () => { m.stop(); onClose(); };
-  const dlgRef = useDialog(close);
-  const sec = Math.floor((watch.acc + (running ? Date.now() - watch.startedAt : 0)) / 1000);
-  const mm = String(Math.floor(sec / 60)).padStart(2, "0");
-  const ss = String(sec % 60).padStart(2, "0");
-
-  return (
-    <div className="ws-sheet-wrap ws-practice-wrap">
-      <div className="ws-sheet ws-practice" onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label="Practice tools" tabIndex={-1}>
-        <div className="ws-sheet-grip" />
-        <div className="ws-practice-head">
-          <h2 className="ws-sheet-title" style={{ margin: 0 }}>Practice</h2>
-          <button className="ws-x" onClick={close} aria-label="Close">✕</button>
-        </div>
-
-        <div className="ws-metro">
-          <div className="ws-beatdots">
-            {Array.from({ length: m.beatsPer }).map((_, i) => (
-              <span key={i} className={`ws-beatdot ${i === 0 ? "accent" : ""} ${m.beat === i ? "on" : ""}`} />
-            ))}
-          </div>
-          <div className="ws-bpm"><span className="mono ws-bpm-num">{m.bpm}</span><span className="ws-bpm-label">bpm</span></div>
-          <input className="ws-bpm-range" type="range" min="40" max="240" value={m.bpm}
-            onChange={(e) => m.setBpm(Number(e.target.value))} aria-label="Tempo" />
-          <div className="ws-metro-row">
-            <button className="ws-round" onClick={() => m.setBpm(Math.max(40, m.bpm - 1))} aria-label="Slower">−</button>
-            <button className={`ws-btn ${m.playing ? "ghost" : "primary"} ws-metro-go`} onClick={m.playing ? m.stop : m.start}>
-              {m.playing ? "Stop" : "Start"}
-            </button>
-            <button className="ws-round" onClick={() => m.setBpm(Math.min(240, m.bpm + 1))} aria-label="Faster">+</button>
-          </div>
-          <div className="ws-metro-row2">
-            <button className="ws-chip" onClick={m.tap}>Tap tempo</button>
-            <div className="ws-sig">
-              {[2, 3, 4].map((n) => (
-                <button key={n} className={`ws-sig-btn ${m.beatsPer === n ? "on" : ""}`} aria-pressed={m.beatsPer === n} aria-label={`${n} beats per bar`} onClick={() => m.setBeatsPer(n)}>{n}/4</button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="ws-stop">
-          <div className="ws-stop-time mono">{mm}:{ss}</div>
-          <div className="ws-stop-row">
-            <button className="ws-btn ghost sm" onClick={() => onWatch(running ? { startedAt: null, acc: watch.acc + Date.now() - watch.startedAt } : { startedAt: Date.now(), acc: watch.acc })}>{running ? "Pause" : sec > 0 ? "Resume" : "Start"}</button>
-            <button className="ws-btn ghost sm" onClick={() => onWatch({ startedAt: null, acc: 0 })}>Reset</button>
-          </div>
-          <p className="ws-stop-note">Time your session here, then enter the minutes when you log.</p>
-        </div>
-
-        <button className="ws-listen-open" onClick={() => { m.stop(); onOpenListen(); }}>
-          <span className="ws-listen-dot" /> Tuner &amp; listener <span className="ws-beta">beta</span>
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/* ----------------------- tuner & mic listener (beta) ----------------------- */
-function ListenSheet({ onClose }) {
-  const l = useListener();
-  const close = () => { l.stop(); onClose(); };
-  const dlgRef = useDialog(close);
-  const cents = l.note?.cents ?? 0;
-  const clamped = Math.max(-50, Math.min(50, cents));
-  const inTune = l.note && Math.abs(cents) <= 5;
-
-  return (
-    <div className="ws-sheet-wrap ws-practice-wrap">
-      <div className="ws-sheet ws-practice" onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label="Tuner and listener" tabIndex={-1}>
-        <div className="ws-sheet-grip" />
-        <div className="ws-practice-head">
-          <h2 className="ws-sheet-title" style={{ margin: 0 }}>Tuner &amp; listener <span className="ws-beta">beta</span></h2>
-          <button className="ws-x" onClick={close} aria-label="Close">✕</button>
-        </div>
-
-        {l.error ? (
-          <div className="ws-listen-err">{l.error}</div>
-        ) : !l.listening ? (
-          <div className="ws-listen-intro">
-            <p>Uses your microphone to show pitch. It works best on single, clearly-sounding notes — tuning a string, or a monophonic line. Chords are unreliable here.</p>
-            <button className="ws-btn primary" onClick={l.start}>Start listening</button>
-          </div>
-        ) : (
-          <>
-            <div className="ws-tuner">
-              <div className={`ws-tuner-note ${inTune ? "in" : ""}`} aria-live="polite" aria-label={l.note ? `${l.note.name}${l.note.octave}, ${cents > 0 ? "+" : ""}${cents} cents${inTune ? ", in tune" : ""}` : "no note detected"}>
-                {l.note ? <>{l.note.name}<span className="ws-tuner-oct">{l.note.octave}</span></> : <span className="ws-tuner-idle">—</span>}
-              </div>
-              <div className="ws-tuner-meter" role="img" aria-label={l.note ? (inTune ? "In tune" : cents > 0 ? "Sharp" : "Flat") : "Tuning meter"}>
-                <div className="ws-tuner-center" />
-                {l.note && <div className={`ws-tuner-needle ${inTune ? "in" : ""}`} style={{ left: `${50 + clamped}%` }} />}
-              </div>
-              <div className="ws-tuner-cents mono">{l.note ? `${cents > 0 ? "+" : ""}${cents}¢ · ${Math.round(l.freq)} Hz` : "play a note…"}</div>
-            </div>
-
-            <button className="ws-btn ghost full" onClick={l.stop}>Stop listening</button>
-          </>
-        )}
-      </div>
-    </div>
   );
 }
 
