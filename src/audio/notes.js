@@ -37,8 +37,10 @@ export const shapeToVoices = (shape) => {
 };
 
 const NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+const FLAT_NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
 const STRING_NAMES = { guitar: ["E", "A", "D", "G", "B", "E"], bass: ["E", "A", "D", "G"] };
-export const midiToNote = (m) => ({ midi: m, name: NAMES[((m % 12) + 12) % 12], octave: Math.floor(m / 12) - 1 });
+// preferFlats spells black keys as flats — for flat chords (Bb) and flat keys (F, Bb, Eb).
+export const midiToNote = (m, preferFlats = false) => ({ midi: m, name: (preferFlats ? FLAT_NAMES : NAMES)[((m % 12) + 12) % 12], octave: Math.floor(m / 12) - 1 });
 
 // shape -> ordered coaching targets. A "line" is one single-note target per note
 // (scales, melodies). An "arpeggio" walks a chord's strings low->high, keeping
@@ -50,10 +52,11 @@ export const shapeToTargets = (shape) => {
     const tuning = TUNING[shape.instrument];
     const targets = [];
     for (const c of shape.chords) {
+      const flats = /^[A-G]b/.test(c.name);
       c.strings.forEach((fret, i) => {
         const stringName = STRING_NAMES[shape.instrument][i];
         if (fret === "x") targets.push({ muted: true, string: i, stringName, openMidi: tuning[i], chordName: c.name, label: "×" });
-        else { const n = midiToNote(tuning[i] + fret); targets.push({ ...n, string: i, stringName, fret, chordName: c.name, label: n.name }); }
+        else { const n = midiToNote(tuning[i] + fret, flats); targets.push({ ...n, string: i, stringName, fret, chordName: c.name, label: n.name }); }
       });
     }
     return { mode: "arpeggio", instrument: shape.instrument, targets };

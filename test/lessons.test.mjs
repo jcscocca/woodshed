@@ -108,4 +108,12 @@ test("ear lessons exist for all four instruments and carry a valid generator con
   }
 });
 
+import { shapeToTargets } from "../src/audio/notes.js";
+
+test("flat chords spell their notes as flats (Bb chord -> Bb F Bb D F)", () => {
+  const { targets } = shapeToTargets(LESSONS["trk-gtr-5"].shape);
+  const bb = targets.filter((t) => t.chordName === "Bb" && !t.muted).map((t) => `${t.label}${t.octave}`);
+  assert.deepEqual(bb, ["Bb2", "F3", "Bb3", "D4", "F4"]);
+});
+
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });

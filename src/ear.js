@@ -30,7 +30,8 @@ export function intervalLabel(prevMidi, curMidi) {
 const SMALL_INTERVALS = [2, 3, 4, 5, 7];                    // M2 m3 M3 P4 P5
 const ALL_INTERVALS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
-const noteLabel = (m) => { const n = midiToNote(m); return `${n.name}${n.octave}`; };
+const FLAT_KEYS = new Set(["F", "Bb", "Eb"]);
+const noteLabel = (m, flats) => { const n = midiToNote(m, flats); return `${n.name}${n.octave}`; };
 const pick = (arr, rng) => arr[Math.floor(rng() * arr.length)];
 
 // Two notes: draw an interval, a direction, then a start that keeps both ends
@@ -60,9 +61,9 @@ function scaleNotes(key, lo, hi) {
 // Random walk over the scale. No repeated adjacent notes — a legato re-strike
 // of the same pitch never re-confirms in the note stream (see coach.js gapMs),
 // so repeats would be ungradeable, not just hard.
-function phraseMidis(diff, keys, lo, hi, rng) {
+function phraseMidis(diff, key, lo, hi, rng) {
   const d = Math.min(diff, 5);
-  const scale = scaleNotes(pick(keys, rng), lo, hi);
+  const scale = scaleNotes(key, lo, hi);
   const [a, b] = PHRASE_LEN[d];
   const len = a + Math.floor(rng() * (b - a + 1));
   let i = Math.floor(rng() * scale.length);
@@ -93,9 +94,10 @@ function phraseMidis(diff, keys, lo, hi, rng) {
 // suggestions walk this ladder with no ear-specific code.
 export function generateRound({ diff, ear, rng }) {
   const [lo, hi] = ear.range;
-  const midis = diff <= 2 ? intervalMidis(diff, lo, hi, rng) : phraseMidis(diff, ear.keys, lo, hi, rng);
+  const key = diff <= 2 ? null : pick(ear.keys, rng);
+  const midis = key ? phraseMidis(diff, key, lo, hi, rng) : intervalMidis(diff, lo, hi, rng);
   return {
-    targets: midis.map((m) => ({ midi: m, label: noteLabel(m) })),
+    targets: midis.map((m) => ({ midi: m, label: noteLabel(m, FLAT_KEYS.has(key)) })),
     promptVoices: midis.map((m) => [midiToFreq(m)]),
     bpm: ear.bpm || 80,
   };

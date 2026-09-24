@@ -61,7 +61,21 @@ test("generateRound: targets, prompt, bpm, labels agree", () => {
   assert.equal(r.promptVoices.length, r.targets.length);
   assert.ok(Math.abs(r.promptVoices[0][0] - midiToFreq(r.targets[0].midi)) < 1e-9);
   assert.equal(r.bpm, 80);
-  for (const t of r.targets) assert.match(t.label, /^[A-G]#?\d$/);
+  for (const t of r.targets) assert.match(t.label, /^[A-G][#b]?\d$/);
+});
+
+test("generateRound: flat keys spell black keys as flats (F major reveals Bb, never A#)", () => {
+  let sawBb = false;
+  for (let s = 0; s < 200; s++) {
+    for (const diff of [3, 4, 5]) {
+      const r = generateRound({ diff, ear: { ...EAR, keys: ["F"] }, rng: mulberry32(s) });
+      for (const t of r.targets) {
+        assert.ok(!t.label.includes("#"), `seed ${s} diff ${diff}: ${t.label} in F major`);
+        if (t.midi % 12 === 10) { assert.match(t.label, /^Bb\d$/); sawBb = true; }
+      }
+    }
+  }
+  assert.ok(sawBb, "F-major phrases should include Bb somewhere");
 });
 
 const MAJOR_STEPS = [0, 2, 4, 5, 7, 9, 11];
