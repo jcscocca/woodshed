@@ -10,7 +10,7 @@ export default function Sidebar({ view, onView, onSettings, onHelp, children }) 
       <nav className="ws-side-nav" aria-label="Views">
         {VIEWS.map(([k, label, icon], i) => (
           <button key={k} className={`ws-side-tab ${view === k ? "on" : ""}`} aria-current={view === k ? "page" : undefined} onClick={() => onView(k)}>
-            <span className="ws-tab-icon" aria-hidden="true">{icon}</span>{label}<kbd className="ws-kbd">{i + 1}</kbd>
+            <span className="ws-tab-icon" aria-hidden="true">{icon}</span>{label}<kbd className="ws-kbd" aria-hidden="true">{i + 1}</kbd>
           </button>
         ))}
       </nav>

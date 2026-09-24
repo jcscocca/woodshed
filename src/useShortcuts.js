@@ -3,12 +3,12 @@ import { actionFor, clampBpm } from "./shortcuts.js";
 import { toggleWatch } from "./stopwatch.js";
 import { usePractice } from "./PracticeProvider.jsx";
 
-function contextOf(target) {
+function contextOf(target, viaPointer) {
   const tag = target && target.tagName;
   return {
     typing: tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || !!(target && target.isContentEditable),
     dialogOpen: !!document.querySelector('[aria-modal="true"]'),
-    buttonFocused: tag === "BUTTON" || tag === "A" || tag === "SUMMARY",
+    buttonFocused: (tag === "BUTTON" || tag === "A" || tag === "SUMMARY") && !viaPointer,
   };
 }
 
@@ -25,14 +25,22 @@ export function ShortcutBridge({ onAction }) {
     else onAction(a);
   };
   useEffect(() => {
+    // a clicked button keeps focus; Space only presses buttons reached from the keyboard
+    let viaPointer = false;
+    const onPointer = () => { viaPointer = true; };
     const onKey = (e) => {
-      const a = actionFor(e, contextOf(e.target));
+      if (e.key === "Tab") viaPointer = false;
+      const a = actionFor(e, contextOf(e.target, viaPointer));
       if (!a) return;
       e.preventDefault();
       run.current(a);
     };
+    window.addEventListener("pointerdown", onPointer, true);
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("pointerdown", onPointer, true);
+      window.removeEventListener("keydown", onKey);
+    };
   }, []);
   return null;
 }

@@ -37,7 +37,7 @@ export default function PracticeTools({ hints = false }) {
         </div>
         {hints && <div className="ws-hint-keys"><kbd className="ws-kbd">Space</kbd> start / stop · <kbd className="ws-kbd">← →</kbd> tempo</div>}
         <div className="ws-metro-row2">
-          <button className="ws-chip" onClick={m.tap}>Tap tempo{hints && <kbd className="ws-kbd">T</kbd>}</button>
+          <button className="ws-chip" onClick={m.tap}>Tap tempo{hints && <kbd className="ws-kbd" aria-hidden="true">T</kbd>}</button>
           <div className="ws-sig">
             {[2, 3, 4].map((n) => (
               <button key={n} className={`ws-sig-btn ${m.beatsPer === n ? "on" : ""}`} aria-pressed={m.beatsPer === n} aria-label={`${n} beats per bar`} onClick={() => m.setBeatsPer(n)}>{n}/4</button>
@@ -49,7 +49,7 @@ export default function PracticeTools({ hints = false }) {
       <div className="ws-stop">
         <div className="ws-stop-time mono">{mm}:{ss}</div>
         <div className="ws-stop-row">
-          <button className="ws-btn ghost sm" onClick={() => setWatch(toggleWatch)}>{running ? "Pause" : sec > 0 ? "Resume" : "Start"}{hints && <kbd className="ws-kbd">S</kbd>}</button>
+          <button className="ws-btn ghost sm" onClick={() => setWatch(toggleWatch)}>{running ? "Pause" : sec > 0 ? "Resume" : "Start"}{hints && <kbd className="ws-kbd" aria-hidden="true">S</kbd>}</button>
           <button className="ws-btn ghost sm" onClick={() => setWatch(RESET_WATCH)}>Reset</button>
         </div>
         <p className="ws-stop-note">Time your session here, then enter the minutes when you log.</p>
