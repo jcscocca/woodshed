@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { INSTRUMENTS, TYPE_LABEL, FELT, TRACKS } from "./seed.js";
 import { getLesson } from "./lessons/index.js";
-import LessonSheet from "./LessonSheet.jsx";
+import LessonSheet, { LessonBody } from "./LessonSheet.jsx";
 import { todayStr, addDays, prettyAgo } from "./dateUtils.js";
 import {
   generateSession, swapInSession, streakInfo, weekCount, lastByInstrument,
@@ -12,6 +12,9 @@ import { loadState, saveState, migrate } from "./storage.js";
 import { useDialog } from "./useDialog.js";
 import { PracticeProvider } from "./PracticeProvider.jsx";
 import { PracticeSheet, ListenSheet } from "./PracticeSheet.jsx";
+import { useIsDesktop } from "./useIsDesktop.js";
+import Sidebar, { VIEWS } from "./Sidebar.jsx";
+import PracticeRail from "./PracticeRail.jsx";
 
 // Resource links are user-entered and ride along in exported/imported backups,
 // so treat them as untrusted. Only http(s) URLs ever reach an href — a
@@ -47,6 +50,8 @@ export default function Woodshed() {
   const [lastTempo, setLastTempo] = useState(null);
   const [coachResults, setCoachResults] = useState({}); // itemId -> { accuracy, missed }
   const [saveError, setSaveError] = useState(false);
+  const [tunerOpen, setTunerOpen] = useState(false);
+  const desktop = useIsDesktop();
   const loaded = useRef(false);
 
   // load once
@@ -192,97 +197,117 @@ export default function Woodshed() {
   };
 
   const streak = streakInfo(data.sessions);
+  const openLesson = (it) => { setTunerOpen(false); setLessonFor(it); };
+  const requestLog = () => {
+    const inSet = !session.completed && session.items.some((x) => x.itemId === lessonFor.id);
+    setLessonFor(null);
+    setLogging(inSet ? true : { items: [{ itemId: lessonFor.id, minutes: lessonFor.min }] });
+  };
+  const lessonProps = lessonFor && {
+    item: lessonFor, href: safeHref(lessonFor.link?.url),
+    sessions: data.sessions.filter((s) => s.itemId === lessonFor.id),
+    onCoachResult: recordCoachResult, onRequestLog: requestLog,
+  };
+  const selectedId = desktop && lessonFor ? lessonFor.id : null;
+
+  const saveErr = saveError && <div className="ws-saveerr">Couldn't save your latest change to this browser — your history may not persist.</div>;
+  const views = (
+    <main className="ws-main">
+      {view === "today" && proposals.length > 0 && (
+        <button className="ws-prop-banner" onClick={() => setShowProposals(true)}>
+          <span className="ws-prop-spark">✦</span>
+          <span className="ws-prop-banner-text">{proposals.length} suggestion{proposals.length > 1 ? "s" : ""} from your practice</span>
+          <span className="ws-prop-chev">›</span>
+        </button>
+      )}
+      {view === "today" && (
+        <Today
+          session={session} itemById={itemById} onSwap={swap} onRegenerate={regenerate}
+          onStartLog={() => setLogging(true)} onAddAnother={addAnother}
+          settings={data.settings} sessions={data.sessions} onLearn={openLesson} selectedId={selectedId}
+        />
+      )}
+      {view === "tracks" && <Tracks live={live} onComplete={completeStage} onReopen={reopenStage} onLearn={openLesson} selectedId={selectedId} />}
+      {view === "library" && (
+        <Library items={live.items} onOpen={(it) => setItemForm({ item: it })} onAdd={() => setItemForm({ item: null })} onLearn={openLesson} selectedId={selectedId} />
+      )}
+      {view === "progress" && <Progress data={data} live={live} streak={streak} onEditSession={setEditSession} />}
+    </main>
+  );
+  const dialogs = (
+    <>
+      {logging && <LogSheet session={logging === true ? session : logging} itemById={itemById} lastTempo={lastTempo} coachResults={coachResults} onCancel={() => setLogging(false)} onCommit={commitLog} />}
+      {showProposals && (
+        <ProposalSheet proposals={proposals} onAccept={applyProposal} onDismiss={dismissProposal} onClose={() => setShowProposals(false)} />
+      )}
+      {showSettings && (
+        <Settings
+          settings={data.settings} onChange={updateSettings} onToggle={toggleInstrument}
+          onReset={resetAll} onClose={() => setShowSettings(false)} onExport={exportData} onImport={importData}
+        />
+      )}
+      {itemForm && (
+        <ItemForm
+          initial={itemForm.item}
+          sessions={data.sessions}
+          hidden={itemForm.item ? !!data.items.find((i) => i.id === itemForm.item.id)?.hidden : false}
+          onSave={(fields) => (itemForm.item ? saveItem(itemForm.item.id, fields) : addCustom(fields))}
+          onDelete={itemForm.item && itemForm.item.custom ? () => { deleteItem(itemForm.item.id); setItemForm(null); } : null}
+          onToggleHidden={itemForm.item ? () => toggleHidden(itemForm.item.id) : null}
+          onClose={() => setItemForm(null)}
+          onLearn={(it) => { setItemForm(null); openLesson(it); }}
+        />
+      )}
+      {editSession && (
+        <SessionEdit
+          session={editSession} itemById={itemById}
+          onSave={editSessionSave} onDelete={deleteSession} onClose={() => setEditSession(null)}
+        />
+      )}
+    </>
+  );
 
   return (
     <PracticeProvider onTempo={setLastTempo}>
-      <Shell>
-        {saveError && <div className="ws-saveerr">Couldn't save your latest change to this browser — your history may not persist.</div>}
-
-        <header className="ws-head">
-          <div className="ws-head-row">
-            <div className="ws-brand"><span className="ws-logo">◐</span> Woodshed</div>
-            <div className="ws-head-actions">
-              <button className="ws-gear" onClick={() => setPracticeOpen(true)} aria-label="Metronome and timer" title="Metronome & timer">♩</button>
-              <button className="ws-gear" onClick={() => setShowSettings(true)} aria-label="Settings">⚙</button>
+      {desktop ? (
+        <div className="ws-desk">
+          <Sidebar view={view} onView={setView} onSettings={() => setShowSettings(true)}><Streak streak={streak} /></Sidebar>
+          <div className="ws-desk-main">{saveErr}{views}</div>
+          <PracticeRail
+            lesson={lessonProps && <LessonBody key={lessonFor.id} {...lessonProps} />}
+            tunerOpen={tunerOpen}
+            onOpenTuner={() => { setLessonFor(null); setTunerOpen(true); }}
+            onCloseSlot={() => { setLessonFor(null); setTunerOpen(false); }}
+          />
+          {dialogs}
+        </div>
+      ) : (
+        <Shell>
+          {saveErr}
+          <header className="ws-head">
+            <div className="ws-head-row">
+              <div className="ws-brand"><span className="ws-logo">◐</span> Woodshed</div>
+              <div className="ws-head-actions">
+                <button className="ws-gear" onClick={() => setPracticeOpen(true)} aria-label="Metronome and timer" title="Metronome & timer">♩</button>
+                <button className="ws-gear" onClick={() => setShowSettings(true)} aria-label="Settings">⚙</button>
+              </div>
             </div>
-          </div>
-          <Streak streak={streak} />
-        </header>
-
-        <main className="ws-main">
-          {view === "today" && proposals.length > 0 && (
-            <button className="ws-prop-banner" onClick={() => setShowProposals(true)}>
-              <span className="ws-prop-spark">✦</span>
-              <span className="ws-prop-banner-text">{proposals.length} suggestion{proposals.length > 1 ? "s" : ""} from your practice</span>
-              <span className="ws-prop-chev">›</span>
-            </button>
-          )}
-          {view === "today" && (
-            <Today
-              session={session} itemById={itemById} onSwap={swap} onRegenerate={regenerate}
-              onStartLog={() => setLogging(true)} onAddAnother={addAnother}
-              settings={data.settings} sessions={data.sessions} onLearn={setLessonFor}
-            />
-          )}
-          {view === "tracks" && <Tracks live={live} onComplete={completeStage} onReopen={reopenStage} onLearn={setLessonFor} />}
-          {view === "library" && (
-            <Library items={live.items} onOpen={(it) => setItemForm({ item: it })} onAdd={() => setItemForm({ item: null })} onLearn={setLessonFor} />
-          )}
-          {view === "progress" && <Progress data={data} live={live} streak={streak} onEditSession={setEditSession} />}
-        </main>
-
-        <nav className="ws-nav">
-          {[["today", "Today", "◐"], ["tracks", "Tracks", "◆"], ["library", "Library", "▤"], ["progress", "Progress", "◈"]].map(([k, label, icon]) => (
-            <button key={k} className={`ws-tab ${view === k ? "on" : ""}`} aria-current={view === k ? "page" : undefined} onClick={() => setView(k)}>
-              <span className="ws-tab-icon" aria-hidden="true">{icon}</span>{label}
-            </button>
-          ))}
-        </nav>
-
-        {logging && <LogSheet session={logging === true ? session : logging} itemById={itemById} lastTempo={lastTempo} coachResults={coachResults} onCancel={() => setLogging(false)} onCommit={commitLog} />}
-        {practiceOpen && <PracticeSheet onClose={() => setPracticeOpen(false)} onOpenListen={() => { setPracticeOpen(false); setListenOpen(true); }} />}
-        {listenOpen && <ListenSheet onClose={() => setListenOpen(false)} />}
-        {showProposals && (
-          <ProposalSheet proposals={proposals} onAccept={applyProposal} onDismiss={dismissProposal} onClose={() => setShowProposals(false)} />
-        )}
-        {showSettings && (
-          <Settings
-            settings={data.settings} onChange={updateSettings} onToggle={toggleInstrument}
-            onReset={resetAll} onClose={() => setShowSettings(false)} onExport={exportData} onImport={importData}
-          />
-        )}
-        {itemForm && (
-          <ItemForm
-            initial={itemForm.item}
-            sessions={data.sessions}
-            hidden={itemForm.item ? !!data.items.find((i) => i.id === itemForm.item.id)?.hidden : false}
-            onSave={(fields) => (itemForm.item ? saveItem(itemForm.item.id, fields) : addCustom(fields))}
-            onDelete={itemForm.item && itemForm.item.custom ? () => { deleteItem(itemForm.item.id); setItemForm(null); } : null}
-            onToggleHidden={itemForm.item ? () => toggleHidden(itemForm.item.id) : null}
-            onClose={() => setItemForm(null)}
-            onLearn={(it) => { setItemForm(null); setLessonFor(it); }}
-          />
-        )}
-        {editSession && (
-          <SessionEdit
-            session={editSession} itemById={itemById}
-            onSave={editSessionSave} onDelete={deleteSession} onClose={() => setEditSession(null)}
-          />
-        )}
-        {lessonFor && (
-          <LessonSheet
-            item={lessonFor} href={safeHref(lessonFor.link?.url)}
-            sessions={data.sessions.filter((s) => s.itemId === lessonFor.id)}
-            onClose={() => setLessonFor(null)}
-            onCoachResult={recordCoachResult}
-            onRequestLog={() => {
-              const inSet = !session.completed && session.items.some((x) => x.itemId === lessonFor.id);
-              setLessonFor(null);
-              setLogging(inSet ? true : { items: [{ itemId: lessonFor.id, minutes: lessonFor.min }] });
-            }}
-          />
-        )}
-      </Shell>
+            <Streak streak={streak} />
+          </header>
+          {views}
+          <nav className="ws-nav">
+            {VIEWS.map(([k, label, icon]) => (
+              <button key={k} className={`ws-tab ${view === k ? "on" : ""}`} aria-current={view === k ? "page" : undefined} onClick={() => setView(k)}>
+                <span className="ws-tab-icon" aria-hidden="true">{icon}</span>{label}
+              </button>
+            ))}
+          </nav>
+          {dialogs}
+          {practiceOpen && <PracticeSheet onClose={() => setPracticeOpen(false)} onOpenListen={() => { setPracticeOpen(false); setListenOpen(true); }} />}
+          {listenOpen && <ListenSheet onClose={() => setListenOpen(false)} />}
+          {lessonProps && <LessonSheet {...lessonProps} onClose={() => setLessonFor(null)} />}
+        </Shell>
+      )}
     </PracticeProvider>
   );
 }
@@ -312,7 +337,7 @@ function Streak({ streak }) {
 }
 
 /* ----------------------- today ----------------------- */
-function Today({ session, itemById, onSwap, onRegenerate, onStartLog, onAddAnother, settings, sessions, onLearn }) {
+function Today({ session, itemById, onSwap, onRegenerate, onStartLog, onAddAnother, settings, sessions, onLearn, selectedId }) {
   const anyEnabled = Object.values(settings.enabled).some(Boolean);
   if (!anyEnabled)
     return <Empty title="No instruments selected" body="Turn at least one instrument back on in settings to get a session." />;
@@ -346,7 +371,7 @@ function Today({ session, itemById, onSwap, onRegenerate, onStartLog, onAddAnoth
       </div>
 
       <div className="ws-cards">
-        {items.map((it) => <SessionItem key={it.id} item={it} onSwap={() => onSwap(it.id)} onLearn={onLearn} />)}
+        {items.map((it) => <SessionItem key={it.id} item={it} onSwap={() => onSwap(it.id)} onLearn={onLearn} selected={it.id === selectedId} />)}
       </div>
 
       <div className="ws-today-actions">
@@ -358,11 +383,11 @@ function Today({ session, itemById, onSwap, onRegenerate, onStartLog, onAddAnoth
   );
 }
 
-function SessionItem({ item, onSwap, onLearn }) {
+function SessionItem({ item, onSwap, onLearn, selected }) {
   const inst = INSTRUMENTS[item.inst];
   const href = safeHref(item.link && item.link.url);
   return (
-    <div className="ws-card" style={{ "--accent": inst ? inst.color : "var(--gold)" }}>
+    <div className={`ws-card ${selected ? "sel" : ""}`} style={{ "--accent": inst ? inst.color : "var(--gold)" }}>
       <div className="ws-card-rail" />
       <div className="ws-card-body">
         <div className="ws-card-top">
@@ -502,7 +527,7 @@ function ProposalSheet({ proposals, onAccept, onDismiss, onClose }) {
 }
 
 /* ----------------------- skill tracks ----------------------- */
-function Tracks({ live, onComplete, onReopen, onLearn }) {
+function Tracks({ live, onComplete, onReopen, onLearn, selectedId }) {
   const status = trackStatus(live.items);
   return (
     <>
@@ -524,7 +549,7 @@ function Tracks({ live, onComplete, onReopen, onLearn }) {
             <div className="ws-track-bar"><div className="ws-track-fill" style={{ width: `${stages.length ? (done / stages.length) * 100 : 0}%` }} /></div>
             <div className="ws-stages">
               {stages.map((st) => (
-                <div key={st.id} className={`ws-stage ${st.status}`}>
+                <div key={st.id} className={`ws-stage ${st.status} ${st.id === selectedId ? "sel" : ""}`}>
                   <div className="ws-stage-marker">{st.status === "done" ? "✓" : st.order + 1}</div>
                   <div className="ws-stage-body">
                     <div className="ws-stage-title">{st.title}<Dots n={st.diff} /></div>
@@ -556,7 +581,7 @@ function Tracks({ live, onComplete, onReopen, onLearn }) {
 }
 
 /* ----------------------- library ----------------------- */
-function Library({ items, onOpen, onAdd, onLearn }) {
+function Library({ items, onOpen, onAdd, onLearn, selectedId }) {
   const today = todayStr();
   const order = ["piano", "guitar"];
   return (
@@ -576,7 +601,7 @@ function Library({ items, onOpen, onAdd, onLearn }) {
               <span className="ws-lib-count mono">{list.filter((i) => !i.hidden).length} active</span>
             </div>
             {list.map((it) => (
-              <div key={it.id} className={`ws-lib-item ${it.hidden ? "is-hidden" : ""}`}>
+              <div key={it.id} className={`ws-lib-item ${it.hidden ? "is-hidden" : ""} ${it.id === selectedId ? "sel" : ""}`}>
                 <button className="ws-lib-tap" onClick={() => onOpen(it)} aria-label={`Edit ${it.title}`}>
                   <div className="ws-lib-main">
                     <div className="ws-lib-title">{it.title}{it.mastered ? <span className="ws-hidden-tag mastered">Mastered</span> : it.hidden && <span className="ws-hidden-tag">Hidden</span>}</div>
