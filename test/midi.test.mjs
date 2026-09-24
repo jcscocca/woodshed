@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 const { parseMidi, createKeyState, toNoteEvent, groupChords, createTakeBuffer } = await import("../src/midi/midiModel.js");
 const { nameChord } = await import("../src/midi/chords.js");
+const { createMidiConnection } = await import("../src/midi/connection.js");
 
 let failures = 0;
 const test = (name, fn) => { try { fn(); console.log(`ok   ${name}`); } catch (e) { failures++; console.error(`FAIL ${name}\n     ${e.message}`); } };
@@ -72,5 +73,40 @@ const CHORDS = [
 test("nameChord: the table", () => {
   for (const [midis, want] of CHORDS) assert.equal(nameChord(midis), want, `${midis.join(",")}`);
 });
+
+const fakeInput = (id, name) => ({ id, name, state: "connected", onmidimessage: null });
+const fakeAccess = (inputs) => ({ inputs: new Map(inputs.map((i) => [i.id, i])), onstatechange: null });
+const flush = () => new Promise((r) => setTimeout(r, 0));
+
+test("connection: unsupported without Web MIDI", () => {
+  assert.equal(createMidiConnection({ requestAccess: null }).status, "unsupported");
+});
+await (async () => {
+  const input = fakeInput("p", "Yamaha P-125"), access = fakeAccess([input]);
+  const c = createMidiConnection({ requestAccess: async () => access, queryPermission: async () => "prompt" });
+  const seen = [], statuses = [];
+  c.onMessage((data, t, id) => seen.push([data[1], t, id]));
+  c.onStatus((s) => statuses.push(s.status));
+  await c.autoConnect(); await flush();
+  test("connection: autoConnect waits for a granted permission", () => assert.equal(c.status, "idle"));
+  await c.connect();
+  test("connection: connect reports the device", () => { assert.equal(c.status, "connected"); assert.equal(c.deviceName, "Yamaha P-125"); });
+  input.onmidimessage({ data: Uint8Array.from([0x90, 60, 100]), timeStamp: 42, target: input });
+  test("connection: messages carry data, timestamp and input id", () => assert.deepEqual(seen, [[60, 42, "p"]]));
+  input.state = "disconnected"; access.onstatechange({});
+  test("connection: unplug -> disconnected", () => assert.equal(c.status, "disconnected"));
+  input.state = "connected"; access.onstatechange({});
+  test("connection: replug -> connected", () => assert.equal(c.status, "connected"));
+  c.close();
+  test("connection: close detaches handlers", () => { assert.equal(input.onmidimessage, null); assert.equal(access.onstatechange, null); });
+})();
+await (async () => {
+  const c = createMidiConnection({ requestAccess: async () => fakeAccess([fakeInput("p", "P")]), queryPermission: async () => "granted" });
+  await c.autoConnect();
+  test("connection: autoConnect connects silently when granted", () => assert.equal(c.status, "connected"));
+  const d = createMidiConnection({ requestAccess: async () => { throw new Error("no"); } });
+  await d.connect();
+  test("connection: a refused request -> denied", () => assert.equal(d.status, "denied"));
+})();
 
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });
