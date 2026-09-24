@@ -47,6 +47,7 @@ export default function Woodshed() {
   const [showProposals, setShowProposals] = useState(false);
   const [lastTempo, setLastTempo] = useState(null);
   const [coachResults, setCoachResults] = useState({}); // itemId -> { accuracy, missed }
+  const [watch, setWatch] = useState({ startedAt: null, acc: 0 }); // stopwatch, kept while the practice sheet is closed
   const [saveError, setSaveError] = useState(false);
   const loaded = useRef(false);
   const remindedRef = useRef(null);
@@ -264,7 +265,7 @@ export default function Woodshed() {
       </nav>
 
       {logging && <LogSheet session={logging === true ? session : logging} itemById={itemById} lastTempo={lastTempo} coachResults={coachResults} onCancel={() => setLogging(false)} onCommit={commitLog} />}
-      {practiceOpen && <PracticeSheet initialInstrument={itemById(session.items[0]?.itemId)?.inst || "piano"} onClose={() => setPracticeOpen(false)} onTempo={setLastTempo} onOpenListen={() => { setPracticeOpen(false); setListenOpen(true); }} onSavePainting={saveLoomPainting} />}
+      {practiceOpen && <PracticeSheet initialInstrument={itemById(session.items[0]?.itemId)?.inst || "piano"} watch={watch} onWatch={setWatch} onClose={() => setPracticeOpen(false)} onTempo={setLastTempo} onOpenListen={() => { setPracticeOpen(false); setListenOpen(true); }} onSavePainting={saveLoomPainting} />}
       {listenOpen && <ListenSheet onClose={() => setListenOpen(false)} onTempo={setLastTempo} />}
       {showProposals && (
         <ProposalSheet proposals={proposals} onAccept={applyProposal} onDismiss={dismissProposal} onClose={() => setShowProposals(false)} />
@@ -416,15 +417,15 @@ function Dots({ n }) {
 }
 
 /* ----------------------- practice tools (metronome + timer) ----------------------- */
-function PracticeSheet({ initialInstrument, onClose, onTempo, onOpenListen, onSavePainting }) {
+function PracticeSheet({ initialInstrument, watch, onWatch, onClose, onTempo, onOpenListen, onSavePainting }) {
   const m = useMetronome(90, 4);
-  const [sec, setSec] = useState(0);
-  const [running, setRunning] = useState(false);
+  const [, tick] = useState(0);
   const [loomOpen, setLoomOpen] = useState(false);
+  const running = watch.startedAt != null;
 
   useEffect(() => {
     if (!running) return;
-    const id = setInterval(() => setSec((s) => s + 1), 1000);
+    const id = setInterval(() => tick((n) => n + 1), 250);
     return () => clearInterval(id);
   }, [running]);
 
@@ -436,6 +437,7 @@ function PracticeSheet({ initialInstrument, onClose, onTempo, onOpenListen, onSa
     m.stop(); onClose();
   };
   const dlgRef = useDialog(close);
+  const sec = Math.floor((watch.acc + (running ? Date.now() - watch.startedAt : 0)) / 1000);
   const mm = String(Math.floor(sec / 60)).padStart(2, "0");
   const ss = String(sec % 60).padStart(2, "0");
 
@@ -480,8 +482,8 @@ function PracticeSheet({ initialInstrument, onClose, onTempo, onOpenListen, onSa
         <div className="ws-stop">
           <div className="ws-stop-time mono">{mm}:{ss}</div>
           <div className="ws-stop-row">
-            <button className="ws-btn ghost sm" onClick={() => setRunning((r) => !r)}>{running ? "Pause" : sec > 0 ? "Resume" : "Start"}</button>
-            <button className="ws-btn ghost sm" onClick={() => { setRunning(false); setSec(0); }}>Reset</button>
+            <button className="ws-btn ghost sm" onClick={() => onWatch(running ? { startedAt: null, acc: watch.acc + Date.now() - watch.startedAt } : { startedAt: Date.now(), acc: watch.acc })}>{running ? "Pause" : sec > 0 ? "Resume" : "Start"}</button>
+            <button className="ws-btn ghost sm" onClick={() => onWatch({ startedAt: null, acc: 0 })}>Reset</button>
           </div>
           <p className="ws-stop-note">Time your session here, then enter the minutes when you log.</p>
         </div>
