@@ -132,8 +132,7 @@ export function lastByInstrument(sessions) {
 }
 
 // Greedily pick items for one instrument to roughly fill a time budget,
-// balancing a drill with a song, rotating within the instrument, and
-// spacing out repertoire.
+// balancing a drill with a song and rotating within the instrument.
 // Library items that duplicate a track stage (seed `twin`), mapped both ways.
 // Read from SEED, not saved items, so existing libraries get it without a merge.
 const TWIN = {};
@@ -153,10 +152,6 @@ export function fillInstrument(inst, budget, data, today, relax) {
       const haveSong = out.some(isRep), haveTech = out.some((o) => !isRep(o));
       if (isRep(it) && !haveSong) s += 4;
       if (!isRep(it) && !haveTech) s += 3;
-      if (isRep(it)) {
-        const interval = [1, 2, 4, 7, 12][Math.min(it.times, 4)];
-        s += dsi >= interval ? 3 : -2; // spaced repetition for repertoire
-      }
       if (it.rating === "easy") s -= 2.5;
       if (it.rating === "hard") s += 1.5;
       if (it.min > rem + 4) s -= 3;
