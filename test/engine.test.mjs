@@ -31,4 +31,17 @@ test("levelFor: 'tough' pulls the level back down after a long run of 'too easy'
   assert.equal(levelFor("piano", [...easy, ...hard]), 3);
 });
 
+test("generateSession: skips an overdue instrument with nothing eligible", () => {
+  const d = freshData();
+  d.settings.target = 15;
+  d.settings.enabled = { piano: true, guitar: true, bass: false, accordion: false };
+  d.items = d.items.map((it) => (it.inst === "piano" ? { ...it, hidden: true } : it));
+  d.sessions = [on(addDays(today, -1), { inst: "guitar" })];
+  for (let i = 0; i < 20; i++) {
+    const s = generateSession({ ...d, items: withDerivedStats(d.items, d.sessions) });
+    assert.ok(s.items.length > 0, "set should not be empty");
+    assert.ok(s.items.every((x) => d.items.find((it) => it.id === x.itemId).inst === "guitar"));
+  }
+});
+
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });

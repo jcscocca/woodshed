@@ -205,15 +205,17 @@ export function generateSession(data) {
   const enabled = Object.keys(INSTRUMENTS).filter((i) => data.settings.enabled[i]);
   if (!enabled.length) return { date: today, items: [], completed: false };
 
+  const target = data.settings.target;
   const lastBy = lastByInstrument(data.sessions);
   const due = enabled
+    .filter((i) => fillInstrument(i, target, data, today, true).length) // skip instruments with nothing eligible
     .map((i) => ({ i, score: daysSince(lastBy[i], today) + Math.random() * 0.6 }))
     .sort((a, b) => b.score - a.score);
+  if (!due.length) return { date: today, items: [], completed: false };
 
   const primary = due[0].i;
-  const target = data.settings.target;
   const insts = [primary];
-  if (enabled.length >= 2 && target >= 18 && Math.random() < 0.6) insts.push(due[1].i);
+  if (due.length >= 2 && target >= 18 && Math.random() < 0.6) insts.push(due[1].i);
 
   let items = [];
   if (insts.length === 1) {
