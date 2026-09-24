@@ -48,8 +48,8 @@ function intervalMidis(diff, lo, hi, rng) {
 
 const MAJOR = [0, 2, 4, 5, 7, 9, 11];
 export const KEY_ROOT = { C: 0, G: 7, D: 2, A: 9, E: 4, F: 5, Bb: 10, Eb: 3 };
-const PHRASE_LEN = { 3: [3, 3], 4: [4, 5], 5: [5, 6] };
-const PHRASE_REACH = { 3: 2, 4: 5, 5: 7 }; // max scale-steps per move (2≈third, 5≈sixth, 7≈octave)
+const PHRASE_LEN = { 1: [3, 3], 2: [3, 3], 3: [3, 3], 4: [4, 5], 5: [5, 6] };
+const PHRASE_REACH = { 1: 1, 2: 2, 3: 2, 4: 5, 5: 7 }; // max scale-steps per move (1=step, 2≈third, 5≈sixth, 7≈octave)
 
 function scaleNotes(key, lo, hi) {
   const root = KEY_ROOT[key];
@@ -90,11 +90,12 @@ function phraseMidis(diff, key, lo, hi, rng) {
 }
 
 // One round: targets in gradeLine's shape, the prompt in playSequence's shape.
-// `diff` is the item's *current* difficulty, so the engine's level-up
-// suggestions walk this ladder with no ear-specific code.
+// `ear.mode` ("intervals" | "phrases") fixes what the item is; `diff` is its
+// *current* difficulty and only scales within that mode, so the engine's
+// level-up suggestions walk this ladder with no ear-specific code.
 export function generateRound({ diff, ear, rng }) {
   const [lo, hi] = ear.range;
-  const key = diff <= 2 ? null : pick(ear.keys, rng);
+  const key = ear.mode === "phrases" ? pick(ear.keys, rng) : null;
   const midis = key ? phraseMidis(diff, key, lo, hi, rng) : intervalMidis(diff, lo, hi, rng);
   return {
     targets: midis.map((m) => ({ midi: m, label: noteLabel(m, FLAT_KEYS.has(key)) })),

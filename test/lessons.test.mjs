@@ -96,7 +96,8 @@ test("ear lessons exist for all four instruments and carry a valid generator con
   const earLessons = Object.entries(LESSONS).filter(([, L]) => L.ear);
   assert.equal(earLessons.length, 8, `expected 2 ear lessons x 4 instruments, got ${earLessons.length}`);
   for (const [id, L] of earLessons) {
-    const { range, keys, bpm, rounds } = L.ear;
+    const { mode, range, keys, bpm, rounds } = L.ear;
+    assert.equal(mode, id.endsWith("-int") ? "intervals" : "phrases", `${id}: ear.mode must match the item (intervals vs phrases)`);
     assert.ok(Array.isArray(range) && range.length === 2, `${id}: ear.range must be [lo, hi]`);
     const [lo, hi] = range;
     assert.ok(Number.isInteger(lo) && Number.isInteger(hi) && hi - lo >= 12, `${id}: range must span >= an octave so P8 prompts fit`);

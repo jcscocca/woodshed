@@ -5,7 +5,7 @@
 // the per-instrument line and range are the only real differences.
 
 const intervals = (instLine, range) => ({
-  summary: "The app plays a short prompt — two notes to start — and you play it back. Interval by interval, your ear learns the distances melodies are made of.",
+  summary: "The app plays two notes and you play them back. Interval by interval, your ear learns the distances melodies are made of.",
   prescribe: "5 rounds · listen, then echo · reveal after each round",
   steps: [
     "Tap Train your ear, then Start. You'll hear the prompt — the pips show how many notes, never which.",
@@ -17,7 +17,7 @@ const intervals = (instLine, range) => ({
     "Sing or hum the notes before you hunt for them — the voice finds intervals faster than fingers.",
     "Hear the distance before you play the next note; don't fish note by note.",
   ],
-  ear: { range, keys: ["C", "G", "F"], bpm: 80, rounds: 5 },
+  ear: { mode: "intervals", range, keys: ["C", "G", "F"], bpm: 80, rounds: 5 },
 });
 
 const phrases = (instLine, range) => ({
@@ -33,7 +33,7 @@ const phrases = (instLine, range) => ({
     "Catch the contour first (up-up-down beats exact notes), then pin the intervals.",
     "If you lose the middle, replay and sing just that fragment before playing it.",
   ],
-  ear: { range, keys: ["C", "G", "F"], bpm: 80, rounds: 5 },
+  ear: { mode: "phrases", range, keys: ["C", "G", "F"], bpm: 80, rounds: 5 },
 });
 
 export default {
