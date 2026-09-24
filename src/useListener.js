@@ -1,28 +1,25 @@
 import { useRef, useState, useCallback, useEffect } from "react";
-import { detectPitch, noteFromFrequency, rms, createOnsetTracker, bpmFromOnsets } from "./audio/dsp.js";
+import { detectPitch, noteFromFrequency } from "./audio/dsp.js";
 
 // Microphone listener: a thin shell around the pure DSP in ./audio/dsp.js.
 // It owns the browser bits (getUserMedia, AnalyserNode, the rAF loop) and feeds
 // each frame into the shared detectors, so the same logic that runs live can be
 // tested headlessly against real recordings. Honest scope is unchanged: pitch is
-// reliable for single clear notes, not chords or accordion reeds; tempo is a
-// rough estimate from the spacing of attacks.
+// reliable for single clear notes, not chords or accordion reeds.
 export function useListener() {
   const [listening, setListening] = useState(false);
   const [error, setError] = useState(null);
   const [note, setNote] = useState(null); // { name, octave, cents }
   const [freq, setFreq] = useState(0);
-  const [bpm, setBpm] = useState(null);
 
   const ac = useRef(null), analyser = useRef(null), stream = useRef(null), raf = useRef(null), buf = useRef(null);
-  const onsets = useRef([]), tracker = useRef(null), quietFrames = useRef(0), session = useRef(0);
+  const quietFrames = useRef(0), session = useRef(0);
 
   const loop = () => {
     const a = analyser.current;
     if (!a || !ac.current) return;
     a.getFloatTimeDomainData(buf.current);
     const f = detectPitch(buf.current, ac.current.sampleRate);
-    const level = rms(buf.current);
 
     if (f > 0) {
       quietFrames.current = 0;
@@ -30,13 +27,6 @@ export function useListener() {
       setNote(noteFromFrequency(f));
     } else if (++quietFrames.current > 12) {
       setNote(null); setFreq(0);
-    }
-
-    const now = performance.now();
-    if (tracker.current && tracker.current.step(level, now)) {
-      onsets.current = [...onsets.current.filter((t) => now - t < 6000), now];
-      const guess = bpmFromOnsets(onsets.current);
-      if (guess) setBpm(guess);
     }
     raf.current = requestAnimationFrame(loop);
   };
@@ -60,8 +50,7 @@ export function useListener() {
       analyser.current.fftSize = 2048;
       buf.current = new Float32Array(analyser.current.fftSize);
       src.connect(analyser.current);
-      onsets.current = []; tracker.current = createOnsetTracker(); quietFrames.current = 0;
-      setBpm(null);
+      quietFrames.current = 0;
       setListening(true);
       raf.current = requestAnimationFrame(loop);
     } catch (e) {
@@ -85,5 +74,5 @@ export function useListener() {
     if (ac.current && ac.current.state !== "closed") ac.current.close();
   }, []);
 
-  return { listening, error, note, freq, bpm, start, stop };
+  return { listening, error, note, freq, start, stop };
 }

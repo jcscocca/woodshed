@@ -241,7 +241,7 @@ export default function Woodshed() {
 
       {logging && <LogSheet session={logging === true ? session : logging} itemById={itemById} lastTempo={lastTempo} coachResults={coachResults} onCancel={() => setLogging(false)} onCommit={commitLog} />}
       {practiceOpen && <PracticeSheet watch={watch} onWatch={setWatch} onClose={() => setPracticeOpen(false)} onTempo={setLastTempo} onOpenListen={() => { setPracticeOpen(false); setListenOpen(true); }} />}
-      {listenOpen && <ListenSheet onClose={() => setListenOpen(false)} onTempo={setLastTempo} />}
+      {listenOpen && <ListenSheet onClose={() => setListenOpen(false)} />}
       {showProposals && (
         <ProposalSheet proposals={proposals} onAccept={applyProposal} onDismiss={dismissProposal} onClose={() => setShowProposals(false)} />
       )}
@@ -465,7 +465,7 @@ function PracticeSheet({ watch, onWatch, onClose, onTempo, onOpenListen }) {
 }
 
 /* ----------------------- tuner & mic listener (beta) ----------------------- */
-function ListenSheet({ onClose, onTempo }) {
+function ListenSheet({ onClose }) {
   const l = useListener();
   const close = () => { l.stop(); onClose(); };
   const dlgRef = useDialog(close);
@@ -486,7 +486,7 @@ function ListenSheet({ onClose, onTempo }) {
           <div className="ws-listen-err">{l.error}</div>
         ) : !l.listening ? (
           <div className="ws-listen-intro">
-            <p>Uses your microphone to show pitch and estimate tempo. It works best on single, clearly-sounding notes — tuning a string, or a monophonic line. Chords and accordion reeds are unreliable here — the pitch coach uses a dedicated spectral detector for accordion.</p>
+            <p>Uses your microphone to show pitch. It works best on single, clearly-sounding notes — tuning a string, or a monophonic line. Chords and accordion reeds are unreliable here — the pitch coach uses a dedicated spectral detector for accordion.</p>
             <button className="ws-btn primary" onClick={l.start}>Start listening</button>
           </div>
         ) : (
@@ -500,17 +500,6 @@ function ListenSheet({ onClose, onTempo }) {
                 {l.note && <div className={`ws-tuner-needle ${inTune ? "in" : ""}`} style={{ left: `${50 + clamped}%` }} />}
               </div>
               <div className="ws-tuner-cents mono">{l.note ? `${cents > 0 ? "+" : ""}${cents}¢ · ${Math.round(l.freq)} Hz` : "play a note…"}</div>
-            </div>
-
-            <div className="ws-listen-tempo">
-              {l.bpm ? (
-                <>
-                  <div className="ws-listen-bpm"><span className="mono ws-bpm-num">{l.bpm}</span><span className="ws-bpm-label">bpm detected</span></div>
-                  <button className="ws-btn ghost sm" onClick={() => { onTempo(l.bpm); close(); }}>Use this tempo</button>
-                </>
-              ) : (
-                <div className="ws-listen-hint">Play a steady pulse to estimate tempo…</div>
-              )}
             </div>
 
             <button className="ws-btn ghost full" onClick={l.stop}>Stop listening</button>

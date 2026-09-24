@@ -226,39 +226,3 @@ export function detectPitchSpectral(buf, sampleRate, { minF = 40, maxF = 1500 } 
   const clarity = Math.max(0, Math.min(1, (mag[bestBin] / magMean - 1) / 8));
   return { freq, clarity };
 }
-
-// Onset detector: an EWMA of the level, with a relative threshold and a
-// refractory gap. Stateful by design (it runs frame-by-frame on the live mic),
-// but pure — feed it the same frames offline and you get the same onsets.
-export function createOnsetTracker({ floor = 0.03, ratio = 1.6, refractoryMs = 160 } = {}) {
-  let avg = 0, last = -Infinity;
-  return {
-    step(level, tMs) {
-      avg = avg * 0.92 + level * 0.08;
-      if (level > floor && level > avg * ratio && tMs - last > refractoryMs) {
-        last = tMs;
-        return true;
-      }
-      return false;
-    },
-  };
-}
-
-// Onset timestamps (ms) -> tempo estimate via the median inter-onset interval.
-export function bpmFromOnsets(times, { min = 40, max = 240 } = {}) {
-  if (times.length < 4) return null;
-  const gaps = times.slice(1).map((t, i) => t - times[i]).sort((a, b) => a - b);
-  const med = gaps[Math.floor(gaps.length / 2)];
-  const bpm = Math.round(60000 / med);
-  return bpm >= min && bpm <= max ? bpm : null;
-}
-
-// Amplitude-weighted mean frequency of an analyser's frequency bins.
-export function spectralCentroid(freqData, sampleRate, fftSize) {
-  let energy = 0, weighted = 0;
-  for (let i = 0; i < freqData.length; i++) {
-    energy += freqData[i];
-    weighted += freqData[i] * i * sampleRate / fftSize;
-  }
-  return energy ? weighted / energy : 0;
-}

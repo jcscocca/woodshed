@@ -7,7 +7,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import WavDecoder from "wav-decoder";
 import Pitchfinder from "pitchfinder";
-import { detectPitch, detectPitchDetailed, noteFromFrequency, createOnsetTracker, bpmFromOnsets, rms } from "../../src/audio/dsp.js";
+import { detectPitch, detectPitchDetailed, noteFromFrequency, rms } from "../../src/audio/dsp.js";
 import { createNoteStream, gradeLine } from "../../src/coach.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -33,14 +33,6 @@ for (const [file, want] of [["piano_A4.wav", "A4"], ["piano_C4.wav", "C4"], ["vi
   const orc = pitchOf(ch, sr, Pitchfinder.AMDF({ sampleRate: sr }));
   const ok = app && nn(app) === want; if (!ok) failed++;
   console.log(`  ${file.padEnd(16)} want ${want.padEnd(4)} app ${nn(app).padEnd(5)} oracle ${nn(orc).padEnd(5)} ${ok ? "PASS" : "FAIL"}`);
-}
-console.log("\nTEMPO — app onset tracker vs ground truth");
-for (const bpm of [90, 120, 144]) {
-  const { sr, ch } = load(`drum_${bpm}.wav`);
-  const win = 2048, hop = 735, tr = createOnsetTracker(), on = [];
-  for (let p = 0; p + win <= ch.length; p += hop) { const t = (p / sr) * 1000; if (tr.step(rms(frame(ch, p, win)), t)) on.push(t); }
-  const got = bpmFromOnsets(on); const ok = got !== null && Math.abs(got - bpm) <= 3; if (!ok) failed++;
-  console.log(`  ${("drum_" + bpm).padEnd(14)} want ${bpm} got ${got} ${ok ? "PASS" : "FAIL"}`);
 }
 console.log("\nCOACH — clean scale through the full pipeline");
 if (fs.existsSync(path.join(FIX, "scale_cmaj_guitar.wav"))) {

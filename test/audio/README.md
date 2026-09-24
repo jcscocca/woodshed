@@ -5,8 +5,8 @@ instrument audio**, not synthetic tones.
 
 ## Run
 - `npm run test:audio` — the real-audio suite. Decodes rendered instrument
-  recordings, runs the app's own pitch detector and onset/tempo tracker on them,
-  and checks them against ground truth, with [`pitchfinder`](https://github.com/peterkhayes/pitchfinder)
+  recordings, runs the app's own pitch detector on them, and checks them
+  against ground truth, with [`pitchfinder`](https://github.com/peterkhayes/pitchfinder)
   (YIN/AMDF) as an independent oracle. Needs fixtures (below).
 - `npm run test:smoke` — a fast synthetic sanity check (no fixtures). Catches
   gross breakage only; **not** a substitute for the real-audio suite.
