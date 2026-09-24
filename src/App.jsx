@@ -17,6 +17,7 @@ import Sidebar, { VIEWS } from "./Sidebar.jsx";
 import PracticeRail from "./PracticeRail.jsx";
 import { ShortcutBridge } from "./useShortcuts.js";
 import ShortcutHelp from "./ShortcutHelp.jsx";
+import { MidiProvider } from "./midi/MidiProvider.jsx";
 
 // Resource links are user-entered and ride along in exported/imported backups,
 // so treat them as untrusted. Only http(s) URLs ever reach an href — a
@@ -278,46 +279,48 @@ export default function Woodshed() {
 
   return (
     <PracticeProvider onTempo={setLastTempo}>
-      {desktop ? (
-        <div className="ws-desk">
-          <Sidebar view={view} onView={setView} onSettings={() => setShowSettings(true)} onHelp={() => setShowKeys(true)}><Streak streak={streak} /></Sidebar>
-          <div className="ws-desk-main">{saveErr}{views}</div>
-          <PracticeRail
-            lesson={lessonProps && <LessonBody key={lessonFor.id} {...lessonProps} />}
-            tunerOpen={tunerOpen}
-            onOpenTuner={() => { setLessonFor(null); setTunerOpen(true); }}
-            onCloseSlot={() => { setLessonFor(null); setTunerOpen(false); }}
-          />
-          {showKeys && <ShortcutHelp onClose={() => setShowKeys(false)} />}
-          <ShortcutBridge onAction={onShortcut} />
-        </div>
-      ) : (
-        <Shell>
-          {saveErr}
-          <header className="ws-head">
-            <div className="ws-head-row">
-              <div className="ws-brand"><span className="ws-logo">◐</span> Woodshed</div>
-              <div className="ws-head-actions">
-                <button className="ws-gear" onClick={() => setPracticeOpen(true)} aria-label="Metronome and timer" title="Metronome & timer">♩</button>
-                <button className="ws-gear" onClick={() => setShowSettings(true)} aria-label="Settings">⚙</button>
+      <MidiProvider enabled={desktop && !!data.settings.enabled.piano}>
+        {desktop ? (
+          <div className="ws-desk">
+            <Sidebar view={view} onView={setView} onSettings={() => setShowSettings(true)} onHelp={() => setShowKeys(true)}><Streak streak={streak} /></Sidebar>
+            <div className="ws-desk-main">{saveErr}{views}</div>
+            <PracticeRail
+              lesson={lessonProps && <LessonBody key={lessonFor.id} {...lessonProps} />}
+              tunerOpen={tunerOpen}
+              onOpenTuner={() => { setLessonFor(null); setTunerOpen(true); }}
+              onCloseSlot={() => { setLessonFor(null); setTunerOpen(false); }}
+            />
+            {showKeys && <ShortcutHelp onClose={() => setShowKeys(false)} />}
+            <ShortcutBridge onAction={onShortcut} />
+          </div>
+        ) : (
+          <Shell>
+            {saveErr}
+            <header className="ws-head">
+              <div className="ws-head-row">
+                <div className="ws-brand"><span className="ws-logo">◐</span> Woodshed</div>
+                <div className="ws-head-actions">
+                  <button className="ws-gear" onClick={() => setPracticeOpen(true)} aria-label="Metronome and timer" title="Metronome & timer">♩</button>
+                  <button className="ws-gear" onClick={() => setShowSettings(true)} aria-label="Settings">⚙</button>
+                </div>
               </div>
-            </div>
-            <Streak streak={streak} />
-          </header>
-          {views}
-          <nav className="ws-nav">
-            {VIEWS.map(([k, label, icon]) => (
-              <button key={k} className={`ws-tab ${view === k ? "on" : ""}`} aria-current={view === k ? "page" : undefined} onClick={() => setView(k)}>
-                <span className="ws-tab-icon" aria-hidden="true">{icon}</span>{label}
-              </button>
-            ))}
-          </nav>
-          {practiceOpen && <PracticeSheet onClose={() => setPracticeOpen(false)} onOpenListen={() => { setPracticeOpen(false); setListenOpen(true); }} />}
-          {listenOpen && <ListenSheet onClose={() => setListenOpen(false)} />}
-          {lessonProps && <LessonSheet {...lessonProps} onClose={() => setLessonFor(null)} />}
-        </Shell>
-      )}
-      {dialogs}
+              <Streak streak={streak} />
+            </header>
+            {views}
+            <nav className="ws-nav">
+              {VIEWS.map(([k, label, icon]) => (
+                <button key={k} className={`ws-tab ${view === k ? "on" : ""}`} aria-current={view === k ? "page" : undefined} onClick={() => setView(k)}>
+                  <span className="ws-tab-icon" aria-hidden="true">{icon}</span>{label}
+                </button>
+              ))}
+            </nav>
+            {practiceOpen && <PracticeSheet onClose={() => setPracticeOpen(false)} onOpenListen={() => { setPracticeOpen(false); setListenOpen(true); }} />}
+            {listenOpen && <ListenSheet onClose={() => setListenOpen(false)} />}
+            {lessonProps && <LessonSheet {...lessonProps} onClose={() => setLessonFor(null)} />}
+          </Shell>
+        )}
+        {dialogs}
+      </MidiProvider>
     </PracticeProvider>
   );
 }

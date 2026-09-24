@@ -1,3 +1,5 @@
+import { midiToFreq } from "./audio/notes.js";
+
 // Web Audio demo synth for lessons. Oscillator-based — no audio files.
 // One lazily-created AudioContext (needs a user gesture to start).
 let ctx = null;
@@ -43,6 +45,20 @@ export function playSequence(voices, { bpm = 80 } = {}) {
   let t = ac.currentTime + 0.06;
   for (const v of voices) { pluck(ac, v[0], t, beat * 0.9); t += beat; }
   return (t - ac.currentTime) * 1000;
+}
+
+// A recorded take: [{ midi, t0 (ms from start), dur (ms), velocity }].
+export function playTake(notes) {
+  stop();
+  if (!notes.length) return 0;
+  const ac = getCtx(); if (ac.state === "suspended") ac.resume();
+  const t = ac.currentTime + 0.06;
+  let end = 0;
+  for (const n of notes) {
+    pluck(ac, midiToFreq(n.midi), t + n.t0 / 1000, Math.max(0.12, n.dur / 1000), 0.05 + 0.2 * (n.velocity / 127));
+    end = Math.max(end, n.t0 + n.dur);
+  }
+  return end + 60;
 }
 
 // A bar of metronome clicks at bpm, for prescribe-only drills.
