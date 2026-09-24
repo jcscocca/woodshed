@@ -39,8 +39,12 @@ open lesson or the tuner beneath them. Narrower windows get the phone layout.
 choose *Install app* (address bar icon or the ⋮ menu). It gets its own window,
 works offline, and updates itself when a new version is pushed.
 
-**Keyboard:** Space metronome · T tap tempo · ←/→ tempo (Shift ±10) ·
-S stopwatch · 1–4 views · L log · Esc close · ? the full list.
+**Keyboard** (desktop layout only): **Space** starts/stops the metronome —
+unless you've Tabbed to a button, in which case Space presses that button
+instead. **T** taps tempo. **←/→** nudge tempo ±1 (**Shift** ±10). **S**
+starts/pauses the stopwatch. **1–4** switch views. **L** logs today's set.
+**Esc** closes the lesson or tuner in the rail. **?** shows the full list.
+Nothing fires while you're typing in a field or while a dialog is open.
 
 ---
 
