@@ -74,7 +74,7 @@ export default function LessonSheet({ item, href, onClose, sessions = [], onCoac
           />
         )}
 
-        {!lesson.ear && (
+        {!lesson.ear && (lesson.shape || lesson.bpm) && (
           <button className={`ws-btn ${playing ? "ghost" : "primary"} sm ws-hear`} onClick={hear} aria-pressed={playing}>
             {playing ? "■ Stop" : "▶ Hear it"}
           </button>

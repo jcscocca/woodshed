@@ -10,7 +10,7 @@ const cScale = { kind: "keyboard",
 export default {
   "acc-bellows": {
     summary: "Bellows control: long, even tones with smooth direction changes — the foundation of everything.",
-    shape: null, prescribe: "Hold one note · long even tones · change bellows direction with no bump", bpm: null,
+    shape: null, prescribe: "Hold one note · long even tones · change bellows direction with no bump", bpm: 60,
     steps: [
       "Hold one note and draw the bellows out slowly, keeping the volume dead flat.",
       "Reverse to a push without any surge or dip in volume at the turnaround.",
@@ -81,7 +81,7 @@ export default {
 
   "trk-acc-1": {
     summary: "Bellows control: long even tones with smooth direction changes.",
-    shape: null, prescribe: "One note · long even tones · seamless bellows turnarounds", bpm: null,
+    shape: null, prescribe: "One note · long even tones · seamless bellows turnarounds", bpm: 60,
     steps: [
       "Draw and push one note, holding the volume flat.",
       "Make the direction change inaudible.",
