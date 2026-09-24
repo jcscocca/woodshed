@@ -28,6 +28,7 @@ export function intervalLabel(prevMidi, curMidi) {
 }
 
 const SMALL_INTERVALS = [2, 3, 4, 5, 7];                    // M2 m3 M3 P4 P5
+const MID_INTERVALS = [1, 2, 3, 4, 5, 7, 8, 9, 12];         // + m2 m6 M6 P8; TT m7 M7 wait for diff 3
 const ALL_INTERVALS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
 const FLAT_KEYS = new Set(["F", "Bb", "Eb"]);
@@ -38,7 +39,7 @@ const pick = (arr, rng) => arr[Math.floor(rng() * arr.length)];
 // in range. Configs are schema-checked to span >= 12 semitones, so max never
 // dips below min.
 function intervalMidis(diff, lo, hi, rng) {
-  const step = pick(diff <= 1 ? SMALL_INTERVALS : ALL_INTERVALS, rng);
+  const step = pick(diff <= 1 ? SMALL_INTERVALS : diff === 2 ? MID_INTERVALS : ALL_INTERVALS, rng);
   const up = rng() < 0.5;
   const min = up ? lo : lo + step;
   const max = up ? hi - step : hi;

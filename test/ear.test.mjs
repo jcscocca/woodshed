@@ -43,18 +43,32 @@ test("generateRound diff 1: two notes, small-interval set, in range", () => {
   }
 });
 
-test("generateRound diff 2: any interval up to an octave, both directions drawn", () => {
+test("generateRound diff 2: wider intervals up to an octave, both directions drawn, no TT/m7/M7 yet", () => {
   const gaps = new Set();
   let down = 0;
   for (let s = 0; s < 300; s++) {
     const r = generateRound({ diff: 2, ear: EAR, rng: mulberry32(s) });
     const d = r.targets[1].midi - r.targets[0].midi;
     assert.ok(Math.abs(d) >= 1 && Math.abs(d) <= 12);
+    assert.ok(![6, 10, 11].includes(Math.abs(d)), `seed ${s}: ${Math.abs(d)} semitones is held back until diff 3`);
     gaps.add(Math.abs(d));
     if (d < 0) down++;
   }
   assert.ok(gaps.size >= 8, `variety expected, saw ${gaps.size} distinct intervals`);
   assert.ok(down > 50, "descending intervals should be common");
+});
+
+test("generateRound intervals ramp: each difficulty adds intervals, diff 3 brings in TT, m7, M7", () => {
+  const seen = (diff) => {
+    const g = new Set();
+    for (let s = 0; s < 400; s++) { const r = generateRound({ diff, ear: EAR, rng: mulberry32(s) }); g.add(Math.abs(r.targets[1].midi - r.targets[0].midi)); }
+    return g;
+  };
+  const [d1, d2, d3] = [seen(1), seen(2), seen(3)];
+  assert.ok(d1.size < d2.size && d2.size < d3.size, `sizes ${d1.size} < ${d2.size} < ${d3.size}`);
+  for (const g of d1) assert.ok(d2.has(g), `diff 2 should keep diff 1's ${g}`);
+  for (const g of [6, 10, 11]) assert.ok(d3.has(g), `diff 3 should include ${g}`);
+  assert.equal(d3.size, 12, "diff 3 covers every interval up to the octave");
 });
 
 test("generateRound: targets, prompt, bpm, labels agree", () => {
