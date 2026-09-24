@@ -2,6 +2,10 @@
 const cMajorScale = { kind: "keyboard",
   notes: [{ name: "C", octave: 4 }, { name: "D", octave: 4 }, { name: "E", octave: 4 }, { name: "F", octave: 4 }, { name: "G", octave: 4 }, { name: "A", octave: 4 }, { name: "B", octave: 4 }, { name: "C", octave: 5 }],
   fingers: [1, 2, 3, 1, 2, 3, 4, 5] };
+const cMajorTwoOctaves = { kind: "keyboard",
+  notes: [{ name: "C", octave: 4 }, { name: "D", octave: 4 }, { name: "E", octave: 4 }, { name: "F", octave: 4 }, { name: "G", octave: 4 }, { name: "A", octave: 4 }, { name: "B", octave: 4 },
+    { name: "C", octave: 5 }, { name: "D", octave: 5 }, { name: "E", octave: 5 }, { name: "F", octave: 5 }, { name: "G", octave: 5 }, { name: "A", octave: 5 }, { name: "B", octave: 5 }, { name: "C", octave: 6 }],
+  fingers: [1, 2, 3, 1, 2, 3, 4, 1, 2, 3, 1, 2, 3, 4, 5] };
 const fiveFinger = { kind: "keyboard",
   notes: [{ name: "C", octave: 4 }, { name: "D", octave: 4 }, { name: "E", octave: 4 }, { name: "F", octave: 4 }, { name: "G", octave: 4 }],
   fingers: [1, 2, 3, 4, 5] };
@@ -9,9 +13,9 @@ const fiveFinger = { kind: "keyboard",
 export default {
   "pno-scales": {
     summary: "Major scales hands together, two octaves — the C major scale and its thumb-under move shown here.",
-    shape: cMajorScale, bpm: 80,
+    shape: cMajorTwoOctaves, bpm: 80,
     steps: [
-      "Right hand going up: play 1-2-3, then tuck the thumb under to reach F with finger 1, then 2-3-4-5.",
+      "Right hand, two octaves up: 1-2-3, tuck the thumb under to F, 2-3-4, thumb under to C, 2-3, thumb under to F, then 2-3-4-5 to the top C.",
       "Hands together, two octaves, one note per click. Pick two keys for today.",
       "Listen for even tone — no note louder than its neighbours.",
     ],
