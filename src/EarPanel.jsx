@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useCoach } from "./useCoach.js";
 import { useMidiCoach } from "./midi/useMidiCoach.js";
+import { useMidi } from "./midi/MidiProvider.jsx";
 import { overlay } from "./midi/overlay.js";
 import { createEarSession, mulberry32 } from "./ear.js";
 import { playSequence, stop as stopAudio } from "./lessonAudio.js";
@@ -25,6 +26,7 @@ export default function EarPanel({ item, lesson, sessions = [], onLog, source })
   const targets = st.current ? st.current.targets : [];
   const useInput = source === "midi" ? useMidiCoach : useCoach; // fixed per mount: LessonBody keys the panel by source
   const coach = useInput({ mode: "line", targets, octaveStrict: false });
+  const midi = useMidi();
   const r = coach.result;
 
   // Start the mic only after the prompt has finished and targets have settled
@@ -39,6 +41,7 @@ export default function EarPanel({ item, lesson, sessions = [], onLog, source })
   const playPrompt = () => {
     const cur = session.current.state.current;
     coach.stop();
+    if (source === "midi") midi.setBandOpen(true);
     const ms = playSequence(cur.promptVoices, { bpm: cur.bpm });
     clearTimeout(timer.current);
     timer.current = setTimeout(() => {
@@ -85,7 +88,7 @@ export default function EarPanel({ item, lesson, sessions = [], onLog, source })
       const midis = targets.map((t) => t.midi);
       overlay.set({
         targets: targets.map((t) => ({ midi: t.midi, finger: null })), range: [Math.min(...midis), Math.max(...midis)],
-        statuses: r.results.map((x) => x.status), next: -1, hideTargets: false, busy: false, readout: { head: `${st.rounds[st.rounds.length - 1].accuracy}%` },
+        statuses: r.results.map((x) => x.status), next: [], hideTargets: false, busy: false, readout: { head: `${st.rounds[st.rounds.length - 1].accuracy}%` },
       });
     } else overlay.set({ hideTargets: true, busy: true, readout: { head: st.phase === "prompt" ? "listen…" : `play it back · ${st.round}/${st.total}` } });
   }, [st.phase, st.round]);

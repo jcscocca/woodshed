@@ -48,9 +48,9 @@ Nothing fires while you're typing in a field or while a dialog is open.
 
 ### Piano over MIDI
 
-With piano in your rotation and a USB-MIDI keyboard plugged in, the band along
-the bottom of the window shows a **Connect keyboard** button — Chrome or Edge
-only, with a one-time permission prompt. Later launches reconnect on their
+With piano in your rotation, the band along the bottom of the window shows a
+**Connect keyboard** button until you connect a USB-MIDI keyboard — Chrome or
+Edge only, with a one-time permission prompt. Later launches reconnect on their
 own, and plugging or unplugging the keyboard updates the band live.
 
 Connected, the band lights all 88 keys — brighter the harder you play — and
@@ -181,7 +181,7 @@ The code is split so the parts you'll want to change are easy to find:
 | `src/midi/MidiBand.jsx` | The 88-key band and its readout — keys lit by velocity, chord/note readout, Play back, collapse to a thin bar. |
 | `src/styles.css` | All styling and the color palette (CSS variables at the top). |
 | `src/App.jsx` | The views (Today / Tracks / Library / Progress), the dialogs, and the switch between the phone and desktop layouts. |
-| `test/` | The suites `npm test` runs (DSP smoke, lessons schema, coach, ear, engine), plus the real-audio suite in `test/audio/`. |
+| `test/` | The suites `npm test` runs (DSP smoke, lessons schema, coach, ear, engine, desktop, MIDI), plus the real-audio suite in `test/audio/`. |
 | `archive/` | Bass and accordion content and the accordion pitch detector, out of the build. See `archive/README.md`. |
 | `docs/DIRECTION.md` | The current product direction. |
 

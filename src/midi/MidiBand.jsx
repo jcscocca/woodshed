@@ -19,12 +19,13 @@ function Keys({ label, held, ov }) {
   const mark = {};
   if (!ov.hideTargets) ov.targets.forEach((t, i) => {
     const k = mark[t.midi] || (mark[t.midi] = { finger: t.finger });
-    if (i === ov.next) { k.next = true; if (t.finger) k.finger = t.finger; }
+    if (ov.next.includes(i)) { k.next = true; if (t.finger) k.finger = t.finger; }
     const s = ov.statuses && ov.statuses[i];
     if (s === "missed" || (s === "caught" && !k.status)) k.status = s;
   });
   const vel = new Map(held.map((h) => [h.note, h.velocity]));
-  const range = !ov.hideTargets && ov.range && [KEYS[ov.range[0] - 21], KEYS[ov.range[1] - 21]];
+  const key = (m) => KEYS[Math.min(108, Math.max(21, m)) - 21];
+  const range = !ov.hideTargets && ov.range && [key(ov.range[0]), key(ov.range[1])];
   return (
     <div className="ws-midi-keys" role="img" aria-label={`Keyboard: ${label ? `${label} held` : "nothing held"}`}>
       {KEYS.map(({ m, black, left, width }) => {

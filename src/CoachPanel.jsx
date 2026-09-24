@@ -11,13 +11,14 @@ const noteNames = (ms) => ms.map((m) => { const n = midiToNote(m); return `${n.n
 
 // Statuses per band key, matched by pitch: a hands-together pair marks its
 // right-hand key, or both hands' keys once the lesson puts both on the band.
-// at[i] is result i's key (the right hand's, for a pair).
+// at[i] lists result i's keys (both hands', for a pair on the band).
 function toBand(results, keys) {
   const statuses = keys.map(() => "pending"), at = [], used = new Set();
   results.forEach((x, i) => {
+    at[i] = [];
     for (const m of x.target.midis || [x.target.midi]) {
       const j = keys.findIndex((k, n) => k.midi === m && !used.has(n));
-      if (j >= 0) { used.add(j); statuses[j] = x.status; at[i] = j; }
+      if (j >= 0) { used.add(j); statuses[j] = x.status; at[i].push(j); }
     }
   });
   return { statuses, at };
@@ -59,8 +60,8 @@ export default function CoachPanel({ item, lesson, sessions = [], onLog, source 
   useEffect(() => {
     if (!viaMidi || runToken === 0) return;
     const keys = overlay.get().targets, { statuses, at } = toBand(shown, keys);
-    if (!coach.listening) { overlay.set({ statuses, next: -1, readout: null, busy: false }); return; }
-    const cur = r.results[r.cursor], next = at[r.cursor] ?? -1, finger = next >= 0 && keys[next].finger;
+    if (!coach.listening) { overlay.set({ statuses, next: [], readout: null, busy: false }); return; }
+    const cur = r.results[r.cursor], next = at[r.cursor] || [], finger = next.length > 0 && keys[next[next.length - 1]].finger;
     const readout = !cur ? null : mode === "chords" ? { head: nameChord(cur.target.midis) || cur.target.label } : {
       head: finger ? `${cur.target.label} · ${finger}` : cur.target.label,
       line: `${r.cursor} / ${r.results.length}`,
@@ -68,7 +69,7 @@ export default function CoachPanel({ item, lesson, sessions = [], onLog, source 
     overlay.set({ statuses, next, readout, busy: true });
   }, [r, coach.listening]);
   useEffect(() => { if (viaMidi && coach.listening && r.done) coach.stop(); }, [r.done, coach.listening]);
-  useEffect(() => () => { if (viaMidi) overlay.set({ statuses: null, next: -1, readout: null, busy: false }); }, []);
+  useEffect(() => () => { if (viaMidi) overlay.set({ statuses: null, next: [], readout: null, busy: false }); }, []);
 
   useEffect(() => {
     if (!viaMidi) return;

@@ -39,7 +39,7 @@ export function LessonBody({ item, href, sessions = [], onCoachResult, onRequest
       ? shapeTargets.flatMap((t, i) => [{ midi: t.midis[0], finger: null }, { midi: t.midis[1], finger: pianoShape.fingers ? pianoShape.fingers[i] : null }])
       : shapeTargets.map((t, i) => ({ midi: t.midi, finger: pianoShape.fingers ? pianoShape.fingers[i] : null }));
     const midis = targets.map((t) => t.midi);
-    overlay.set({ targets, range: [Math.min(...midis), Math.max(...midis)], statuses: null, next: -1, readout: null, busy: false, hideTargets: false });
+    overlay.set({ targets, range: [Math.min(...midis), Math.max(...midis)], statuses: null, next: [], readout: null, busy: false, hideTargets: false });
     return () => overlay.reset();
   }, [pianoShape]);
   if (!lesson) return null;

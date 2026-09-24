@@ -1,7 +1,7 @@
 # Piano over MIDI — Design
 
 **Date:** 2026-09-24
-**Status:** Approved design, pending implementation plan
+**Status:** Implemented (2026-09-24); amended during build
 **Direction:** [docs/DIRECTION.md](../../DIRECTION.md) — step 4, "Piano over MIDI"; the pitch-coach rethink for piano happens here.
 **Builds on:** [2026-09-23-desktop-layout-design.md](2026-09-23-desktop-layout-design.md) (three-pane desktop layout, practice rail, shortcuts).
 **UI review:** the placement below is a second-opinion revision of the first proposal (measured against the running app at 1440×900) and was approved as revised.
@@ -140,9 +140,9 @@ for 1024–1279px windows (only if the real monitor is that narrow).
   `subscribe`), never the App.
 - **Lesson overlay store** (`midi/overlay.js`, tiny subscribable store): the
   open piano lesson publishes its targets (midi, finger) and range; during a
-  run, the coach or Echo panel publishes statuses, the next index, the readout
-  text and a `busy` flag. The band and readout subscribe. Keeps coaching state
-  out of App.
+  run, the coach or Echo panel publishes statuses, the next target's keys
+  (both of a pair), the readout text and a `busy` flag. The band and readout
+  subscribe. Keeps coaching state out of App.
 - **Play-back:** a new `playTake(notes)` in `src/lessonAudio.js`, reusing that
   module's AudioContext with a velocity-scaled pluck; calls `stop()` first, as
   `playChords`/`playSequence` do.
@@ -164,8 +164,10 @@ for 1024–1279px windows (only if the real monitor is that narrow).
   - single-note lines (scales, Hanon, five-finger): `gradeLine`, octave-strict;
   - chords as played: new `gradeChords(targets, chordEvents)` — each target is a
     note set; a played chord (onsets within 60ms) is caught when the sets match
-    exactly, otherwise missed with its missing/extra notes listed. Used for
-    hands-together targets. (Amended during build: keyboard shapes with
+    exactly, otherwise missed with its missing/extra notes listed; notes that
+    are still a strict subset of the target wait for the rest, so a hand landing
+    late completes its pair (amended during build). Used for hands-together
+    targets. (Amended during build: keyboard shapes with
     `play: "block"` — only trk-pno-5, which asks you to *roll* the chord — are
     graded in order with `gradeArpeggio`, as on the mic path.) Timing evenness
     for chord targets measures the gaps between chords;

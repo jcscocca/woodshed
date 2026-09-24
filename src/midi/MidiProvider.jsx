@@ -22,6 +22,8 @@ function browserAccess() {
 export function MidiProvider({ enabled, children }) {
   const conn = useMemo(() => (enabled ? createMidiConnection(browserAccess()) : null), [enabled]);
   const [state, setState] = useState({ status: conn ? conn.status : "off", deviceName: "" });
+  const [stateConn, setStateConn] = useState(conn);
+  if (stateConn !== conn) { setStateConn(conn); setState({ status: conn ? conn.status : "off", deviceName: "" }); }
   const [bandOpen, setBandOpen] = useState(true);
   const subs = useRef(new Set());
   const take = useRef(createTakeBuffer());

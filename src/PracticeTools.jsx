@@ -47,7 +47,7 @@ export default function PracticeTools({ hints = false, compact = false, stopwatc
       </div>
 
       <div className={compact ? "ws-stop ws-stop-compact" : "ws-stop"}>
-        <div className="ws-stop-time mono">{compact && "⏱ "}{mm}:{ss}</div>
+        <div className="ws-stop-time mono">{compact && <span aria-hidden="true">⏱ </span>}{mm}:{ss}</div>
         <div className="ws-stop-row">
           <button className="ws-btn ghost sm" onClick={() => setWatch(toggleWatch)}>{running ? "Pause" : sec > 0 ? "Resume" : "Start"}{hints && <kbd className="ws-kbd" aria-hidden="true">S</kbd>}</button>
           <button className="ws-btn ghost sm" onClick={() => setWatch(RESET_WATCH)}>Reset</button>
