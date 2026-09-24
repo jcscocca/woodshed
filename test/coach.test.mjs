@@ -132,6 +132,38 @@ test("gradeArpeggio: a dead string (no event) is missed", () => {
   assert.ok(r.missed.includes("G"));
 });
 
+const cgdEm = shapeToTargets({ kind: "chords", instrument: "guitar", chords: [
+  { name: "C", strings: ["x", 3, 2, 0, 1, 0] }, { name: "G", strings: [3, 2, 0, 0, 0, 3] },
+  { name: "D", strings: ["x", "x", 0, 2, 3, 2] }, { name: "Em", strings: [0, 2, 2, 0, 0, 0] },
+] }).targets;
+const cgdEmPlayed = () => cgdEm.filter((t) => !t.muted).map((t) => aev(t.midi)); // 21 pitched strings, clean
+const missedAt = (r) => r.results.map((x, i) => (x.status === "missed" ? i : -1)).filter((i) => i >= 0);
+
+test("gradeArpeggio: an octave slip in a progression costs one string, not a cascade", () => {
+  const played = cgdEmPlayed();
+  played[1] = aev(64); // C's D string (E3) played as E4 — also C's high-e note, and in G/Em
+  const r = gradeArpeggio(cgdEm, played);
+  assert.equal(r.accuracy, 95); // 20/21
+  assert.deepEqual(missedAt(r), [2]);
+  assert.equal(r.done, true);
+});
+
+test("gradeArpeggio: a stray note matching a later chord costs one string, not a cascade", () => {
+  const played = cgdEmPlayed();
+  played[2] = aev(66); // C's G string replaced by F#4 — D chord's high e
+  const r = gradeArpeggio(cgdEm, played);
+  assert.equal(r.accuracy, 95);
+  assert.deepEqual(missedAt(r), [3]);
+});
+
+test("gradeArpeggio: dead strings at a chord change still resync into the next chord", () => {
+  const played = cgdEmPlayed().filter((_, i) => i !== 4 && i !== 5); // C's high e and G's low E both dead
+  const r = gradeArpeggio(cgdEm, played);
+  assert.equal(r.accuracy, 90); // 19/21
+  assert.deepEqual(missedAt(r), [5, 6]);
+  assert.equal(r.done, true);
+});
+
 import { accuracyReady, progressionProposals } from "../src/engine.js";
 
 const sess = (itemId, rating, extra = {}) => ({ itemId, inst: "guitar", date: "2026-06-01", rating, minutes: 10, bpm: null, ...extra });
