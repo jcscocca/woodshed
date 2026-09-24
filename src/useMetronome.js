@@ -76,6 +76,7 @@ export function useMetronome(initialBpm = 90, initialBeats = 4) {
     queue.current = [];
     setBeat(-1);
     setPlaying(false);
+    if (ac.current && ac.current.state === "running") ac.current.suspend();
   }, []);
 
   const toggle = useCallback(() => {
