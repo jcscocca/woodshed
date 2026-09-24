@@ -4,7 +4,7 @@ export const VIEWS = [["today", "Today", "◐"], ["tracks", "Tracks", "◆"], ["
 
 export default function Sidebar({ view, onView, onSettings, onHelp, children }) {
   return (
-    <aside className="ws-side">
+    <aside className="ws-side" aria-label="Navigation">
       <div className="ws-brand"><span className="ws-logo">◐</span> Woodshed</div>
       {children}
       <nav className="ws-side-nav" aria-label="Views">
