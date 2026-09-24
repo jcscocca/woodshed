@@ -258,7 +258,10 @@ export function swapInSession(session, itemId, data) {
 // ---- stats ----
 // Forgiving streak: a single missed day (a rest day) is tolerated; the streak
 // only breaks after two or more consecutive missed days. Counts practiced days.
-const ordinal = (d) => Math.floor(new Date(d + "T00:00:00").getTime() / 86400000);
+const ordinal = (d) => {
+  const [y, m, day] = d.split("-").map(Number);
+  return Date.UTC(y, m - 1, day) / 86400000;
+};
 
 export function streakInfo(sessions) {
   const dates = [...new Set(sessions.map((s) => s.date))].sort();
@@ -271,7 +274,7 @@ export function streakInfo(sessions) {
   }
   longest = Math.max(longest, run);
   const lastGap = ordinal(todayStr()) - ords[ords.length - 1];
-  return { current: lastGap <= 1 ? run : 0, longest };
+  return { current: lastGap <= 2 ? run : 0, longest };
 }
 
 // Distinct days practiced in the current calendar week (Sun–Sat).

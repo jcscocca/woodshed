@@ -9,13 +9,14 @@
     "build": "vite build",
     "preview": "vite preview",
     "fixtures": "bash test/audio/render-fixtures.sh",
-    "test": "npm run test:smoke && npm run test:lessons && npm run test:coach && npm run test:ear && npm run test:loom",
+    "test": "npm run test:smoke && npm run test:lessons && npm run test:coach && npm run test:ear && npm run test:loom && npm run test:engine",
     "test:audio": "node test/audio/dsp.realaudio.test.mjs",
     "test:smoke": "node test/audio/dsp.smoke.test.mjs",
     "test:lessons": "node test/lessons.test.mjs",
     "test:coach": "node test/coach.test.mjs",
     "test:ear": "node test/ear.test.mjs",
-    "test:loom": "node test/loom.test.mjs"
+    "test:loom": "node test/loom.test.mjs",
+    "test:engine": "node test/engine.test.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",
