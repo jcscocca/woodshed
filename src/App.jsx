@@ -787,6 +787,7 @@ function Progress({ data, live, streak, onEditSession }) {
     const day = data.sessions.filter((s) => s.date === d);
     return { d, mins: day.reduce((t, s) => t + s.minutes, 0), insts: [...new Set(day.map((s) => s.inst))] };
   });
+  const maxDay = Math.max(1, ...last14.map((day) => day.mins));
 
   if (!data.sessions.length)
     return <Empty title="No sessions yet" body="Your first practice will show up here — streak, minutes, and where each instrument stands." />;
@@ -820,7 +821,7 @@ function Progress({ data, live, streak, onEditSession }) {
           {last14.map((day, i) => (
             <div key={i} className="ws-strip-col" title={`${day.d}: ${day.mins}m`}>
               <div className="ws-strip-bar" style={{
-                height: `${Math.min(100, (day.mins / Math.max(1, maxMin)) * 100)}%`,
+                height: `${Math.min(100, (day.mins / maxDay) * 100)}%`,
                 background: day.insts[0] ? INSTRUMENTS[day.insts[0]].color : "transparent",
                 opacity: day.mins ? 1 : 0.12,
               }} />
