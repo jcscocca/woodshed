@@ -12,10 +12,10 @@
 // ============================================================
 
 export const INSTRUMENTS = {
-  piano:     { name: "Piano",     color: "var(--piano)",     base: 3 },
-  guitar:    { name: "Guitar",    color: "var(--guitar)",    base: 1 },
-  bass:      { name: "Bass",      color: "var(--bass)",      base: 1 },
-  accordion: { name: "Accordion", color: "var(--accordion)", base: 1 },
+  piano:     { name: "Piano",     color: "var(--piano)" },
+  guitar:    { name: "Guitar",    color: "var(--guitar)" },
+  bass:      { name: "Bass",      color: "var(--bass)" },
+  accordion: { name: "Accordion", color: "var(--accordion)" },
 };
 
 // Hex equivalents of the CSS vars, in case you need them in JS/canvas later.

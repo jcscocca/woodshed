@@ -178,12 +178,12 @@ test("accuracyReady: recent low coached accuracy => not ready", () => {
   assert.equal(accuracyReady([sess("x", "easy", { coached: true, accuracy: 50 }), sess("x", "easy", { coached: true, accuracy: 55 })]), false);
 });
 
-test("progressionProposals: low coached accuracy withholds the level-up", () => {
-  const items = [{ id: "gtr-pent", inst: "guitar", title: "Pent", type: "technique", diff: 2, hidden: false }];
-  const easyLow = [sess("gtr-pent", "easy", { coached: true, accuracy: 40 }), sess("gtr-pent", "easy", { coached: true, accuracy: 45 })];
-  assert.equal(progressionProposals(items, easyLow).filter((p) => p.kind === "level-up").length, 0);
-  const easyNone = [sess("gtr-pent", "easy"), sess("gtr-pent", "easy")];
-  assert.equal(progressionProposals(items, easyNone).filter((p) => p.kind === "level-up").length, 1);
+test("progressionProposals: low coached accuracy withholds the advance", () => {
+  const items = [{ id: "trk-gtr-1", inst: "guitar", title: "Open chords", type: "technique", diff: 1, hidden: false, trackId: "trk-gtr-chords", trackName: "Chord Foundations", order: 0 }];
+  const easyLow = [sess("trk-gtr-1", "easy", { coached: true, accuracy: 40 }), sess("trk-gtr-1", "easy", { coached: true, accuracy: 45 })];
+  assert.equal(progressionProposals(items, easyLow).filter((p) => p.kind === "advance").length, 0);
+  const easyNone = [sess("trk-gtr-1", "easy"), sess("trk-gtr-1", "easy")];
+  assert.equal(progressionProposals(items, easyNone).filter((p) => p.kind === "advance").length, 1);
 });
 
 import { fft, detectPitchSpectral, noteFromFrequency } from "../src/audio/dsp.js";

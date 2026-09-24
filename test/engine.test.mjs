@@ -2,7 +2,7 @@
 process.env.TZ = "Europe/London";
 
 import assert from "node:assert/strict";
-const { streakInfo, levelFor, generateSession, freshData, withDerivedStats } = await import("../src/engine.js");
+const { streakInfo, generateSession, freshData, withDerivedStats } = await import("../src/engine.js");
 const { todayStr, addDays } = await import("../src/dateUtils.js");
 
 let failures = 0;
@@ -22,13 +22,6 @@ test("streak: two missed days break it", () => {
 
 test("streak: a rest day across the UK October DST change doesn't break the run", () => {
   assert.equal(streakInfo([on("2025-10-25"), on("2025-10-27")]).longest, 2);
-});
-
-test("levelFor: 'tough' pulls the level back down after a long run of 'too easy'", () => {
-  const easy = Array.from({ length: 20 }, () => on(today, { rating: "easy" }));
-  const hard = Array.from({ length: 4 }, () => on(today, { rating: "hard" }));
-  assert.equal(levelFor("piano", easy), 5);
-  assert.equal(levelFor("piano", [...easy, ...hard]), 3);
 });
 
 test("generateSession: skips an overdue instrument with nothing eligible", () => {

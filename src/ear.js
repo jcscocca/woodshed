@@ -92,8 +92,7 @@ function phraseMidis(diff, key, lo, hi, rng) {
 
 // One round: targets in gradeLine's shape, the prompt in playSequence's shape.
 // `ear.mode` ("intervals" | "phrases") fixes what the item is; `diff` is its
-// *current* difficulty and only scales within that mode, so the engine's
-// level-up suggestions walk this ladder with no ear-specific code.
+// difficulty, set by hand in the Library, and only scales within that mode.
 export function generateRound({ diff, ear, rng }) {
   const [lo, hi] = ear.range;
   const key = ear.mode === "phrases" ? pick(ear.keys, rng) : null;

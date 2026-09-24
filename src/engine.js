@@ -112,32 +112,14 @@ export function progressionProposals(items, sessions, acked = {}) {
     if ((acked[it.id] || 0) >= it.times) continue; // already handled at this level of practice
     const mine = sessions.filter((s) => s.itemId === it.id);
     const easy = trailingCount(mine, "easy");
-    const hard = trailingCount(mine, "hard");
 
-    // Track stages don't change difficulty — they advance to the next stage.
-    if (it.trackId) {
-      if (!isCurrentEdge.has(it.id)) continue;
-      if (((easy >= 2) || (it.times >= 5 && !hasRecent(mine, "hard", 3))) && accuracyReady(mine)) {
-        out.push({ itemId: it.id, inst: it.inst, title: it.title, kind: "advance", trackName: it.trackName,
-          reason: easy >= 2
-            ? `The last ${easy} felt easy — ready for the next stage of ${it.trackName}.`
-            : `${it.times} sessions in — ready to move on in ${it.trackName}?` });
-      }
-      continue;
-    }
-
-    if (it.diff >= 5 && it.times >= 4 && easy >= 2 && accuracyReady(mine)) {
-      out.push({ itemId: it.id, inst: it.inst, title: it.title, kind: "graduate",
-        reason: `Played ${it.times}× and still too easy at the top level — rotate it out to make room.` });
-    } else if (easy >= 2 && it.diff < 5 && accuracyReady(mine)) {
-      out.push({ itemId: it.id, inst: it.inst, title: it.title, kind: "level-up", from: it.diff, to: it.diff + 1,
-        reason: `The last ${easy} times felt too easy.` });
-    } else if (hard >= 2 && it.diff > 1) {
-      out.push({ itemId: it.id, inst: it.inst, title: it.title, kind: "ease", from: it.diff, to: it.diff - 1,
-        reason: `The last ${hard} times felt tough — ease off and rebuild it.` });
-    } else if (it.times >= 6 && it.diff < 5 && !hasRecent(mine, "hard", 3) && accuracyReady(mine)) {
-      out.push({ itemId: it.id, inst: it.inst, title: it.title, kind: "level-up", from: it.diff, to: it.diff + 1,
-        reason: `You've put in ${it.times} sessions on this — ready to push the challenge up?` });
+    // The only suggestion: a track's current stage is ready for the next one.
+    if (!isCurrentEdge.has(it.id)) continue;
+    if (((easy >= 2) || (it.times >= 5 && !hasRecent(mine, "hard", 3))) && accuracyReady(mine)) {
+      out.push({ itemId: it.id, inst: it.inst, title: it.title, kind: "advance", trackName: it.trackName,
+        reason: easy >= 2
+          ? `The last ${easy} felt easy — ready for the next stage of ${it.trackName}.`
+          : `${it.times} sessions in — ready to move on in ${it.trackName}?` });
     }
   }
   return out;
@@ -149,21 +131,9 @@ export function lastByInstrument(sessions) {
   return map;
 }
 
-// Comfort level per instrument drifts from the base as you rate sessions:
-// repeated "too easy" pushes it up, "tough" pulls it back.
-export function levelFor(inst, sessions) {
-  let lvl = INSTRUMENTS[inst].base;
-  for (const s of sessions) {
-    if (s.inst !== inst) continue;
-    if (s.rating === "easy") lvl = Math.min(5, lvl + 0.5);
-    else if (s.rating === "hard") lvl = Math.max(1, lvl - 0.5);
-  }
-  return Math.max(1, Math.min(5, Math.round(lvl)));
-}
-
 // Greedily pick items for one instrument to roughly fill a time budget,
-// favoring the learning edge, balancing a drill with a song, rotating
-// within the instrument, and spacing out repertoire.
+// balancing a drill with a song, rotating within the instrument, and
+// spacing out repertoire.
 // Library items that duplicate a track stage (seed `twin`), mapped both ways.
 // Read from SEED, not saved items, so existing libraries get it without a merge.
 const TWIN = {};
@@ -172,7 +142,6 @@ for (const s of SEED) if (s.twin) { TWIN[s.id] = s.twin; TWIN[s.twin] = s.id; }
 export function fillInstrument(inst, budget, data, today, relax) {
   const locked = trackLocks(data.items);
   const pool = data.items.filter((it) => it.inst === inst && !it.hidden && !locked.has(it.id) && (relax || it.last !== today));
-  const level = levelFor(inst, data.sessions);
   const out = [];
   let rem = budget;
   while (rem >= 5 && out.length < pool.length) {
@@ -181,8 +150,6 @@ export function fillInstrument(inst, budget, data, today, relax) {
       if (out.includes(it) || out.some((o) => TWIN[o.id] === it.id)) continue;
       const dsi = daysSince(it.last, today);
       let s = Math.min(dsi, 14) * 0.6; // rotate within the instrument
-      const gap = it.diff < level ? level - it.diff : it.diff > level + 1 ? it.diff - (level + 1) : 0;
-      s += gap === 0 ? 6 : -2.2 * gap; // sit at the learning edge
       const haveSong = out.some(isRep), haveTech = out.some((o) => !isRep(o));
       if (isRep(it) && !haveSong) s += 4;
       if (!isRep(it) && !haveTech) s += 3;
@@ -247,13 +214,10 @@ export function swapInSession(session, itemId, data) {
   const candidates = data.items.filter(
     (it) => it.inst === cur.inst && !it.hidden && !locked.has(it.id) && !inSession.has(it.id) && !inSession.has(TWIN[it.id]) && it.last !== today
   );
-  const level = levelFor(cur.inst, data.sessions);
   let best = null, bestScore = -1e9;
   for (const it of candidates) {
     const dsi = daysSince(it.last, today);
     let s = Math.min(dsi, 14) * 0.6;
-    const gap = it.diff < level ? level - it.diff : it.diff > level + 1 ? it.diff - (level + 1) : 0;
-    s += gap === 0 ? 6 : -2.2 * gap;
     if (it.rating === "easy") s -= 2.5;
     s += Math.random();
     if (s > bestScore) { bestScore = s; best = it; }

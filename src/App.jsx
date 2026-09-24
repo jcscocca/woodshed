@@ -4,7 +4,7 @@ import { getLesson } from "./lessons/index.js";
 import LessonSheet from "./LessonSheet.jsx";
 import { todayStr, addDays, prettyAgo } from "./dateUtils.js";
 import {
-  generateSession, swapInSession, streakInfo, weekCount, levelFor, lastByInstrument,
+  generateSession, swapInSession, streakInfo, weekCount, lastByInstrument,
   minutesByInst, minutesInLastDays, freshData, withDerivedStats, progressionProposals,
   trackStatus, mergeContent,
 } from "./engine.js";
@@ -187,13 +187,7 @@ export default function Woodshed() {
   const applyProposal = (p) =>
     setData((d) => ({
       ...d,
-      items: d.items.map((it) => {
-        if (it.id !== p.itemId) return it;
-        if (p.kind === "level-up") return { ...it, diff: Math.min(5, p.to) };
-        if (p.kind === "ease") return { ...it, diff: Math.max(1, p.to) };
-        if (p.kind === "graduate" || p.kind === "advance") return { ...it, mastered: true, hidden: true };
-        return it;
-      }),
+      items: d.items.map((it) => (it.id === p.itemId ? { ...it, mastered: true, hidden: true } : it)),
       progress: ackProposal(d, p),
     }));
   const dismissProposal = (p) => setData((d) => ({ ...d, progress: ackProposal(d, p) }));
@@ -630,12 +624,6 @@ function LogSheet({ session, itemById, lastTempo, coachResults = {}, onCancel, o
 /* ----------------------- progression proposals ----------------------- */
 function ProposalSheet({ proposals, onAccept, onDismiss, onClose }) {
   const dlgRef = useDialog(onClose);
-  const changeLabel = (p) =>
-    p.kind === "level-up" ? `Level ${p.from} → ${p.to}`
-    : p.kind === "ease" ? `Ease to level ${p.to}`
-    : p.kind === "advance" ? "Next stage →"
-    : "Rotate out";
-  const btnLabel = (p) => (p.kind === "graduate" ? "Rotate out" : p.kind === "advance" ? "Advance" : "Apply");
   return (
     <div className="ws-sheet-wrap" onClick={onClose}>
       <div className="ws-sheet" onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label="Practice suggestions" tabIndex={-1}>
@@ -650,12 +638,12 @@ function ProposalSheet({ proposals, onAccept, onDismiss, onClose }) {
             <div key={p.itemId + p.kind} className="ws-prop-card" style={{ "--accent": INSTRUMENTS[p.inst]?.color || "var(--gold)" }}>
               <div className="ws-prop-head">
                 <span className="ws-prop-title">{p.title}</span>
-                <span className="ws-prop-change">{changeLabel(p)}</span>
+                <span className="ws-prop-change">Next stage →</span>
               </div>
               <p className="ws-prop-reason">{p.reason}</p>
               <div className="ws-prop-actions">
                 <button className="ws-btn ghost sm" onClick={() => onDismiss(p)}>Not yet</button>
-                <button className="ws-btn primary sm" onClick={() => onAccept(p)}>{btnLabel(p)}</button>
+                <button className="ws-btn primary sm" onClick={() => onAccept(p)}>Advance</button>
               </div>
             </div>
           ))
@@ -831,7 +819,7 @@ function Progress({ data, live, streak, onEditSession }) {
           <div key={inst} className="ws-bar-row">
             <div className="ws-bar-head">
               <span className="ws-bar-name"><span className="ws-bar-swatch" style={{ background: INSTRUMENTS[inst].color }} />{INSTRUMENTS[inst].name}</span>
-              <span className="mono ws-bar-meta">lvl {levelFor(inst, data.sessions)} · {prettyAgo(lastBy[inst], today)}</span>
+              <span className="mono ws-bar-meta">{prettyAgo(lastBy[inst], today)}</span>
             </div>
             <div className="ws-bar-track">
               <div className="ws-bar-fill" style={{ width: `${(mins[inst] / maxMin) * 100}%`, background: INSTRUMENTS[inst].color }} />
