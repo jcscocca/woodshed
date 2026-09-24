@@ -155,8 +155,8 @@ export function levelFor(inst, sessions) {
   let lvl = INSTRUMENTS[inst].base;
   for (const s of sessions) {
     if (s.inst !== inst) continue;
-    if (s.rating === "easy") lvl += 0.5;
-    else if (s.rating === "hard") lvl -= 0.5;
+    if (s.rating === "easy") lvl = Math.min(5, lvl + 0.5);
+    else if (s.rating === "hard") lvl = Math.max(1, lvl - 0.5);
   }
   return Math.max(1, Math.min(5, Math.round(lvl)));
 }
@@ -205,15 +205,17 @@ export function generateSession(data) {
   const enabled = Object.keys(INSTRUMENTS).filter((i) => data.settings.enabled[i]);
   if (!enabled.length) return { date: today, items: [], completed: false };
 
+  const target = data.settings.target;
   const lastBy = lastByInstrument(data.sessions);
   const due = enabled
+    .filter((i) => fillInstrument(i, target, data, today, true).length) // skip instruments with nothing eligible
     .map((i) => ({ i, score: daysSince(lastBy[i], today) + Math.random() * 0.6 }))
     .sort((a, b) => b.score - a.score);
+  if (!due.length) return { date: today, items: [], completed: false };
 
   const primary = due[0].i;
-  const target = data.settings.target;
   const insts = [primary];
-  if (enabled.length >= 2 && target >= 18 && Math.random() < 0.6) insts.push(due[1].i);
+  if (due.length >= 2 && target >= 18 && Math.random() < 0.6) insts.push(due[1].i);
 
   let items = [];
   if (insts.length === 1) {
@@ -258,7 +260,10 @@ export function swapInSession(session, itemId, data) {
 // ---- stats ----
 // Forgiving streak: a single missed day (a rest day) is tolerated; the streak
 // only breaks after two or more consecutive missed days. Counts practiced days.
-const ordinal = (d) => Math.floor(new Date(d + "T00:00:00").getTime() / 86400000);
+const ordinal = (d) => {
+  const [y, m, day] = d.split("-").map(Number);
+  return Date.UTC(y, m - 1, day) / 86400000;
+};
 
 export function streakInfo(sessions) {
   const dates = [...new Set(sessions.map((s) => s.date))].sort();
@@ -271,7 +276,7 @@ export function streakInfo(sessions) {
   }
   longest = Math.max(longest, run);
   const lastGap = ordinal(todayStr()) - ords[ords.length - 1];
-  return { current: lastGap <= 1 ? run : 0, longest };
+  return { current: lastGap <= 2 ? run : 0, longest };
 }
 
 // Distinct days practiced in the current calendar week (Sun–Sat).

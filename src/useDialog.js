@@ -12,17 +12,20 @@ export function useDialog(onClose) {
   useEffect(() => {
     const node = ref.current;
     const prev = document.activeElement;
-    // Focus the panel container (tabIndex -1). The Tab-trap below engages once focus
-    // is on an interactive child; the first Tab moves from the container to it.
+    // Focus the panel container (tabIndex -1). From the container (or anywhere outside
+    // the panel), Tab goes to the first control and Shift+Tab to the last.
     if (node) node.focus();
     const onKey = (e) => {
       if (e.key === "Escape") { e.stopPropagation(); closeRef.current(); return; }
       if (e.key !== "Tab" || !node) return;
-      const f = node.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])');
+      const f = [...node.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')]
+        .filter((el) => el.getClientRects().length); // skip display:none / hidden controls
       if (!f.length) { e.preventDefault(); return; }
       const first = f[0], last = f[f.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      const active = document.activeElement;
+      const outside = active === node || !node.contains(active);
+      if (e.shiftKey && (active === first || outside)) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && (active === last || outside)) { e.preventDefault(); first.focus(); }
     };
     document.addEventListener("keydown", onKey, true);
     return () => { document.removeEventListener("keydown", onKey, true); if (prev && prev !== document.body && prev.focus) prev.focus(); };

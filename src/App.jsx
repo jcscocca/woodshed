@@ -37,7 +37,7 @@ const normalizeUrl = (raw) => {
 export default function Woodshed() {
   const [data, setData] = useState(null);
   const [view, setView] = useState("today");
-  const [logging, setLogging] = useState(false);
+  const [logging, setLogging] = useState(false);    // true = today's set, or { items } for one coached item
   const [showSettings, setShowSettings] = useState(false);
   const [practiceOpen, setPracticeOpen] = useState(false);
   const [listenOpen, setListenOpen] = useState(false);
@@ -47,6 +47,7 @@ export default function Woodshed() {
   const [showProposals, setShowProposals] = useState(false);
   const [lastTempo, setLastTempo] = useState(null);
   const [coachResults, setCoachResults] = useState({}); // itemId -> { accuracy, missed }
+  const [watch, setWatch] = useState({ startedAt: null, acc: 0 }); // stopwatch, kept while the practice sheet is closed
   const [saveError, setSaveError] = useState(false);
   const loaded = useRef(false);
   const remindedRef = useRef(null);
@@ -93,6 +94,20 @@ export default function Woodshed() {
     return () => clearInterval(id);
   }, [data && data.settings && data.settings.reminder, data && data.sessions]);
 
+  // An installed app can stay open across midnight; build the new day's set when it comes back.
+  useEffect(() => {
+    const roll = () => setData((d) => (d && d.currentSession?.date !== todayStr() ? { ...d, currentSession: gen(d) } : d));
+    const onVisible = () => { if (document.visibilityState === "visible") roll(); };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", roll);
+    const id = setInterval(roll, 60000);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", roll);
+      clearInterval(id);
+    };
+  }, []);
+
   if (!data) return <Shell><div className="ws-loading">Opening the woodshed…</div></Shell>;
 
   // item stats (last practiced, count, latest rating) are derived from the log
@@ -124,7 +139,7 @@ export default function Woodshed() {
           accuracy: e.accuracy ?? null, coached: e.accuracy != null, missed: e.missed ?? [],
         });
       }
-      return { ...d, sessions, currentSession: { ...d.currentSession, completed: true } };
+      return { ...d, sessions, currentSession: logging === true ? { ...d.currentSession, completed: true } : d.currentSession };
     });
     setCoachResults((m) => {
       const next = { ...m };
@@ -136,16 +151,25 @@ export default function Woodshed() {
 
   const recordCoachResult = (itemId, res) => setCoachResults((m) => ({ ...m, [itemId]: res }));
 
-  const updateSettings = (patch) => setData((d) => ({ ...d, settings: { ...d.settings, ...patch } }));
+  // session length and instruments shape today's set, so rebuild it unless it's already been logged
+  const rebuildIfOpen = (d) => (d.currentSession.completed ? d : { ...d, currentSession: gen(d) });
+  const updateSettings = (patch) => setData((d) => {
+    const next = { ...d, settings: { ...d.settings, ...patch } };
+    return "target" in patch && patch.target !== d.settings.target ? rebuildIfOpen(next) : next;
+  });
   const toggleInstrument = (inst) =>
-    setData((d) => ({ ...d, settings: { ...d.settings, enabled: { ...d.settings.enabled, [inst]: !d.settings.enabled[inst] } } }));
+    setData((d) => rebuildIfOpen({ ...d, settings: { ...d.settings, enabled: { ...d.settings.enabled, [inst]: !d.settings.enabled[inst] } } }));
 
   const addCustom = (fields) =>
     setData((d) => ({ ...d, items: [...d.items, { ...fields, id: `custom-${Date.now()}`, hidden: false, custom: true }] }));
   const saveItem = (id, fields) =>
     setData((d) => ({ ...d, items: d.items.map((it) => (it.id === id ? { ...it, ...fields } : it)) }));
   const deleteItem = (id) =>
-    setData((d) => ({ ...d, items: d.items.filter((it) => it.id !== id) }));
+    setData((d) => ({
+      ...d,
+      items: d.items.filter((it) => it.id !== id),
+      currentSession: { ...d.currentSession, items: d.currentSession.items.filter((x) => x.itemId !== id) },
+    }));
   const toggleHidden = (id) =>
     setData((d) => ({ ...d, items: d.items.map((it) => (it.id === id ? { ...it, hidden: !it.hidden, mastered: it.hidden ? false : it.mastered } : it)) }));
 
@@ -183,19 +207,19 @@ export default function Woodshed() {
   const reopenStage = (id) =>
     setData((d) => ({ ...d, items: d.items.map((it) => (it.id === id ? { ...it, mastered: false, hidden: false } : it)) }));
 
-  const resetAll = () => { setData(freshData()); setShowSettings(false); };
+  const resetAll = () => { const d = freshData(); d.currentSession = gen(d); setData(d); setShowSettings(false); };
 
   const exportData = () => {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url; a.download = `woodshed-backup-${todayStr()}.json`;
-    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 40000);
   };
-  const importData = (text) => {
+  const importData = (raw) => {
     try {
-      const parsed = migrate(JSON.parse(text));
-      if (!parsed || !parsed.items || !parsed.settings) return false;
+      const parsed = migrate(raw);
+      parsed.items = mergeContent(parsed.items);
       if (!parsed.currentSession || parsed.currentSession.date !== todayStr()) parsed.currentSession = gen(parsed);
       setData(parsed);
       return true;
@@ -249,8 +273,8 @@ export default function Woodshed() {
         ))}
       </nav>
 
-      {logging && <LogSheet session={session} itemById={itemById} lastTempo={lastTempo} coachResults={coachResults} onCancel={() => setLogging(false)} onCommit={commitLog} />}
-      {practiceOpen && <PracticeSheet initialInstrument={itemById(session.items[0]?.itemId)?.inst || "piano"} onClose={() => setPracticeOpen(false)} onTempo={setLastTempo} onOpenListen={() => { setPracticeOpen(false); setListenOpen(true); }} onSavePainting={saveLoomPainting} />}
+      {logging && <LogSheet session={logging === true ? session : logging} itemById={itemById} lastTempo={lastTempo} coachResults={coachResults} onCancel={() => setLogging(false)} onCommit={commitLog} />}
+      {practiceOpen && <PracticeSheet initialInstrument={itemById(session.items[0]?.itemId)?.inst || "piano"} watch={watch} onWatch={setWatch} onClose={() => setPracticeOpen(false)} onTempo={setLastTempo} onOpenListen={() => { setPracticeOpen(false); setListenOpen(true); }} onSavePainting={saveLoomPainting} />}
       {listenOpen && <ListenSheet onClose={() => setListenOpen(false)} onTempo={setLastTempo} />}
       {showProposals && (
         <ProposalSheet proposals={proposals} onAccept={applyProposal} onDismiss={dismissProposal} onClose={() => setShowProposals(false)} />
@@ -285,7 +309,11 @@ export default function Woodshed() {
           sessions={data.sessions.filter((s) => s.itemId === lessonFor.id)}
           onClose={() => setLessonFor(null)}
           onCoachResult={recordCoachResult}
-          onRequestLog={() => { setLessonFor(null); setLogging(true); }}
+          onRequestLog={() => {
+            const inSet = !session.completed && session.items.some((x) => x.itemId === lessonFor.id);
+            setLessonFor(null);
+            setLogging(inSet ? true : { items: [{ itemId: lessonFor.id, minutes: lessonFor.min }] });
+          }}
         />
       )}
     </Shell>
@@ -398,15 +426,15 @@ function Dots({ n }) {
 }
 
 /* ----------------------- practice tools (metronome + timer) ----------------------- */
-function PracticeSheet({ initialInstrument, onClose, onTempo, onOpenListen, onSavePainting }) {
+function PracticeSheet({ initialInstrument, watch, onWatch, onClose, onTempo, onOpenListen, onSavePainting }) {
   const m = useMetronome(90, 4);
-  const [sec, setSec] = useState(0);
-  const [running, setRunning] = useState(false);
+  const [, tick] = useState(0);
   const [loomOpen, setLoomOpen] = useState(false);
+  const running = watch.startedAt != null;
 
   useEffect(() => {
     if (!running) return;
-    const id = setInterval(() => setSec((s) => s + 1), 1000);
+    const id = setInterval(() => tick((n) => n + 1), 250);
     return () => clearInterval(id);
   }, [running]);
 
@@ -418,6 +446,7 @@ function PracticeSheet({ initialInstrument, onClose, onTempo, onOpenListen, onSa
     m.stop(); onClose();
   };
   const dlgRef = useDialog(close);
+  const sec = Math.floor((watch.acc + (running ? Date.now() - watch.startedAt : 0)) / 1000);
   const mm = String(Math.floor(sec / 60)).padStart(2, "0");
   const ss = String(sec % 60).padStart(2, "0");
 
@@ -462,8 +491,8 @@ function PracticeSheet({ initialInstrument, onClose, onTempo, onOpenListen, onSa
         <div className="ws-stop">
           <div className="ws-stop-time mono">{mm}:{ss}</div>
           <div className="ws-stop-row">
-            <button className="ws-btn ghost sm" onClick={() => setRunning((r) => !r)}>{running ? "Pause" : sec > 0 ? "Resume" : "Start"}</button>
-            <button className="ws-btn ghost sm" onClick={() => { setRunning(false); setSec(0); }}>Reset</button>
+            <button className="ws-btn ghost sm" onClick={() => onWatch(running ? { startedAt: null, acc: watch.acc + Date.now() - watch.startedAt } : { startedAt: Date.now(), acc: watch.acc })}>{running ? "Pause" : sec > 0 ? "Resume" : "Start"}</button>
+            <button className="ws-btn ghost sm" onClick={() => onWatch({ startedAt: null, acc: 0 })}>Reset</button>
           </div>
           <p className="ws-stop-note">Time your session here, then enter the minutes when you log.</p>
         </div>
@@ -539,7 +568,7 @@ function ListenSheet({ onClose, onTempo }) {
 
 /* ----------------------- log sheet ----------------------- */
 function LogSheet({ session, itemById, lastTempo, coachResults = {}, onCancel, onCommit }) {
-  const init = session.items.map((x) => {
+  const init = session.items.filter((x) => itemById(x.itemId)).map((x) => {
     const it = itemById(x.itemId);
     const c = coachResults[x.itemId];
     return { itemId: x.itemId, title: it?.title || "", inst: it?.inst || "piano", done: true, minutes: x.minutes, rating: "good", bpm: it?.lastBpm ?? null, accuracy: c?.accuracy ?? null, missed: c?.missed ?? [] };
@@ -692,7 +721,7 @@ function Tracks({ live, onComplete, onReopen, onLearn }) {
                     {st.status === "done" && (
                       <div className="ws-stage-actions">
                         {getLesson(st.id) && <button className="ws-stage-learn-link" onClick={() => onLearn({ ...st, inst: t.inst })}>◐ Lesson</button>}
-                        <button className="ws-stage-reopen" onClick={() => onReopen(st.id)}>reopen</button>
+                        <button className="ws-stage-reopen" onClick={() => onReopen(st.id)}>Reopen</button>
                       </div>
                     )}
                   </div>
@@ -767,6 +796,7 @@ function Progress({ data, live, streak, onEditSession }) {
     const day = data.sessions.filter((s) => s.date === d);
     return { d, mins: day.reduce((t, s) => t + s.minutes, 0), insts: [...new Set(day.map((s) => s.inst))] };
   });
+  const maxDay = Math.max(1, ...last14.map((day) => day.mins));
 
   if (!data.sessions.length)
     return <Empty title="No sessions yet" body="Your first practice will show up here — streak, minutes, and where each instrument stands." />;
@@ -777,7 +807,7 @@ function Progress({ data, live, streak, onEditSession }) {
 
       <div className="ws-stat-row">
         <Stat value={streak.current} unit={`day${streak.current === 1 ? "" : "s"}`} label="Current streak" />
-        <Stat value={week} unit="min" label="This week" />
+        <Stat value={week} unit="min" label="Last 7 days" />
         <Stat value={totalMin} unit="min" label="All time" />
       </div>
 
@@ -800,7 +830,7 @@ function Progress({ data, live, streak, onEditSession }) {
           {last14.map((day, i) => (
             <div key={i} className="ws-strip-col" title={`${day.d}: ${day.mins}m`}>
               <div className="ws-strip-bar" style={{
-                height: `${Math.min(100, (day.mins / Math.max(1, maxMin)) * 100)}%`,
+                height: `${Math.min(100, (day.mins / maxDay) * 100)}%`,
                 background: day.insts[0] ? INSTRUMENTS[day.insts[0]].color : "transparent",
                 opacity: day.mins ? 1 : 0.12,
               }} />
@@ -1033,8 +1063,10 @@ function SessionEdit({ session, itemById, onSave, onDelete, onClose }) {
 /* ----------------------- settings ----------------------- */
 function Settings({ settings, onChange, onToggle, onReset, onClose, onExport, onImport }) {
   const [confirm, setConfirm] = useState(false);
+  const [pending, setPending] = useState(null); // parsed backup awaiting confirmation
   const [msg, setMsg] = useState("");
   const [, force] = useState(0);
+  const fileRef = useRef(null);
   const dlgRef = useDialog(onClose);
   const lengths = [10, 15, 20, 30, 45];
   const goals = [3, 4, 5, 6, 7];
@@ -1060,9 +1092,19 @@ function Settings({ settings, onChange, onToggle, onReset, onClose, onExport, on
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => setMsg(onImport(String(reader.result)) ? "Data restored." : "Couldn't read that file.");
+    reader.onload = () => {
+      let raw = null;
+      try { raw = JSON.parse(String(reader.result)); } catch { /* not JSON */ }
+      if (Array.isArray(raw?.items) && Array.isArray(raw?.sessions)) { setPending(raw); setMsg(""); }
+      else setMsg("Couldn't read that file.");
+    };
     reader.readAsText(file);
     e.target.value = "";
+  };
+  const restore = () => {
+    const n = pending.sessions.length;
+    setMsg(onImport(pending) ? `Backup restored — ${n} session${n === 1 ? "" : "s"}.` : "Couldn't read that file.");
+    setPending(null);
   };
 
   return (
@@ -1128,9 +1170,18 @@ function Settings({ settings, onChange, onToggle, onReset, onClose, onExport, on
           <p className="ws-set-note">Saved on this device. Export to move it to another machine or keep a backup.</p>
           <div className="ws-data-row">
             <button className="ws-btn ghost sm" onClick={onExport}>Export backup</button>
-            <label className="ws-btn ghost sm ws-file-btn">Import<input type="file" accept="application/json" onChange={handleFile} hidden /></label>
+            <button className="ws-btn ghost sm" onClick={() => fileRef.current.click()}>Import</button>
+            <input ref={fileRef} type="file" accept="application/json" onChange={handleFile} hidden />
           </div>
-          {msg && <p className="ws-data-msg">{msg}</p>}
+          {pending ? (
+            <div className="ws-confirm" style={{ marginTop: 10 }}>
+              <span>Replace everything on this device with this backup ({pending.sessions.length} session{pending.sessions.length === 1 ? "" : "s"})?</span>
+              <div>
+                <button className="ws-btn ghost sm" onClick={() => setPending(null)}>Keep</button>
+                <button className="ws-btn danger sm" onClick={restore}>Replace</button>
+              </div>
+            </div>
+          ) : msg && <p className="ws-data-msg">{msg}</p>}
         </div>
 
         <div className="ws-set-block">
@@ -1138,7 +1189,7 @@ function Settings({ settings, onChange, onToggle, onReset, onClose, onExport, on
             <button className="ws-btn danger-ghost" onClick={() => setConfirm(true)}>Reset everything</button>
           ) : (
             <div className="ws-confirm">
-              <span>Erase all logs and custom items?</span>
+              <span>Erase everything — logs, custom exercises, edits, settings and Loom paintings? This can't be undone.</span>
               <div>
                 <button className="ws-btn ghost sm" onClick={() => setConfirm(false)}>Keep</button>
                 <button className="ws-btn danger sm" onClick={onReset}>Erase</button>
