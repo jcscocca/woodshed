@@ -93,6 +93,20 @@ export default function Woodshed() {
     return () => clearInterval(id);
   }, [data && data.settings && data.settings.reminder, data && data.sessions]);
 
+  // An installed app can stay open across midnight; build the new day's set when it comes back.
+  useEffect(() => {
+    const roll = () => setData((d) => (d && d.currentSession?.date !== todayStr() ? { ...d, currentSession: gen(d) } : d));
+    const onVisible = () => { if (document.visibilityState === "visible") roll(); };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", roll);
+    const id = setInterval(roll, 60000);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", roll);
+      clearInterval(id);
+    };
+  }, []);
+
   if (!data) return <Shell><div className="ws-loading">Opening the woodshed…</div></Shell>;
 
   // item stats (last practiced, count, latest rating) are derived from the log
