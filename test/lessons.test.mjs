@@ -61,6 +61,7 @@ const validateShape = (shape) => {
       assert.ok(WHITE.has(n.name), `keyboard note ${n.name} is not a natural — the Keyboard renderer only maps white keys`);
     }
     if (shape.fingers) assert.equal(shape.fingers.length, shape.notes.length, "keyboard fingers/notes length mismatch");
+    if (shape.hands != null) assert.equal(shape.hands, "together", `bad shape.hands ${shape.hands}`);
   }
 };
 

@@ -1,9 +1,16 @@
 import assert from "node:assert/strict";
 import { mulberry32, intervalLabel, generateRound, createEarSession, REPLAYS } from "../src/ear.js";
 import { midiToFreq } from "../src/audio/notes.js";
+import { SEED } from "../src/seed.js";
 
 let failures = 0;
 const test = (name, fn) => { try { fn(); console.log(`ok   ${name}`); } catch (e) { failures++; console.error(`FAIL ${name}\n     ${e.message}`); } };
+
+test("piano Echo items are seeded; guitar Echo stays off with the mic coach", () => {
+  const ids = new Set(SEED.map((s) => s.id));
+  assert.ok(ids.has("pno-ear-int") && ids.has("pno-ear-phr"), "piano Echo items missing from SEED");
+  assert.ok(!ids.has("gtr-ear-int") && !ids.has("gtr-ear-phr"), "guitar Echo items should not be seeded");
+});
 
 test("mulberry32: deterministic for a seed, values in [0,1)", () => {
   const a = mulberry32(42), b = mulberry32(42);

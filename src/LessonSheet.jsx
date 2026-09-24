@@ -34,7 +34,10 @@ export function LessonBody({ item, href, sessions = [], onCoachResult, onRequest
   const pianoShape = item.inst === "piano" && lesson && lesson.shape && lesson.shape.kind === "keyboard" ? lesson.shape : null;
   useEffect(() => {
     if (!pianoShape) return;
-    const targets = shapeToTargets(pianoShape).targets.map((t, i) => ({ midi: t.midi, finger: pianoShape.fingers ? pianoShape.fingers[i] : null }));
+    const shapeTargets = shapeToTargets(pianoShape).targets;
+    const targets = pianoShape.hands === "together"
+      ? shapeTargets.flatMap((t, i) => [{ midi: t.midis[0], finger: null }, { midi: t.midis[1], finger: pianoShape.fingers ? pianoShape.fingers[i] : null }])
+      : shapeTargets.map((t, i) => ({ midi: t.midi, finger: pianoShape.fingers ? pianoShape.fingers[i] : null }));
     const midis = targets.map((t) => t.midi);
     overlay.set({ targets, range: [Math.min(...midis), Math.max(...midis)], statuses: null, next: -1, readout: null, busy: false, hideTargets: false });
     return () => overlay.reset();

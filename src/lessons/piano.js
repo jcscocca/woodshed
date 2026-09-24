@@ -14,7 +14,7 @@ const fiveFinger = { kind: "keyboard",
 export default {
   "pno-scales": {
     summary: "Major scales hands together, two octaves — the C major scale and its thumb-under move shown here.",
-    shape: cMajorTwoOctaves, bpm: 80,
+    shape: { ...cMajorTwoOctaves, hands: "together" }, bpm: 80,
     steps: [
       "Right hand, two octaves up: 1-2-3, tuck the thumb under to F, 2-3-4, thumb under to C, 2-3, thumb under to F, then 2-3-4-5 to the top C.",
       "Hands together, two octaves, one note per click. Once C is smooth, G, D, A and E use the same fingering.",
@@ -109,7 +109,7 @@ export default {
   },
   "trk-pno-3": {
     summary: "One-octave C major scale hands together, watching the thumb-under.",
-    shape: cMajorScale, bpm: 80,
+    shape: { ...cMajorScale, hands: "together" }, bpm: 80,
     steps: [
       "Right hand up: 1-2-3, thumb under to F (1), then 2-3-4-5.",
       "Left hand up: 5-4-3-2-1, then 3 crosses over the thumb onto A, 2-1 to finish.",

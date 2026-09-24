@@ -64,7 +64,7 @@ export const ECHO_SEED = [
   { id: "gtr-ear-phr", inst: "guitar",    title: "Echo: short phrases", type: "ear", diff: 3, min: 8, desc: "Play back a short melodic phrase by ear. Sing it first if it helps — it does." },
 ];
 
-export const SEED = COACH_ENABLED ? [...LIBRARY, ...ECHO_SEED] : LIBRARY;
+export const SEED = COACH_ENABLED ? [...LIBRARY, ...ECHO_SEED] : [...LIBRARY, ...ECHO_SEED.filter((s) => s.inst === "piano")];
 
 // ============================================================
 // SKILL TRACKS — ordered progressions. Unlike the free-practice

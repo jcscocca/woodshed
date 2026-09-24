@@ -31,8 +31,8 @@ export function migrate(state) {
 
   // Defensive defaults so a partial or hand-edited file still loads.
   s.items = (s.items || []).map((it) => ({ hidden: false, ...it }));
-  // Echo items are off with the coach (src/features.js); their sessions stay.
-  if (!COACH_ENABLED) s.items = s.items.filter((it) => !ECHO_SEED.some((e) => e.id === it.id));
+  // Guitar Echo is off with the coach (src/features.js); piano Echo runs over MIDI.
+  if (!COACH_ENABLED) s.items = s.items.filter((it) => !ECHO_SEED.some((e) => e.id === it.id && e.inst !== "piano"));
   s.settings = {
     target: 20,
     weeklyGoal: 4,
