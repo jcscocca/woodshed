@@ -151,16 +151,25 @@ export default function Woodshed() {
 
   const recordCoachResult = (itemId, res) => setCoachResults((m) => ({ ...m, [itemId]: res }));
 
-  const updateSettings = (patch) => setData((d) => ({ ...d, settings: { ...d.settings, ...patch } }));
+  // session length and instruments shape today's set, so rebuild it unless it's already been logged
+  const rebuildIfOpen = (d) => (d.currentSession.completed ? d : { ...d, currentSession: gen(d) });
+  const updateSettings = (patch) => setData((d) => {
+    const next = { ...d, settings: { ...d.settings, ...patch } };
+    return "target" in patch && patch.target !== d.settings.target ? rebuildIfOpen(next) : next;
+  });
   const toggleInstrument = (inst) =>
-    setData((d) => ({ ...d, settings: { ...d.settings, enabled: { ...d.settings.enabled, [inst]: !d.settings.enabled[inst] } } }));
+    setData((d) => rebuildIfOpen({ ...d, settings: { ...d.settings, enabled: { ...d.settings.enabled, [inst]: !d.settings.enabled[inst] } } }));
 
   const addCustom = (fields) =>
     setData((d) => ({ ...d, items: [...d.items, { ...fields, id: `custom-${Date.now()}`, hidden: false, custom: true }] }));
   const saveItem = (id, fields) =>
     setData((d) => ({ ...d, items: d.items.map((it) => (it.id === id ? { ...it, ...fields } : it)) }));
   const deleteItem = (id) =>
-    setData((d) => ({ ...d, items: d.items.filter((it) => it.id !== id) }));
+    setData((d) => ({
+      ...d,
+      items: d.items.filter((it) => it.id !== id),
+      currentSession: { ...d.currentSession, items: d.currentSession.items.filter((x) => x.itemId !== id) },
+    }));
   const toggleHidden = (id) =>
     setData((d) => ({ ...d, items: d.items.map((it) => (it.id === id ? { ...it, hidden: !it.hidden, mastered: it.hidden ? false : it.mastered } : it)) }));
 
@@ -559,7 +568,7 @@ function ListenSheet({ onClose, onTempo }) {
 
 /* ----------------------- log sheet ----------------------- */
 function LogSheet({ session, itemById, lastTempo, coachResults = {}, onCancel, onCommit }) {
-  const init = session.items.map((x) => {
+  const init = session.items.filter((x) => itemById(x.itemId)).map((x) => {
     const it = itemById(x.itemId);
     const c = coachResults[x.itemId];
     return { itemId: x.itemId, title: it?.title || "", inst: it?.inst || "piano", done: true, minutes: x.minutes, rating: "good", bpm: it?.lastBpm ?? null, accuracy: c?.accuracy ?? null, missed: c?.missed ?? [] };

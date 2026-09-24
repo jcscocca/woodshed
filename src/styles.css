@@ -21,7 +21,7 @@ body{
 .ws-loading,.ws-empty{ padding:80px 8px; text-align:center; color:var(--muted); }
 
 /* header */
-.ws-head{ padding:22px 2px 16px; position:sticky; top:0; background:linear-gradient(var(--bg) 78%, transparent); z-index:5; }
+.ws-head{ padding:calc(22px + env(safe-area-inset-top)) 2px 16px; position:sticky; top:0; background:linear-gradient(var(--bg) 78%, transparent); z-index:5; }
 .ws-head-row{ display:flex; align-items:center; justify-content:space-between; }
 .ws-brand{ font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:22px; letter-spacing:-.02em; display:flex; align-items:center; gap:9px; }
 .ws-logo{ color:var(--gold); font-size:19px; }
