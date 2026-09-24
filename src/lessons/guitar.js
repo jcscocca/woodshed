@@ -40,7 +40,7 @@ export default {
     bpm: 70,
     steps: [
       "Hold G and strum all downstrokes in time: down, down, down, down.",
-      "Now keep the hand swinging down-up the whole time but only hit on: down, down-up, down.",
+      "Now swing the hand down-up through every count (1 & 2 & 3 & 4 &) but only hit the strings on: D on 1, D-U on 2&, D on 3, D-U on 4&.",
       "The hand never stops moving — the misses on the up-swing are what keep your time honest.",
     ],
     watch: ["Strum from the wrist, not the elbow.", "Relax your grip on the pick; a death-grip kills the groove."],
@@ -147,7 +147,7 @@ export default {
     shape: { kind: "chords", instrument: "guitar", chords: [G] },
     bpm: 70,
     steps: [
-      "Hold one chord. Keep the hand moving continuously: down-down-up-up-down-up.",
+      "Hold one chord. Keep the hand swinging down-up continuously and hit: D on 1, D-U on 2&, miss 3, U on 3&, D-U on 4&.",
       "Set a slow metronome and make the downbeats land exactly on the click.",
       "Only speed up once the pattern is even and locked.",
     ],
