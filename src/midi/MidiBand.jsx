@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useMidi, useOverlay } from "./MidiProvider.jsx";
 import { createKeyState } from "./midiModel.js";
-import { nameChord } from "./chords.js";
+import { nameChord, ROOTS } from "./chords.js";
 import { midiToNote } from "../audio/notes.js";
 
 // A0–C8: 52 white keys by percentage; a black key straddles its left white key's right edge.
@@ -12,7 +12,7 @@ for (let m = 21, w = 0; m <= 108; m++) {
   else KEYS.push({ m, black: false, left: w++ * W, width: W });
 }
 
-const noteNames = (notes, octave) => notes.map((m) => { const n = midiToNote(m); return octave ? `${n.name}${n.octave}` : n.name; });
+const noteNames = (notes, octave) => notes.map((m) => `${ROOTS[((m % 12) + 12) % 12]}${octave ? midiToNote(m).octave : ""}`);
 
 function Keys({ notes, held, ov }) {
   const mark = {};
@@ -52,6 +52,8 @@ export default function MidiBand() {
   const [held, setHeld] = useState([]);
   const connected = !!midi && midi.status === "connected";
   const subscribe = midi && midi.subscribe, setBandOpen = midi && midi.setBandOpen;
+  const open = connected && midi.bandOpen;
+  const chev = useRef(null), refocus = useRef(false);
 
   useEffect(() => {
     if (!connected) return;
@@ -62,12 +64,14 @@ export default function MidiBand() {
 
   useEffect(() => { if (connected) setBandOpen(true); }, [connected, setBandOpen]);
 
+  // the chevron is a different button open vs collapsed; keep focus on it across its own toggle
+  useEffect(() => { if (refocus.current && chev.current) chev.current.focus(); refocus.current = false; }, [open]);
+
   if (!midi || midi.status === "unsupported") return null;
-  const open = connected && midi.bandOpen;
   const notes = held.map((h) => h.note);
   const chord = nameChord(notes);
   const head = (ov.readout && ov.readout.head) || chord || noteNames(notes, true).join(" ") || "—";
-  const toggle = () => setBandOpen((o) => !o);
+  const toggle = (e) => { refocus.current = e.currentTarget === document.activeElement; setBandOpen((o) => !o); };
   const device = <span className="ws-midi-device"><span className="ws-midi-dot">●</span> {midi.deviceName}{open ? "" : ` · ${head} ·`}</span>;
   return (
     <div className={`ws-midi-band ${open ? "" : "collapsed"}`}>
@@ -80,14 +84,14 @@ export default function MidiBand() {
             <div className="ws-midi-row">
               <button className="ws-btn ghost sm" onClick={midi.playLastTake}>▶ Play back</button>
               {device}
-              <button className="ws-x" onClick={toggle} aria-label="Hide keyboard" aria-expanded="true">⌄</button>
+              <button className="ws-x" ref={chev} onClick={toggle} aria-label="Hide keyboard" aria-expanded="true">⌄</button>
             </div>
           </>
         ) : connected ? (
           <>
             {device}
             <button className="ws-x" onClick={midi.playLastTake} aria-label="Play back">▶</button>
-            <button className="ws-x" onClick={toggle} aria-label="Show keyboard" aria-expanded="false">⌃</button>
+            <button className="ws-x" ref={chev} onClick={toggle} aria-label="Show keyboard" aria-expanded="false">⌃</button>
           </>
         ) : midi.status === "disconnected" ? (
           <span className="ws-midi-off">○ Keyboard disconnected</span>
