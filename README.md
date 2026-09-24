@@ -28,6 +28,22 @@ browser.
 
 ---
 
+## On the desktop
+
+At 1024px and wider Woodshed switches to a three-pane layout: the views in a
+sidebar, today's set (or Tracks, Library, Progress) in the middle, and a
+practice rail on the right — metronome and stopwatch always there, with the
+open lesson or the tuner beneath them. Narrower windows get the phone layout.
+
+**Install it:** open https://jcscocca.github.io/woodshed/ in Chrome or Edge and
+choose *Install app* (address bar icon or the ⋮ menu). It gets its own window,
+works offline, and updates itself when a new version is pushed.
+
+**Keyboard:** Space metronome · T tap tempo · ←/→ tempo (Shift ±10) ·
+S stopwatch · 1–4 views · L log · Esc close · ? the full list.
+
+---
+
 ## Run it
 
 You'll need [Node.js](https://nodejs.org) 18 or newer.
@@ -58,6 +74,9 @@ npm run preview  # serve the built site locally to check it
 - **Static hosts** — drag `dist/` onto Netlify / Vercel / Cloudflare Pages, or
   push to GitHub Pages. (`base: "./"` in `vite.config.js` means it works from a
   subpath too.)
+- **GitHub Pages, automatically** — `.github/workflows/pages.yml` builds and
+  deploys on every push to `main`, gated on `npm test` passing first. Install
+  URL: https://jcscocca.github.io/woodshed/
 - **Your own machine** — serve `dist/` from nginx, Caddy, or even
   `npx serve dist`. Running it on an always-on box on your LAN means every
   device can reach the same URL (though each browser still keeps its own data —
@@ -95,10 +114,19 @@ The code is split so the parts you'll want to change are easy to find:
 | `src/storage.js` | The only file that knows where data is saved. Swap for a backend here. Includes a `migrate()` step so old saved data upgrades cleanly when the shape changes. |
 | `src/features.js` | Feature flags. `COACH_ENABLED` switches the pitch coach and Echo ear training on or off (off for now — see *Direction*). |
 | `src/useMetronome.js` | The Web Audio metronome (accurate lookahead scheduler, tap tempo, accent on beat 1). |
+| `src/stopwatch.js` | Pure stopwatch state (`{ startedAt, acc }`) — reads elapsed time from the clock, so it survives hidden tabs and unmounts. |
+| `src/PracticeProvider.jsx` | Owns the metronome and stopwatch above the layout switch, so they keep running across view changes and a resize; exposes them via `usePractice()`. |
+| `src/PracticeTools.jsx` | The metronome + stopwatch UI (beat dots, BPM, tap, start/stop/reset), shared by the phone sheet and the desktop rail. |
+| `src/PracticeSheet.jsx` | The phone bottom sheets: practice tools and the tuner (`ListenPanel`, the tuner body the rail also renders). |
+| `src/PracticeRail.jsx` | The desktop rail — `PracticeTools` plus a slot for the open lesson or tuner. |
+| `src/Sidebar.jsx` | The desktop sidebar — brand, streak, view nav, Settings. |
+| `src/useIsDesktop.js` | `matchMedia("(min-width: 1024px)")` hook that picks phone vs. desktop layout live. |
+| `src/shortcuts.js` + `src/useShortcuts.js` | Desktop keyboard shortcuts — a pure `actionFor(event, ctx)` and the `keydown` listener that dispatches it. |
+| `src/ShortcutHelp.jsx` | The `?` dialog listing every shortcut. |
 | `src/useListener.js` + `src/audio/dsp.js` | The microphone **tuner (beta)** — a thin browser shell over pure, headlessly-tested pitch detection. |
 | `src/coach.js`, `src/useCoach.js`, `src/CoachPanel.jsx`, `src/ear.js`, `src/EarPanel.jsx`, `src/lessons/ear.js` | The **pitch coach** and **Echo** ear training. Disabled behind `COACH_ENABLED`; the code and its tests are kept. |
 | `src/styles.css` | All styling and the color palette (CSS variables at the top). |
-| `src/App.jsx` | The UI — Today / Tracks / Library / Progress, the practice tools (metronome, stopwatch, tuner), the analytics, and all the editing sheets. |
+| `src/App.jsx` | The views (Today / Tracks / Library / Progress), the dialogs, and the switch between the phone and desktop layouts. |
 | `test/` | The suites `npm test` runs (DSP smoke, lessons schema, coach, ear, engine), plus the real-audio suite in `test/audio/`. |
 | `archive/` | Bass and accordion content and the accordion pitch detector, out of the build. See `archive/README.md`. |
 | `docs/DIRECTION.md` | The current product direction. |
