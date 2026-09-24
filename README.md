@@ -63,12 +63,31 @@ bar.
 Open a piano lesson and the band outlines its notes with their finger numbers,
 standing in for the lesson's small keyboard diagram while the band is open.
 
-**K** shows/hides the band, **P** plays back — both do nothing until a
-keyboard is connected.
+With the keyboard connected, any piano lesson that has notes offers **Coach
+me**, graded exactly against what you played: single-note lines note by note,
+the rolled-chord lesson in the order you strike it, and the two scale lessons
+(Major scales, and the track's one-octave scale stage) hands together, each
+right-hand note paired with its left-hand octave. The band outlines the
+targets and pulses the next one, coloring hits and misses as you go; the
+readout shows the next note and how many are done; a run ends on its own once
+every note is graded. The summary adds a timing note and a touch note (how
+evenly hard you played — per hand, for the hands-together lessons), neither
+scored. Accuracy logs as always and feeds the accuracy trend and the "ready
+for the next stage" check. Without a keyboard, piano lessons show **Connect
+your keyboard to coach this** (or **Keyboard disconnected…** after an
+unplug) where Coach me would be — piano coaching never falls back to the mic.
 
-Piano only (guitar is unchanged), desktop layout only. The app never plays
-your live notes through the speakers — the piano already makes its own sound;
-app audio stays limited to lesson demos and Play back.
+**Echo** ear training (intervals and short phrases) is back for piano over
+MIDI the same way — the band stays dark while a prompt plays, so it can't
+give the answer away, then lights up on reveal.
+
+**K** shows/hides the band, **P** plays back, **C** starts/stops coaching the
+open lesson — all three do nothing until a keyboard is connected.
+
+Piano only — guitar coaching and Echo stay off, unchanged — desktop layout
+only. The app never plays your live notes through the speakers — the piano
+already makes its own sound; app audio stays limited to lesson demos and Play
+back.
 
 ---
 
@@ -140,7 +159,7 @@ The code is split so the parts you'll want to change are easy to find:
 | `src/lessons/` | Hand-authored lesson content (`piano.js`, `guitar.js`), keyed by exercise id. `src/diagrams.jsx` draws the shapes; `src/lessonAudio.js` + `src/audio/notes.js` play them; `src/LessonSheet.jsx` is the sheet. |
 | `src/engine.js` | The session-building algorithm, the "ready for the next stage" suggestion, the **track** lock/unlock logic, and the stats. All pure functions. Practice stats (last played, count, latest rating, last tempo) are *derived* from the session log, so editing or deleting a session keeps everything consistent. |
 | `src/storage.js` | The only file that knows where data is saved. Swap for a backend here. Includes a `migrate()` step so old saved data upgrades cleanly when the shape changes. |
-| `src/features.js` | Feature flags. `COACH_ENABLED` switches the pitch coach and Echo ear training on or off (off for now — see *Direction*). |
+| `src/features.js` | Feature flags. `COACH_ENABLED` switches the **mic**-based pitch coach and guitar Echo on or off (off for now — see *Direction*). Piano coaching and Echo run over MIDI regardless, in `src/midi/`. |
 | `src/useMetronome.js` | The Web Audio metronome (accurate lookahead scheduler, tap tempo, accent on beat 1). |
 | `src/stopwatch.js` | Pure stopwatch state (`{ startedAt, acc }`) — reads elapsed time from the clock, so it survives hidden tabs and unmounts. |
 | `src/PracticeProvider.jsx` | Owns the metronome and stopwatch above the layout switch, so they keep running across view changes and a resize; exposes them via `usePractice()`. |
@@ -152,7 +171,7 @@ The code is split so the parts you'll want to change are easy to find:
 | `src/shortcuts.js` + `src/useShortcuts.js` | Desktop keyboard shortcuts — a pure `actionFor(event, ctx)` and the `keydown` listener that dispatches it. |
 | `src/ShortcutHelp.jsx` | The `?` dialog listing every shortcut. |
 | `src/useListener.js` + `src/audio/dsp.js` | The microphone **tuner (beta)** — a thin browser shell over pure, headlessly-tested pitch detection. |
-| `src/coach.js`, `src/useCoach.js`, `src/CoachPanel.jsx`, `src/ear.js`, `src/EarPanel.jsx`, `src/lessons/ear.js` | The **pitch coach** and **Echo** ear training. Disabled behind `COACH_ENABLED`; the code and its tests are kept. |
+| `src/coach.js`, `src/useCoach.js`, `src/CoachPanel.jsx`, `src/ear.js`, `src/EarPanel.jsx`, `src/lessons/ear.js` | The **pitch coach** and **Echo** ear training — grading, sessions and the shared panels. Live for piano over MIDI (`src/midi/useMidiCoach.js` feeds them from the keyboard); the mic path (`useCoach.js`) stays behind `COACH_ENABLED`, off for guitar. |
 | `src/midi/midiModel.js` | Pure MIDI parsing (node-tested) — raw bytes to note on/off/pedal, held-key state (pedal never counts as held), chord grouping, and the take buffer behind Play back. |
 | `src/midi/chords.js` | Names the chord you're holding — triads, sixths, sevenths, shell voicings and slash chords — from the pitch classes alone. |
 | `src/midi/connection.js` | The one MIDI connection, pure: works against the browser's MIDIAccess or a fake, first-connect plus silent reconnect, follows plug/unplug. |
@@ -231,11 +250,13 @@ the builder tries to pair one of each.
 
 [docs/DIRECTION.md](docs/DIRECTION.md) is the current plan. In short:
 
-- **The desktop layout is done** (see *On the desktop* above). **Next: piano
-  over USB-MIDI** (piano only), then deeper piano and guitar content.
-- **Pitch coach and Echo** are disabled pending a rethink — whether they come
-  back piano-first over MIDI, and what's worth keeping on guitar. The code stays
-  behind `COACH_ENABLED` in `src/features.js`.
+- **The desktop layout is done** (see *On the desktop* above). **Piano over
+  USB-MIDI is done too** (see *Piano over MIDI* above) — including coaching and
+  Echo, piano-only. **Next: deeper piano and guitar content.**
+- **Pitch coach and Echo** are back for piano, exact, over MIDI. On guitar
+  they're still disabled pending a rethink — what's worth keeping on the mic.
+  The mic path and guitar Echo stay behind `COACH_ENABLED` in
+  `src/features.js`.
 - **Bass and accordion** are archived in `archive/`; the last four-instrument
   version is at git tag `four-instruments`.
 - **Parked:** the Android/Capacitor app, local-model exercise generation,

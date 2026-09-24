@@ -42,12 +42,20 @@ the bass/accordion items and sessions — export first if that history matters.
 Disabled because mic grading proved fragile (the review found a chord-scoring
 cascade, double-counted notes, mic leaks and a too-narrow octave window — all
 since fixed) and because it only covers lessons with a diagram: 5 on piano,
-13 on guitar. The rethink should answer:
+13 on guitar. The rethink asked three questions; the piano one is decided, the
+guitar ones stay open:
 
-1. Does the coach come back **piano-first over MIDI**, where grading is exact
-   and chords work as played?
-2. Is mic grading for **guitar** worth keeping, and for which lesson kinds?
-3. Does **Echo** return over MIDI, and on guitar at all?
+1. **Decided, piano:** the coach is back **piano-first over MIDI** (its own
+   spec, `docs/superpowers/specs/2026-09-24-piano-midi-design.md`). Grading is
+   exact — MIDI pitch needs no stabilizer — and chords work as played: rolled
+   chords grade in order, and the two hands-together scale lessons grade each
+   pair of hands as a chord. Mic grading stays off for piano; there's no
+   fallback. `COACH_ENABLED` (mic) stays `false` throughout.
+2. **Open:** is mic grading for **guitar** worth keeping, and for which lesson
+   kinds?
+3. **Decided, piano; open, guitar:** **Echo** returns over MIDI for piano
+   (intervals and short phrases, band dark during the prompt). Whether it
+   returns on guitar at all is still open.
 
 The review's coach fixes are merged, so the code is correct when re-enabled.
 
@@ -70,5 +78,5 @@ cross-device sync. Specs stay in `docs/` for reference.
 2. Cuts, archive, and the coach/Echo disable flag.
 3. Desktop layout — spec → plan → build.
 4. Piano over MIDI — spec → plan → build (piano-only; the coach rethink for
-   piano happens here).
+   piano happens here). **Done.**
 5. Content — deepen piano and guitar tracks and lessons.
