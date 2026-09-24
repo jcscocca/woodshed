@@ -104,9 +104,9 @@ export default function CoachPanel({ item, lesson, sessions = [], onLog, source 
 
   const band = r.accuracy >= 90 ? "Clean run" : r.accuracy >= 60 ? "Solid run — a couple to clean up" : "Keep at it — this one needs reps";
   const cur = r.cursor;
-  // a missed pair names the note that was missed (a clean skip carries none)
-  const slip = mode === "chords" && r.results[cur - 1];
-  const diff = slip && [["missing", slip.missing], ["extra", slip.extra]].filter(([, ms]) => ms && ms.length).map(([k, ms]) => `${k} ${noteNames(ms)}`).join(" · ");
+  // the latest missed pair names the note that was missed
+  const slip = mode === "chords" && r.results.findLast((x) => x.status === "missed");
+  const diff = slip && `missing ${noteNames(slip.missing)}`;
 
   return (
     <div className="ws-coach" aria-live="polite">
