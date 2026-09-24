@@ -18,7 +18,7 @@ export default {
     steps: [
       "Right hand, two octaves up: 1-2-3, tuck the thumb under to F, 2-3-4, thumb under to C, 2-3, thumb under to F, then 2-3-4-5 to the top C.",
       "Hands together, two octaves, one note per click. Once C is smooth, G, D, A and E use the same fingering.",
-      "Listen for even tone — no note louder than its neighbours.",
+      "Listen for even tone — no note louder than its neighbors.",
     ],
     watch: ["Keep the wrist level and relaxed; the thumb-under should be silent and smooth."],
   },
@@ -53,13 +53,14 @@ export default {
       "Join the hands at half speed, then nudge the tempo up only when it's clean.",
       "End by playing the section in context, from a bar before to a bar after.",
     ],
-    watch: ["Practising the whole piece top-to-bottom hides the hard bar. Isolate it."],
+    watch: ["Practicing the whole piece top-to-bottom hides the hard bar. Isolate it."],
   },
   "pno-voicings": {
-    summary: "Comp a lead sheet with shell or rootless voicings instead of plain block triads.",
+    summary: "Comp (accompany) a lead sheet with shell voicings instead of plain block triads.",
     shape: null, prescribe: "Lead sheet · shell voicings (root–3rd–7th) · comp the changes in time", bpm: null,
     steps: [
       "Take a tune's chord symbols. For each, play just the root, 3rd and 7th — the shell.",
+      "ii–V–I in C: Dm7 D–F–C, G7 G–F–B, Cmaj7 C–E–B — thirds and sevenths hold or move a half step.",
       "Keep the voicings close; let the top notes move smoothly chord to chord.",
       "Comp in rhythm against a metronome or backing track.",
     ],
@@ -115,7 +116,7 @@ export default {
       "Hands together, the right thumb goes under at F while the left 3 crosses at A — slow that bar down.",
       "One note per click, even and unhurried.",
     ],
-    watch: ["The thumb-under is where it gets bumpy — practise just that move."],
+    watch: ["The thumb-under is where it gets bumpy — practice just that move."],
   },
   "trk-pno-4": {
     summary: "Right-hand melody over left-hand block chords — keep the tune singing above.",

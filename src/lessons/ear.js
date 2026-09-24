@@ -37,10 +37,10 @@ const phrases = (instLine, range) => ({
 });
 
 export default {
-  "pno-ear-int": intervals("Find them anywhere on the keyboard — prompts live around middle C.", [60, 79]),
-  "pno-ear-phr": phrases("Phrases sit around middle C and stay in one key.", [60, 79]),
+  "pno-ear-int": intervals("Find them anywhere on the keyboard — prompts start at middle C and go up.", [60, 79]),
+  "pno-ear-phr": phrases("Phrases start at middle C and go up, staying in one key.", [60, 79]),
   "gtr-ear-int": intervals("One string or across strings — whatever your hands find first.", [52, 71]),
-  "gtr-ear-phr": phrases("Phrases sit mid-neck; stay in position and let your ear steer.", [52, 71]),
+  "gtr-ear-phr": phrases("Phrases sit between open position and the 7th fret; stay in position and let your ear steer.", [52, 71]),
   "bs-ear-int":  intervals("Anywhere on the neck — low positions are fine.", [40, 59]),
   "bs-ear-phr":  phrases("Phrases sit above open E, in classic line territory.", [40, 59]),
   "acc-ear-int": intervals("Right hand only; keep the bellows gentle and steady.", [57, 81]),

@@ -39,9 +39,9 @@ export const SEED = [
   { id: "pno-sight",    inst: "piano", title: "Sight-reading",                       type: "sight",     diff: 3, min: 8,  desc: "Read through a piece you've never played, slowly, hands together. Don't stop to fix mistakes — keep the pulse." },
   { id: "pno-hanon",    inst: "piano", title: "Finger independence (Hanon)",         type: "technique", diff: 3, min: 6,  desc: "One Hanon exercise or 5-finger pattern through all positions, slow and even. Relaxed wrists." },
   { id: "pno-piece",    inst: "piano", title: "Your current piece",                  type: "song",      diff: 4, min: 12, desc: "Work the hardest section. Hands separate first, then together, slower than feels necessary." },
-  { id: "pno-voicings", inst: "piano", title: "Comping from a lead sheet",           type: "technique", diff: 3, min: 10, desc: "Take a pop or jazz lead sheet and comp the changes with shell or rootless voicings." },
-  { id: "pno-improv",   inst: "piano", title: "Improvise over a progression",        type: "creative",  diff: 4, min: 8,  desc: "Loop a ii-V-I or I-V-vi-IV and improvise a right-hand melody. Leave space." },
-  { id: "pno-ear",      inst: "piano", title: "Transcribe by ear",                   type: "ear",       diff: 3, min: 8,  desc: "Pick a short melody and figure it out by ear - no sheet music." },
+  { id: "pno-voicings", inst: "piano", title: "Comping from a lead sheet",           type: "technique", diff: 3, min: 10, desc: "Take a pop or jazz lead sheet and comp (accompany) the changes with shell voicings." },
+  { id: "pno-improv",   inst: "piano", title: "Improvise over a progression",        type: "creative",  diff: 4, min: 8,  desc: "Loop a ii–V–I or I–V–vi–IV and improvise a right-hand melody. Leave space." },
+  { id: "pno-ear",      inst: "piano", title: "Transcribe by ear",                   type: "ear",       diff: 3, min: 8,  desc: "Pick a short melody and figure it out by ear — no sheet music." },
 
   // ---------- GUITAR ----------
   { id: "gtr-open",    inst: "guitar", title: "Open chords",              type: "technique", diff: 1, min: 6,  desc: "Cycle E, A, D, G, C. Press just behind the fret; check every string rings clean." },
