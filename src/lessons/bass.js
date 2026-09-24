@@ -2,6 +2,8 @@
 const cMajorOneOctave = { kind: "fretboard", instrument: "bass", baseFret: 2, dots: [
   { string: 1, fret: 3 }, { string: 1, fret: 5 }, { string: 2, fret: 2 }, { string: 2, fret: 3 },
   { string: 2, fret: 5 }, { string: 3, fret: 2 }, { string: 3, fret: 4 }, { string: 3, fret: 5 },
+  { string: 3, fret: 4 }, { string: 3, fret: 2 }, { string: 2, fret: 5 }, { string: 2, fret: 3 },
+  { string: 2, fret: 2 }, { string: 1, fret: 5 }, { string: 1, fret: 3 },
 ] };
 
 export default {
@@ -40,6 +42,8 @@ export default {
     shape: { kind: "fretboard", instrument: "bass", baseFret: 5, dots: [
       { string: 0, fret: 5 }, { string: 0, fret: 8 }, { string: 1, fret: 5 }, { string: 1, fret: 7 },
       { string: 2, fret: 5 }, { string: 2, fret: 7 }, { string: 3, fret: 5 }, { string: 3, fret: 7 },
+      { string: 3, fret: 5 }, { string: 2, fret: 7 }, { string: 2, fret: 5 }, { string: 1, fret: 7 },
+      { string: 1, fret: 5 }, { string: 0, fret: 8 }, { string: 0, fret: 5 },
     ] },
     bpm: 70,
     steps: [

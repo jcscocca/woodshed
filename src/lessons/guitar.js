@@ -63,6 +63,9 @@ export default {
       { string: 0, fret: 5 }, { string: 0, fret: 8 }, { string: 1, fret: 5 }, { string: 1, fret: 7 },
       { string: 2, fret: 5 }, { string: 2, fret: 7 }, { string: 3, fret: 5 }, { string: 3, fret: 7 },
       { string: 4, fret: 5 }, { string: 4, fret: 8 }, { string: 5, fret: 5 }, { string: 5, fret: 8 },
+      { string: 5, fret: 5 }, { string: 4, fret: 8 }, { string: 4, fret: 5 }, { string: 3, fret: 7 },
+      { string: 3, fret: 5 }, { string: 2, fret: 7 }, { string: 2, fret: 5 }, { string: 1, fret: 7 },
+      { string: 1, fret: 5 }, { string: 0, fret: 8 }, { string: 0, fret: 5 },
     ] },
     bpm: 70,
     steps: [

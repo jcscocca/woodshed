@@ -7,8 +7,9 @@ const cMajorTwoOctaves = { kind: "keyboard",
     { name: "C", octave: 5 }, { name: "D", octave: 5 }, { name: "E", octave: 5 }, { name: "F", octave: 5 }, { name: "G", octave: 5 }, { name: "A", octave: 5 }, { name: "B", octave: 5 }, { name: "C", octave: 6 }],
   fingers: [1, 2, 3, 1, 2, 3, 4, 1, 2, 3, 1, 2, 3, 4, 5] };
 const fiveFinger = { kind: "keyboard",
-  notes: [{ name: "C", octave: 4 }, { name: "D", octave: 4 }, { name: "E", octave: 4 }, { name: "F", octave: 4 }, { name: "G", octave: 4 }],
-  fingers: [1, 2, 3, 4, 5] };
+  notes: [{ name: "C", octave: 4 }, { name: "D", octave: 4 }, { name: "E", octave: 4 }, { name: "F", octave: 4 }, { name: "G", octave: 4 },
+    { name: "F", octave: 4 }, { name: "E", octave: 4 }, { name: "D", octave: 4 }, { name: "C", octave: 4 }],
+  fingers: [1, 2, 3, 4, 5, 4, 3, 2, 1] };
 
 export default {
   "pno-scales": {

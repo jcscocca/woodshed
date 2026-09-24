@@ -116,6 +116,17 @@ test("flat chords spell their notes as flats (Bb chord -> Bb F Bb D F)", () => {
   assert.deepEqual(bb, ["Bb2", "F3", "Bb3", "D4", "F4"]);
 });
 
+// A legato repeat of the same pitch never re-confirms in the coach's note
+// stream (see src/ear.js), so an up-and-down line must not repeat its top note.
+test("line shapes never repeat a note back to back", () => {
+  for (const [id, L] of Object.entries(LESSONS)) {
+    if (!L.shape) continue;
+    const { mode, targets } = shapeToTargets(L.shape);
+    if (mode !== "line") continue;
+    for (let i = 1; i < targets.length; i++) assert.notEqual(targets[i].midi, targets[i - 1].midi, `${id}: repeated ${targets[i].label}${targets[i].octave} at ${i}`);
+  }
+});
+
 test("lesson copy is plain text — no markdown asterisks", () => {
   for (const [id, L] of Object.entries(LESSONS))
     for (const s of [L.summary, ...L.steps, ...L.watch]) assert.ok(!s.includes("*"), `${id}: "*" renders literally in "${s}"`);
