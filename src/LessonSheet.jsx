@@ -8,6 +8,7 @@ import { INSTRUMENTS, TYPE_LABEL } from "./seed.js";
 import CoachPanel from "./CoachPanel.jsx";
 import EarPanel from "./EarPanel.jsx";
 import { isCoachable } from "./audio/notes.js";
+import { COACH_ENABLED } from "./features.js";
 
 function ShapeView({ shape }) {
   if (!shape) return null;
@@ -60,7 +61,7 @@ export default function LessonSheet({ item, href, onClose, sessions = [], onCoac
 
         <ShapeView shape={lesson.shape} />
 
-        {isCoachable(item, lesson) && onCoachResult && onRequestLog && (
+        {COACH_ENABLED && isCoachable(item, lesson) && onCoachResult && onRequestLog && (
           <CoachPanel
             item={item}
             lesson={lesson}
@@ -69,7 +70,7 @@ export default function LessonSheet({ item, href, onClose, sessions = [], onCoac
           />
         )}
 
-        {lesson.ear && onCoachResult && onRequestLog && (
+        {COACH_ENABLED && lesson.ear && onCoachResult && onRequestLog && (
           <EarPanel
             item={item}
             lesson={lesson}

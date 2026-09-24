@@ -28,9 +28,9 @@ test("shapeToVoices: keyboard yields one voice per note", () => {
 // --- schema section appended in Task 2 ---
 
 import { LESSONS } from "../src/lessons/index.js";
-import { SEED, trackItems } from "../src/seed.js";
+import { SEED, ECHO_SEED, trackItems } from "../src/seed.js";
 
-const validIds = new Set([...SEED.map((s) => s.id), ...trackItems().map((s) => s.id)]);
+const validIds = new Set([...SEED.map((s) => s.id), ...ECHO_SEED.map((s) => s.id), ...trackItems().map((s) => s.id)]);
 const STRINGS = { guitar: 6, bass: 4 };
 const WHITE = new Set(["C", "D", "E", "F", "G", "A", "B"]);
 // Renderer windows (src/diagrams.jsx): ChordDiagram draws nut + 4 frets;

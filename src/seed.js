@@ -1,6 +1,6 @@
 // ============================================================
 // Instruments, identity colors, and the starter exercise library.
-// To add your own exercises permanently, append to SEED below
+// To add your own exercises permanently, append to LIBRARY below
 // (or use the in-app "+ Add" button, which stores them in your
 // browser). Each item:
 //   inst:  piano | guitar | bass | accordion
@@ -10,6 +10,8 @@
 //   twin:  optional track-stage id with the same content; a daily set
 //          never holds both (see fillInstrument in engine.js)
 // ============================================================
+
+import { COACH_ENABLED } from "./features.js";
 
 export const INSTRUMENTS = {
   piano:     { name: "Piano",     color: "var(--piano)" },
@@ -33,7 +35,7 @@ export const FELT = [
   { key: "hard", label: "Tough" },
 ];
 
-export const SEED = [
+const LIBRARY = [
   // ---------- PIANO ----------
   { id: "pno-scales",   inst: "piano", title: "Major scales, hands together",        type: "technique", diff: 3, min: 8,  desc: "Run major scales hands together, two octaves, starting in C. Aim for even tone and a steady metronome." },
   { id: "pno-sight",    inst: "piano", title: "Sight-reading",                       type: "sight",     diff: 3, min: 8,  desc: "Read through a piece you've never played, slowly, hands together. Don't stop to fix mistakes — keep the pulse." },
@@ -72,8 +74,11 @@ export const SEED = [
   { id: "acc-both",    inst: "accordion", title: "Coordinate both hands",      type: "song",      diff: 3, min: 10, desc: "Simple song: melody right, oom-pah left. Hands separate first, then together.", twin: "trk-acc-4" },
   { id: "acc-scales",  inst: "accordion", title: "Right-hand scales",          type: "technique", diff: 2, min: 5,  desc: "A major scale on the keyboard side; keep the bellows even the whole way." },
   { id: "acc-folk",    inst: "accordion", title: "Learn a folk tune",          type: "song",      diff: 3, min: 10, desc: "A short folk melody with simple left-hand accompaniment, phrase by phrase." },
+];
 
-  // ---------- EAR TRAINING (echo rounds — graded; see src/ear.js) ----------
+// ---------- EAR TRAINING (echo rounds — graded; see src/ear.js) ----------
+// Off with the pitch coach (src/features.js): fresh installs and merges skip them.
+export const ECHO_SEED = [
   { id: "pno-ear-int", inst: "piano",     title: "Echo: intervals",     type: "ear", diff: 1, min: 6, desc: "The app plays a short prompt; find it and play it back. Your ear learns the distances first." },
   { id: "pno-ear-phr", inst: "piano",     title: "Echo: short phrases", type: "ear", diff: 3, min: 8, desc: "Hear a short melody and play it back by ear. Phrases grow as you level up." },
   { id: "gtr-ear-int", inst: "guitar",    title: "Echo: intervals",     type: "ear", diff: 1, min: 6, desc: "Echo the app's prompt on one string or across strings — wherever your hands find it." },
@@ -83,6 +88,8 @@ export const SEED = [
   { id: "acc-ear-int", inst: "accordion", title: "Echo: intervals",     type: "ear", diff: 1, min: 6, desc: "A short prompt on the right hand; play it back." },
   { id: "acc-ear-phr", inst: "accordion", title: "Echo: short phrases", type: "ear", diff: 3, min: 8, desc: "Echo short right-hand phrases by ear, one round at a time." },
 ];
+
+export const SEED = COACH_ENABLED ? [...LIBRARY, ...ECHO_SEED] : LIBRARY;
 
 // ============================================================
 // SKILL TRACKS — ordered progressions. Unlike the free-practice

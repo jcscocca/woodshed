@@ -8,6 +8,8 @@
 // ============================================================
 
 import { SCHEMA_VERSION } from "./engine.js";
+import { ECHO_SEED } from "./seed.js";
+import { COACH_ENABLED } from "./features.js";
 
 const KEY = "woodshed-state-v1";
 
@@ -29,6 +31,8 @@ export function migrate(state) {
 
   // Defensive defaults so a partial or hand-edited file still loads.
   s.items = (s.items || []).map((it) => ({ hidden: false, ...it }));
+  // Echo items are off with the coach (src/features.js); their sessions stay.
+  if (!COACH_ENABLED) s.items = s.items.filter((it) => !ECHO_SEED.some((e) => e.id === it.id));
   s.settings = {
     target: 20,
     weeklyGoal: 4,
