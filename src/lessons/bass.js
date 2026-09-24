@@ -11,7 +11,8 @@ export default {
     summary: "Alternating index and middle on one note — the foundation of a clean plucking hand.",
     shape: null, prescribe: "One note · alternate index–middle · even volume, relaxed hand", bpm: 80,
     steps: [
-      "Rest the thumb on a pickup or the E string. Pluck one note: index, middle, index, middle.",
+      "Rest your plucking thumb on the E string while you play A, D or G (on the pickup when you play E). Pluck one note: index, middle, index, middle.",
+      "Pull through so each finger comes to rest on the next string. Let your fretting fingers lightly touch the strings you're not playing — that keeps them quiet.",
       "Make every pluck the same volume — close your eyes and listen for unevenness.",
       "Keep the hand loose; the fingers do the work, not the arm.",
     ],
@@ -31,7 +32,7 @@ export default {
     summary: "A one-octave C major scale on the neck — up and down, one note per click.",
     shape: cMajorOneOctave, bpm: 70,
     steps: [
-      "Start on C (A string, 3rd fret). Play the scale up to the next C and back.",
+      "Start on C (A string, 3rd fret) with your middle finger; index covers fret 2, pinky fret 5. Play the scale up to the next C and back.",
       "One finger per fret; one note per click.",
       "Fret cleanly with minimal buzz — press just behind the fret.",
     ],
@@ -47,11 +48,11 @@ export default {
     ] },
     bpm: 70,
     steps: [
-      "Index at the 5th fret, pinky reaching the 7th–8th. Run the box up and down.",
+      "At the 5th fret: index 5, ring 7, pinky 8. Run the box up and down.",
       "Alternate index–middle on the plucking hand throughout.",
       "Keep it even; buzz-free beats fast.",
     ],
-    watch: ["Don't collapse the pinky — keep it arched for the 7th/8th-fret notes."],
+    watch: ["Don't collapse the pinky — keep it arched for the 8th-fret notes."],
   },
   "bs-oct": {
     summary: "The octave shape — root and its octave, the backbone of disco and pop grooves (A shown).",
@@ -82,6 +83,7 @@ export default {
     steps: [
       "Start each bar on the chord's root. Aim to land on the next chord's root on beat 1.",
       "Fill the beats between with the fifth and chromatic passing tones.",
+      "In C: C–E–G–E | F–A–C–F♯ | G–B–D–C♯ | C — each bar's last note is a half step from the next root.",
       "Keep it smooth — small steps between notes beat big jumps.",
     ],
     watch: ["The target is always the next root. Walk toward it."],
@@ -146,6 +148,7 @@ export default {
     steps: [
       "Begin each bar on the root, aim to arrive at the next chord's root on beat 1.",
       "Fill with fifths and chromatic approach notes.",
+      "In C: C–E–G–E | F–A–C–F♯ | G–B–D–C♯ | C — each bar's last note is a half step from the next root.",
       "Smooth voice leading — step, don't leap, where you can.",
     ],
     watch: ["The walk should feel inevitable, like it's pulling to the next chord."],
