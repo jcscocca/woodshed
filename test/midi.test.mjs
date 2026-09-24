@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 const { parseMidi, createKeyState, toNoteEvent, groupChords, createTakeBuffer } = await import("../src/midi/midiModel.js");
+const { nameChord } = await import("../src/midi/chords.js");
 
 let failures = 0;
 const test = (name, fn) => { try { fn(); console.log(`ok   ${name}`); } catch (e) { failures++; console.error(`FAIL ${name}\n     ${e.message}`); } };
@@ -57,5 +58,19 @@ test("take: events older than the window drop out", () => {
   assert.deepEqual(b.lastTake().map((n) => n.midi), [62]);
 });
 test("take: empty buffer gives an empty take", () => assert.deepEqual(createTakeBuffer().lastTake(), []));
+
+const CHORDS = [
+  [[60, 64, 67], "C"], [[64, 67, 72], "C/E"], [[55, 60, 64], "C/G"], [[57, 60, 64], "Am"],
+  [[59, 62, 65], "Bdim"], [[60, 64, 68], "Caug"], [[60, 62, 67], "Csus2"], [[55, 60, 62], "Gsus4"],
+  [[60, 64, 67, 69], "C6"], [[57, 60, 64, 67], "Am7"], [[62, 65, 69, 71], "Dm6"], [[55, 59, 62, 65], "G7"],
+  [[60, 64, 67, 71], "Cmaj7"], [[62, 65, 69, 72], "Dm7"], [[59, 62, 65, 69], "Bm7b5"], [[59, 62, 65, 68], "Bdim7"],
+  [[60, 63, 67, 71], "Cm(maj7)"], [[62, 65, 72], "Dm7 shell"], [[55, 65, 71], "G7 shell"], [[60, 64, 71], "Cmaj7 shell"],
+  [[63, 67, 70], "Eb"], [[66, 69, 73], "F#m"], [[58, 62, 65, 68], "Bb7"], [[56, 60, 63, 67], "Abmaj7"],
+  [[61, 65, 68], "Db"], [[36, 64, 79], "C"], [[48, 60, 64, 67, 72], "C"], [[59, 62, 65, 67], "G7/B"],
+  [[65, 69, 72, 74], "F6"], [[60], null], [[60, 67], null], [[60, 61, 62], null], [[], null],
+];
+test("nameChord: the table", () => {
+  for (const [midis, want] of CHORDS) assert.equal(nameChord(midis), want, `${midis.join(",")}`);
+});
 
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });
