@@ -83,7 +83,7 @@ export function noteFromFrequency(freq) {
     midi,
     name: NOTE_NAMES[((midi % 12) + 12) % 12],
     octave: Math.floor(midi / 12) - 1,
-    cents: Math.floor(1200 * Math.log2(freq / refF)),
+    cents: Math.round(1200 * Math.log2(freq / refF)),
   };
 }
 

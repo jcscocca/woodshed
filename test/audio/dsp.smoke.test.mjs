@@ -26,4 +26,8 @@ for (const sr of [44100, 48000]) for (const [f, name] of [[41.2, "E1"], [43.65, 
 const top = detectPitch(sine(1480, 2048, 0.6, 48000), 48000); const tn = top > 0 ? noteFromFrequency(top) : null;
 const topOk = tn && `${tn.name}${tn.octave}` === "F#6"; if (!topOk) failed++;
 console.log(`  F#6 @48000 -> ${tn ? tn.name + tn.octave : "—"} ${topOk ? "ok" : "FAIL"}`);
+for (const [c, want] of [[-0.4, 0], [0.9, 1], [-0.6, -1]]) {
+  const got = noteFromFrequency(440 * Math.pow(2, c / 1200)).cents; const ok = got === want; if (!ok) failed++;
+  console.log(`  ${c}¢ off A4 -> ${got}¢ ${ok ? "ok" : "FAIL"}`);
+}
 process.exit(failed ? 1 : 0);
