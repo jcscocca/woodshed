@@ -91,10 +91,10 @@ export default {
     shape: fiveFinger, bpm: 80,
     steps: [
       "Right hand: C-D-E-F-G with fingers 1-2-3-4-5 and back, even tone.",
-      "Then the left hand on its own, same idea.",
+      "Left hand: C-D-E-F-G an octave lower, fingers 5-4-3-2-1 — the numbers run backwards.",
       "Relax the wrist; take your eyes off the keys when you can.",
     ],
-    watch: ["No note louder than the others — listen for the weak fingers."],
+    watch: ["No note louder than the others — listen for the weak fingers.", "Forearms level with the keys, elbows just in front of the body, fingers curved, shoulders loose."],
   },
   "trk-pno-2": {
     summary: "Contrary motion: both thumbs on middle C, hands moving outward and back together.",
@@ -111,7 +111,8 @@ export default {
     shape: cMajorScale, bpm: 80,
     steps: [
       "Right hand up: 1-2-3, thumb under to F (1), then 2-3-4-5.",
-      "Add the left hand. Pick one key and make it smooth before adding another.",
+      "Left hand up: 5-4-3-2-1, then 3 crosses over the thumb onto A, 2-1 to finish.",
+      "Hands together, the right thumb goes under at F while the left 3 crosses at A — slow that bar down.",
       "One note per click, even and unhurried.",
     ],
     watch: ["The thumb-under is where it gets bumpy — practise just that move."],
