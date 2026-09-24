@@ -721,7 +721,7 @@ function Tracks({ live, onComplete, onReopen, onLearn }) {
                     {st.status === "done" && (
                       <div className="ws-stage-actions">
                         {getLesson(st.id) && <button className="ws-stage-learn-link" onClick={() => onLearn({ ...st, inst: t.inst })}>◐ Lesson</button>}
-                        <button className="ws-stage-reopen" onClick={() => onReopen(st.id)}>reopen</button>
+                        <button className="ws-stage-reopen" onClick={() => onReopen(st.id)}>Reopen</button>
                       </div>
                     )}
                   </div>
@@ -807,7 +807,7 @@ function Progress({ data, live, streak, onEditSession }) {
 
       <div className="ws-stat-row">
         <Stat value={streak.current} unit={`day${streak.current === 1 ? "" : "s"}`} label="Current streak" />
-        <Stat value={week} unit="min" label="This week" />
+        <Stat value={week} unit="min" label="Last 7 days" />
         <Stat value={totalMin} unit="min" label="All time" />
       </div>
 
@@ -1189,7 +1189,7 @@ function Settings({ settings, onChange, onToggle, onReset, onClose, onExport, on
             <button className="ws-btn danger-ghost" onClick={() => setConfirm(true)}>Reset everything</button>
           ) : (
             <div className="ws-confirm">
-              <span>Erase all logs and custom items?</span>
+              <span>Erase everything — logs, custom exercises, edits, settings and Loom paintings? This can't be undone.</span>
               <div>
                 <button className="ws-btn ghost sm" onClick={() => setConfirm(false)}>Keep</button>
                 <button className="ws-btn danger sm" onClick={onReset}>Erase</button>
