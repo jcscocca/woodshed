@@ -55,13 +55,20 @@ test("clampBpm keeps 40-240", () => {
   assert.equal(clampBpm(250), 240);
   assert.equal(clampBpm(92), 92);
 });
-test("KEY_HELP lists every shortcut", () => assert.equal(KEY_HELP.length, 10));
+test("KEY_HELP lists every shortcut", () => assert.equal(KEY_HELP.length, 11));
 test("K toggles the band, P plays back", () => {
   assert.deepEqual(actionFor(key("k")), { type: "band" });
   assert.deepEqual(actionFor(key("P", { shiftKey: true })), { type: "playback" });
   assert.equal(actionFor(key("p"), { typing: true }), null);
   assert.equal(actionFor(key("k"), { dialogOpen: true }), null);
   assert.equal(actionFor(key("p", { repeat: true })), null);
+});
+test("C starts / stops a coach run", () => {
+  assert.deepEqual(actionFor(key("c")), { type: "coach" });
+  assert.deepEqual(actionFor(key("C", { shiftKey: true })), { type: "coach" });
+  assert.equal(actionFor(key("c"), { typing: true }), null);
+  assert.equal(actionFor(key("c"), { dialogOpen: true }), null);
+  assert.equal(actionFor(key("c", { repeat: true })), null);
 });
 test("stopwatch accumulates across pause and resume", () => {
   let w = toggleWatch(RESET_WATCH, 1000);              // start at t=1s

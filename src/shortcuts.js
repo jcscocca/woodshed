@@ -13,6 +13,7 @@ export const KEY_HELP = [
   ["L", "Log today's set"],
   ["K", "Keyboard band: show / hide"],
   ["P", "Play back what you just played"],
+  ["C", "Start / stop coaching the open lesson"],
   ["Esc", "Close the lesson or tuner"],
   ["?", "This list"],
 ];
@@ -29,6 +30,7 @@ export function actionFor(e, { typing = false, dialogOpen = false, buttonFocused
   if (k === "l") return { type: "log" };
   if (k === "k") return { type: "band" };
   if (k === "p") return { type: "playback" };
+  if (k === "c") return { type: "coach" };
   if (k === "Escape") return { type: "close" };
   if (k === "?") return { type: "help" };
   return null;

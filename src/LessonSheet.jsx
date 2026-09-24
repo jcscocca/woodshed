@@ -41,6 +41,10 @@ export function LessonBody({ item, href, sessions = [], onCoachResult, onRequest
   }, [pianoShape]);
   if (!lesson) return null;
   const inst = INSTRUMENTS[item.inst];
+  // Piano on the desktop is coached over MIDI only — never the mic.
+  const source = midi && item.inst === "piano" ? (midi.status === "connected" ? "midi" : null) : COACH_ENABLED ? "mic" : null;
+  const connectNote = midi && item.inst === "piano" && !source && (isCoachable(item, lesson) || lesson.ear) && (midi.status === "unsupported" ? "MIDI needs Chrome or Edge."
+    : `${midi.status === "disconnected" ? "Keyboard disconnected. Plug it back in" : "Connect your keyboard"} to ${lesson.ear ? "train" : "coach"} this.`);
 
   const hear = () => {
     clearTimeout(timer.current);
@@ -65,8 +69,10 @@ export function LessonBody({ item, href, sessions = [], onCoachResult, onRequest
 
       {!(pianoShape && midi && midi.status === "connected" && midi.bandOpen) && <ShapeView shape={lesson.shape} />}
 
-      {COACH_ENABLED && isCoachable(item, lesson) && onCoachResult && onRequestLog && (
+      {source && isCoachable(item, lesson) && onCoachResult && onRequestLog && (
         <CoachPanel
+          key={source}
+          source={source}
           item={item}
           lesson={lesson}
           sessions={sessions}
@@ -74,14 +80,18 @@ export function LessonBody({ item, href, sessions = [], onCoachResult, onRequest
         />
       )}
 
-      {COACH_ENABLED && lesson.ear && onCoachResult && onRequestLog && (
+      {source && lesson.ear && onCoachResult && onRequestLog && (
         <EarPanel
+          key={source}
+          source={source}
           item={item}
           lesson={lesson}
           sessions={sessions}
           onLog={(res) => { onCoachResult(item.id, res); onRequestLog(); }}
         />
       )}
+
+      {connectNote && <p className="ws-midi-connect-note">{connectNote}</p>}
 
       {!lesson.ear && (lesson.shape || lesson.bpm) && (
         <button className={`ws-btn ${playing ? "ghost" : "primary"} sm ws-hear`} onClick={hear} aria-pressed={playing}>

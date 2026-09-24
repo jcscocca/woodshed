@@ -26,6 +26,7 @@ export function ShortcutBridge({ onAction }) {
     else if (a.type === "stopwatch") setWatch(toggleWatch);
     else if (a.type === "band") { if (midi && midi.status === "connected") midi.setBandOpen((o) => !o); }
     else if (a.type === "playback") { if (midi && midi.status === "connected") midi.playLastTake(); }
+    else if (a.type === "coach") { if (midi && midi.status === "connected") window.dispatchEvent(new CustomEvent("woodshed:coach")); }
     else onAction(a);
   };
   useEffect(() => {

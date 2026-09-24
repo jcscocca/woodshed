@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useCoach } from "./useCoach.js";
+import { useMidiCoach } from "./midi/useMidiCoach.js";
+import { overlay } from "./midi/overlay.js";
 import { createEarSession, mulberry32 } from "./ear.js";
 import { playSequence, stop as stopAudio } from "./lessonAudio.js";
 
@@ -10,7 +12,7 @@ const STATUS_CLASS = { caught: "ok", missed: "bad", pending: "" };
 // (the coach must never grade the synth), then listen, then reveal. Targets
 // stay hidden until reveal — pips show status only, and there is deliberately
 // no "looking for X" hint (it would name the answer).
-export default function EarPanel({ item, lesson, sessions = [], onLog }) {
+export default function EarPanel({ item, lesson, sessions = [], onLog, source }) {
   const [open, setOpen] = useState(false);
   const [runToken, setRunToken] = useState(0);
   const [, setTick] = useState(0);
@@ -21,7 +23,8 @@ export default function EarPanel({ item, lesson, sessions = [], onLog }) {
 
   const st = session.current ? session.current.state : { phase: "idle" };
   const targets = st.current ? st.current.targets : [];
-  const coach = useCoach({ mode: "line", targets, octaveStrict: false });
+  const useInput = source === "midi" ? useMidiCoach : useCoach; // fixed per mount: LessonBody keys the panel by source
+  const coach = useInput({ mode: "line", targets, octaveStrict: false });
   const r = coach.result;
 
   // Start the mic only after the prompt has finished and targets have settled
@@ -72,7 +75,20 @@ export default function EarPanel({ item, lesson, sessions = [], onLog }) {
     else rerender();
   };
 
-  useEffect(() => () => { clearTimeout(timer.current); stopAudio(); }, []);
+  useEffect(() => () => { clearTimeout(timer.current); stopAudio(); if (source === "midi") overlay.reset(); }, []);
+
+  // Over MIDI the band stays dark while the prompt plays and you answer; the reveal lights the round.
+  useEffect(() => {
+    if (source !== "midi" || st.phase === "idle") return;
+    if (st.phase === "done") overlay.reset();
+    else if (st.phase === "reveal") {
+      const midis = targets.map((t) => t.midi);
+      overlay.set({
+        targets: targets.map((t) => ({ midi: t.midi, finger: null })), range: [Math.min(...midis), Math.max(...midis)],
+        statuses: r.results.map((x) => x.status), next: -1, hideTargets: false, busy: false, readout: { head: `${st.rounds[st.rounds.length - 1].accuracy}%` },
+      });
+    } else overlay.set({ hideTargets: true, busy: true, readout: { head: st.phase === "prompt" ? "listen…" : `play it back · ${st.round}/${st.total}` } });
+  }, [st.phase, st.round]);
 
   // Same trouble-spot memory as CoachPanel — here the labels are intervals.
   const trouble = useMemo(() => {

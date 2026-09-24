@@ -519,3 +519,7 @@ body{
 .ws-midi-band.collapsed .ws-btn{ padding:3px 10px; font-size:12px; }
 .ws-midi-band.collapsed .ws-x{ padding:4px 6px; font-size:12px; }
 .ws-midi-live{ position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+.ws-midi-connect-note{ font-size:13px; color:var(--muted); margin:0 0 10px; }
+/* Coach me and Hear it share a row in the rail */
+.ws-rail-slot .ws-coach-open{ margin:0 8px 0 0; }
+.ws-rail-slot .ws-coach-open, .ws-rail-slot .ws-hear{ line-height:18px; }
