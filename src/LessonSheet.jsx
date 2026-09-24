@@ -35,9 +35,13 @@ export default function LessonSheet({ item, href, onClose, sessions = [], onCoac
     clearTimeout(timer.current);
     if (playing) { stop(); setPlaying(false); return; }
     const { shape, bpm } = lesson;
+    // Bass fundamentals all but vanish on phone/laptop speakers, so the demo plays
+    // an octave up. Demo only — diagrams and coach targets keep the real pitch.
+    const up = shape && shape.instrument === "bass" ? 2 : 1;
+    const voices = shapeToVoices(shape).map((v) => v.map((f) => f * up));
     let ms;
-    if (shape && shape.kind === "chords") ms = playChords(shapeToVoices(shape), { bpm: bpm || 70 });
-    else if (shape) ms = playSequence(shapeToVoices(shape), { bpm: bpm || 80 });
+    if (shape && shape.kind === "chords") ms = playChords(voices, { bpm: bpm || 70 });
+    else if (shape) ms = playSequence(voices, { bpm: bpm || 80 });
     else ms = playClick({ bpm: bpm || 80 });
     setPlaying(true);
     timer.current = setTimeout(() => setPlaying(false), ms + 80);
