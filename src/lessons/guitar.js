@@ -28,7 +28,7 @@ export default {
     shape: { kind: "chords", instrument: "guitar", chords: [C, G, D, Em] },
     bpm: 60,
     steps: [
-      "Slow click. On each click, change to the next chord and strum once.",
+      "Slow click. Four strums per chord, change on beat 1; then two; then one.",
       "Hunt for shortcuts: C→G, ring and middle shift one string toward the bass as a pair and the pinky lands on the high e; Em→C, middle and ring trade strings and the index drops onto the B string.",
       "Miss a change? Slow down until every change lands on the click — never speed up through mistakes.",
     ],
@@ -91,11 +91,11 @@ export default {
     shape: { kind: "chords", instrument: "guitar", chords: [F] },
     bpm: 60,
     steps: [
-      "Lay the index flat across all strings at fret 1, then roll it slightly onto its bony outer edge.",
+      "Lay the index flat across all six strings at fret 1, then roll it slightly toward the headstock. Thumb low on the back of the neck, behind the middle finger.",
       "Add the other fingers, then pick each string — find which ones buzz and lean the barre toward them.",
       "Squeeze, check, release. Build it fresh each time rather than holding a cramp.",
     ],
-    watch: ["Pull the guitar neck back toward you with the fretting arm — leverage, not raw squeeze.", "It will sound bad for a week. That's normal; keep the reps short and frequent."],
+    watch: ["Pull the guitar neck back toward you with the fretting arm — leverage, not raw squeeze.", "It will sound bad for a week. That's normal; keep the reps short and frequent.", "Ache is normal; sharp pain in the thumb joint or wrist means stop."],
   },
   "gtr-song": {
     summary: "The I–V–vi–IV in G — G, D, Em, C — the four chords behind a huge slice of pop songs.",
@@ -113,7 +113,7 @@ export default {
     shape: { kind: "chords", instrument: "guitar", chords: [C, G] },
     bpm: 60,
     steps: [
-      "Hold C. Thumb alternates bass strings — A string, then D string — like a slow metronome.",
+      "Hold C. Thumb alternates bass strings — A string, then D string — like a slow metronome. On G, the thumb alternates the low E and D strings.",
       "Keep that thumb going and add index/middle on the higher strings between thumb beats.",
       "Start painfully slow. The thumb must stay even no matter what the fingers do.",
     ],
@@ -162,7 +162,7 @@ export default {
       "Place the remaining fingers, then test every string for a clean note.",
       "Get all six sounding before you ever strum it in time.",
     ],
-    watch: ["Leverage from the arm pulling the neck back beats squeezing harder."],
+    watch: ["Leverage from the arm pulling the neck back beats squeezing harder.", "Ache is normal; sharp pain in the thumb joint or wrist means stop."],
   },
   "trk-gtr-5": {
     summary: "Move barre shapes around: the E-shape (F here) and the A-shape (Bb here).",
@@ -173,6 +173,6 @@ export default {
       "Change between them slowly over a progression, keeping every string clean.",
       "Then slide each shape up the neck — same fingering, new key.",
     ],
-    watch: ["The A-shape barre only needs strings 2–5 ringing; let the high e be soft if it fights you."],
+    watch: ["In the A-shape barre, all five strings from the A to the high e should ring — the high e is the one most likely to go dead, so check it every time."],
   },
 };
