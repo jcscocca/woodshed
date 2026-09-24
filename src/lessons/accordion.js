@@ -40,7 +40,7 @@ export default {
   },
   "acc-oompah": {
     summary: "The oom-pah: bass on the strong beat, chord on the off-beat, in a waltz or march.",
-    shape: null, prescribe: "Left hand · bass (oom) on beat 1, chord (pah) on the off-beats · slow waltz/march", bpm: 100,
+    shape: null, prescribe: "Left hand · bass (oom) on beat 1, chord (pah) on the off-beats · slow waltz/march", bpm: 76,
     steps: [
       "March feel: oom (bass) on 1, pah (chord) on 2, repeat.",
       "Waltz feel: oom on 1, pah on 2, pah on 3.",
@@ -50,11 +50,11 @@ export default {
   },
   "acc-both": {
     summary: "Coordinate both hands: right-hand melody over a left-hand oom-pah.",
-    shape: null, prescribe: "RH melody + LH oom-pah · hands separately first, then together slowly", bpm: 90,
+    shape: null, prescribe: "RH melody + LH oom-pah · hands separately first, then together slowly", bpm: 60,
     steps: [
       "Get the right-hand melody solid on its own.",
       "Get the left-hand oom-pah solid on its own.",
-      "Combine at half speed; the hands fighting each other is normal at first.",
+      "Combine them at a slow 60 BPM; the hands fighting each other is normal at first.",
     ],
     watch: ["When they tangle, drop back to hands-separate for a minute, then retry."],
   },
@@ -111,10 +111,10 @@ export default {
   },
   "trk-acc-4": {
     summary: "Both hands on a simple tune: melody right, oom-pah left.",
-    shape: null, prescribe: "RH melody + LH oom-pah · separate first, then together slowly", bpm: 90,
+    shape: null, prescribe: "RH melody + LH oom-pah · separate first, then together slowly", bpm: 60,
     steps: [
       "Solidify each hand alone.",
-      "Bring them together at half speed.",
+      "Bring them together at a slow 60 BPM.",
       "Speed up only when the coordination holds.",
     ],
     watch: ["Tangled hands? Back to hands-separate, then retry slower."],

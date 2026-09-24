@@ -138,7 +138,7 @@ export default {
     steps: [
       "Pick two chords (start G and C). Change back and forth, counting each clean change for one minute.",
       "Write the number down. Tomorrow, try to beat it.",
-      "Repeat with other pairs — D and A, Em and C — so every change gets reps.",
+      "Repeat with the other pairs — Em and C, Em and G — so every change gets reps.",
     ],
     watch: ["Accuracy first: a buzzed change doesn't count. Speed follows clean reps."],
   },

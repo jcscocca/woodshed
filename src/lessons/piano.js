@@ -17,7 +17,7 @@ export default {
     shape: cMajorTwoOctaves, bpm: 80,
     steps: [
       "Right hand, two octaves up: 1-2-3, tuck the thumb under to F, 2-3-4, thumb under to C, 2-3, thumb under to F, then 2-3-4-5 to the top C.",
-      "Hands together, two octaves, one note per click. Pick two keys for today.",
+      "Hands together, two octaves, one note per click. Once C is smooth, G, D, A and E use the same fingering.",
       "Listen for even tone — no note louder than its neighbours.",
     ],
     watch: ["Keep the wrist level and relaxed; the thumb-under should be silent and smooth."],

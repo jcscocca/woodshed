@@ -33,7 +33,7 @@ export const FELT = [
 
 export const SEED = [
   // ---------- PIANO ----------
-  { id: "pno-scales",   inst: "piano", title: "Scales & arpeggios, hands together", type: "technique", diff: 3, min: 8,  desc: "Run major scales hands together, 2 octaves. Pick 2 keys today; aim for even tone and a steady metronome." },
+  { id: "pno-scales",   inst: "piano", title: "Major scales, hands together",        type: "technique", diff: 3, min: 8,  desc: "Run major scales hands together, two octaves, starting in C. Aim for even tone and a steady metronome." },
   { id: "pno-sight",    inst: "piano", title: "Sight-reading",                       type: "sight",     diff: 3, min: 8,  desc: "Read through a piece you've never played, slowly, hands together. Don't stop to fix mistakes — keep the pulse." },
   { id: "pno-hanon",    inst: "piano", title: "Finger independence (Hanon)",         type: "technique", diff: 3, min: 6,  desc: "One Hanon exercise or 5-finger pattern through all positions, slow and even. Relaxed wrists." },
   { id: "pno-piece",    inst: "piano", title: "Your current piece",                  type: "song",      diff: 4, min: 12, desc: "Work the hardest section. Hands separate first, then together, slower than feels necessary." },
