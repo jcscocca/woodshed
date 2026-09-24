@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { actionFor, clampBpm } from "./shortcuts.js";
 import { toggleWatch } from "./stopwatch.js";
 import { usePractice } from "./PracticeProvider.jsx";
+import { useMidi } from "./midi/MidiProvider.jsx";
 
 function contextOf(target, viaPointer) {
   const tag = target && target.tagName;
@@ -16,12 +17,15 @@ function contextOf(target, viaPointer) {
 // itself, so the App never subscribes to the metronome's per-beat state.
 export function ShortcutBridge({ onAction }) {
   const { metro, setWatch } = usePractice();
+  const midi = useMidi();
   const run = useRef(null);
   run.current = (a) => {
     if (a.type === "metronome") metro.toggle();
     else if (a.type === "tap") metro.tap();
     else if (a.type === "bpm") metro.setBpm((b) => clampBpm(b + a.delta));
     else if (a.type === "stopwatch") setWatch(toggleWatch);
+    else if (a.type === "band") { if (midi && midi.status === "connected") midi.setBandOpen((o) => !o); }
+    else if (a.type === "playback") { if (midi && midi.status === "connected") midi.playLastTake(); }
     else onAction(a);
   };
   useEffect(() => {

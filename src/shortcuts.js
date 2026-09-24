@@ -11,6 +11,8 @@ export const KEY_HELP = [
   ["S", "Stopwatch start / pause"],
   ["1–4", "Today · Tracks · Library · Progress"],
   ["L", "Log today's set"],
+  ["K", "Keyboard band: show / hide"],
+  ["P", "Play back what you just played"],
   ["Esc", "Close the lesson or tuner"],
   ["?", "This list"],
 ];
@@ -25,6 +27,8 @@ export function actionFor(e, { typing = false, dialogOpen = false, buttonFocused
   if (k === "s") return { type: "stopwatch" };
   if (VIEW_KEYS[k]) return { type: "view", view: VIEW_KEYS[k] };
   if (k === "l") return { type: "log" };
+  if (k === "k") return { type: "band" };
+  if (k === "p") return { type: "playback" };
   if (k === "Escape") return { type: "close" };
   if (k === "?") return { type: "help" };
   return null;
