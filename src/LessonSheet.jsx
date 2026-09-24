@@ -21,13 +21,12 @@ function ShapeView({ shape }) {
   return null;
 }
 
-export default function LessonSheet({ item, href, onClose, sessions = [], onCoachResult, onRequestLog }) {
+export function LessonBody({ item, href, sessions = [], onCoachResult, onRequestLog }) {
   const lesson = getLesson(item.id);
-  const dlgRef = useDialog(onClose);
   const [playing, setPlaying] = useState(false);
   const timer = useRef(null);
-  // Tear down audio only on unmount, not on every parent re-render — onClose's
-  // identity changes each render, and stopping there would cut a demo mid-play.
+  // Tear down audio only on unmount, not on every parent re-render — a parent
+  // callback's identity changes each render, and stopping there would cut a demo mid-play.
   useEffect(() => () => { clearTimeout(timer.current); stop(); }, []);
   if (!lesson) return null;
   const inst = INSTRUMENTS[item.inst];
@@ -45,58 +44,67 @@ export default function LessonSheet({ item, href, onClose, sessions = [], onCoac
   };
 
   return (
+    <>
+      <div className="ws-lesson-tags">
+        <span className="ws-inst-tag" style={{ color: inst ? inst.color : "var(--gold)" }}>{inst ? inst.name : item.inst}</span>
+        <span className="ws-type-tag">{TYPE_LABEL[item.type]}</span>
+      </div>
+      <h2 className="ws-sheet-title">{item.title}</h2>
+      <p className="ws-lesson-summary">{lesson.summary}</p>
+
+      <ShapeView shape={lesson.shape} />
+
+      {COACH_ENABLED && isCoachable(item, lesson) && onCoachResult && onRequestLog && (
+        <CoachPanel
+          item={item}
+          lesson={lesson}
+          sessions={sessions}
+          onLog={(res) => { onCoachResult(item.id, res); onRequestLog(); }}
+        />
+      )}
+
+      {COACH_ENABLED && lesson.ear && onCoachResult && onRequestLog && (
+        <EarPanel
+          item={item}
+          lesson={lesson}
+          sessions={sessions}
+          onLog={(res) => { onCoachResult(item.id, res); onRequestLog(); }}
+        />
+      )}
+
+      {!lesson.ear && (lesson.shape || lesson.bpm) && (
+        <button className={`ws-btn ${playing ? "ghost" : "primary"} sm ws-hear`} onClick={hear} aria-pressed={playing}>
+          {playing ? "■ Stop" : "▶ Hear it"}
+        </button>
+      )}
+
+      {lesson.prescribe && <div className="ws-lesson-prescribe mono">{lesson.prescribe}</div>}
+
+      <div className="ws-lesson-sec">
+        <div className="ws-lesson-label">How to play it</div>
+        <ol className="ws-lesson-steps">{lesson.steps.map((s, i) => <li key={i}>{s}</li>)}</ol>
+      </div>
+
+      {lesson.watch.length > 0 && (
+        <div className="ws-lesson-sec">
+          <div className="ws-lesson-label">Watch for</div>
+          <ul className="ws-lesson-watch">{lesson.watch.map((w, i) => <li key={i}>{w}</li>)}</ul>
+        </div>
+      )}
+
+      {item.link && href && <a className="ws-lesson-link" href={href} target="_blank" rel="noreferrer">↗ {item.link.label}</a>}
+    </>
+  );
+}
+
+export default function LessonSheet({ onClose, ...lessonProps }) {
+  const dlgRef = useDialog(onClose);
+  if (!getLesson(lessonProps.item.id)) return null;
+  return (
     <div className="ws-sheet-wrap" onClick={onClose}>
       <div className="ws-sheet ws-lesson" onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label="Lesson" tabIndex={-1}>
         <div className="ws-sheet-grip" />
-        <div className="ws-lesson-tags">
-          <span className="ws-inst-tag" style={{ color: inst ? inst.color : "var(--gold)" }}>{inst ? inst.name : item.inst}</span>
-          <span className="ws-type-tag">{TYPE_LABEL[item.type]}</span>
-        </div>
-        <h2 className="ws-sheet-title">{item.title}</h2>
-        <p className="ws-lesson-summary">{lesson.summary}</p>
-
-        <ShapeView shape={lesson.shape} />
-
-        {COACH_ENABLED && isCoachable(item, lesson) && onCoachResult && onRequestLog && (
-          <CoachPanel
-            item={item}
-            lesson={lesson}
-            sessions={sessions}
-            onLog={(res) => { onCoachResult(item.id, res); onRequestLog(); }}
-          />
-        )}
-
-        {COACH_ENABLED && lesson.ear && onCoachResult && onRequestLog && (
-          <EarPanel
-            item={item}
-            lesson={lesson}
-            sessions={sessions}
-            onLog={(res) => { onCoachResult(item.id, res); onRequestLog(); }}
-          />
-        )}
-
-        {!lesson.ear && (lesson.shape || lesson.bpm) && (
-          <button className={`ws-btn ${playing ? "ghost" : "primary"} sm ws-hear`} onClick={hear} aria-pressed={playing}>
-            {playing ? "■ Stop" : "▶ Hear it"}
-          </button>
-        )}
-
-        {lesson.prescribe && <div className="ws-lesson-prescribe mono">{lesson.prescribe}</div>}
-
-        <div className="ws-lesson-sec">
-          <div className="ws-lesson-label">How to play it</div>
-          <ol className="ws-lesson-steps">{lesson.steps.map((s, i) => <li key={i}>{s}</li>)}</ol>
-        </div>
-
-        {lesson.watch.length > 0 && (
-          <div className="ws-lesson-sec">
-            <div className="ws-lesson-label">Watch for</div>
-            <ul className="ws-lesson-watch">{lesson.watch.map((w, i) => <li key={i}>{w}</li>)}</ul>
-          </div>
-        )}
-
-        {item.link && href && <a className="ws-lesson-link" href={href} target="_blank" rel="noreferrer">↗ {item.link.label}</a>}
-
+        <LessonBody {...lessonProps} />
         <div className="ws-sheet-actions">
           <button className="ws-btn ghost" onClick={onClose}>Close</button>
         </div>
