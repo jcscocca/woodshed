@@ -183,7 +183,7 @@ export default function Woodshed() {
   const reopenStage = (id) =>
     setData((d) => ({ ...d, items: d.items.map((it) => (it.id === id ? { ...it, mastered: false, hidden: false } : it)) }));
 
-  const resetAll = () => { setData(freshData()); setShowSettings(false); };
+  const resetAll = () => { const d = freshData(); d.currentSession = gen(d); setData(d); setShowSettings(false); };
 
   const exportData = () => {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
