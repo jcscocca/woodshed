@@ -94,9 +94,12 @@ export const TRACKS = [
     id: "trk-pno-hands", inst: "piano", name: "Two-Hand Coordination",
     blurb: "Build independence between the hands, from five-finger shapes to full hands-together scales.",
     stages: [
-      { id: "trk-pno-1", title: "Five-finger patterns, hands separate", type: "technique", diff: 1, min: 8, desc: "C-position five-finger patterns, each hand on its own. Even tone, relaxed wrist, eyes off the keys when you can.", link: { label: "musictheory.net — basics", url: "https://www.musictheory.net" } },
+      { id: "trk-pno-1", title: "Five-finger patterns, hands separate", type: "technique", diff: 1, min: 8, desc: "C-position five-finger patterns, then the same shape in G, each hand on its own. Even tone, relaxed wrist, eyes off the keys when you can.", link: { label: "musictheory.net — basics", url: "https://www.musictheory.net" } },
       { id: "trk-pno-2", title: "Hands together: contrary motion", type: "technique", diff: 2, min: 8, desc: "Start with both thumbs on middle C and move the hands outward and back together. Slow and symmetrical." },
-      { id: "trk-pno-3", title: "Major scales, one octave", type: "technique", diff: 2, min: 8, desc: "One-octave major scale hands together, watching the thumb-under. Pick one key and make it smooth before adding another." },
+      { id: "trk-pno-3", title: "Major scales, one octave — C, G, F", type: "technique", diff: 2, min: 8, desc: "One-octave major scales hands together, watching the thumb-under — C and G, then F and back to C." },
+      { id: "tec-hanon-1", title: "Hanon No. 1", type: "technique", diff: 3, min: 8, desc: "A five-finger pattern climbing by step through two octaves and back, hands together throughout." },
+      { id: "tec-cadences", title: "Primary chords and cadences", type: "technique", diff: 2, min: 8, desc: "I–IV–V–I as block chords, once each in C, G, and F." },
+      { id: "tec-arpeggios", title: "Arpeggios, one octave", type: "technique", diff: 3, min: 8, desc: "One-octave arpeggios, root position, through three major keys then three minor." },
     ],
   },
   {

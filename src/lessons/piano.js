@@ -1,15 +1,8 @@
 // Piano lessons. keyboard notes are {name, octave}; middle C = octave 4.
-const cMajorScale = { kind: "keyboard",
-  notes: [{ name: "C", octave: 4 }, { name: "D", octave: 4 }, { name: "E", octave: 4 }, { name: "F", octave: 4 }, { name: "G", octave: 4 }, { name: "A", octave: 4 }, { name: "B", octave: 4 }, { name: "C", octave: 5 }],
-  fingers: [1, 2, 3, 1, 2, 3, 4, 5] };
 const cMajorTwoOctaves = { kind: "keyboard",
   notes: [{ name: "C", octave: 4 }, { name: "D", octave: 4 }, { name: "E", octave: 4 }, { name: "F", octave: 4 }, { name: "G", octave: 4 }, { name: "A", octave: 4 }, { name: "B", octave: 4 },
     { name: "C", octave: 5 }, { name: "D", octave: 5 }, { name: "E", octave: 5 }, { name: "F", octave: 5 }, { name: "G", octave: 5 }, { name: "A", octave: 5 }, { name: "B", octave: 5 }, { name: "C", octave: 6 }],
   fingers: [1, 2, 3, 1, 2, 3, 4, 1, 2, 3, 1, 2, 3, 4, 5] };
-const fiveFinger = { kind: "keyboard",
-  notes: [{ name: "C", octave: 4 }, { name: "D", octave: 4 }, { name: "E", octave: 4 }, { name: "F", octave: 4 }, { name: "G", octave: 4 },
-    { name: "F", octave: 4 }, { name: "E", octave: 4 }, { name: "D", octave: 4 }, { name: "C", octave: 4 }],
-  fingers: [1, 2, 3, 4, 5, 4, 3, 2, 1] };
 
 // ABC source is line-sensitive, so these live at column 0.
 const MINUET_ABC = `X:1
@@ -50,6 +43,90 @@ const GRACE_MELODY = `z4D2 | G4BG | B4A2 | G4E2 |
 D4D2 | G4BG | B4A2 | d6- |
 d4B2 | d4BG | B4A2 | G4E2 |
 D4D2 | G4BG | B4A2 | G6 |]`;
+
+const FIVE_FINGER_ABC = `X:1
+M:4/4
+L:1/4
+K:C
+%%staves {1 2}
+V:1 clef=treble
+V:2 clef=bass
+[V:1] C D E F | G F E D | C D E F | E D C2 |
+[V:2] z4 | z4 | z4 | z4 |
+[V:1] z4 | z4 | z4 | z4 |
+[V:2] C, D, E, F, | G, F, E, D, | C, D, E, F, | E, D, C,2 |
+[V:1] G A B c | d c B A | G A B c | B A G2 |
+[V:2] z4 | z4 | z4 | z4 |
+[V:1] z4 | z4 | z4 | z4 |
+[V:2] G,, A,, B,, C, | D, C, B,, A,, | G,, A,, B,, C, | B,, A,, G,,2 |]`;
+
+const CONTRARY_ABC = `X:1
+M:4/4
+L:1/4
+K:C
+%%staves {1 2}
+V:1 clef=treble
+V:2 clef=bass
+[V:1] C D E F | G F E D | C D E F | G F E D |
+[V:2] C B, A, G, | F, G, A, B, | C B, A, G, | F, G, A, B, |
+[V:1] C D E F | G F E D | C E D F | E D C2 |
+[V:2] C B, A, G, | F, G, A, B, | C A, B, G, | A, B, C2 |]`;
+
+const SCALES_ABC = `X:1
+M:4/4
+L:1/8
+K:C
+%%staves {1 2}
+V:1 clef=treble
+V:2 clef=bass
+[V:1] CDEF GABc | cBAG FEDC | GABc de^fg | g^fed cBAG |
+[V:2] C,D,E,F, G,A,B,C | CB,A,G, F,E,D,C, | G,A,B,C DE^FG | G^FED CB,A,G, |
+[V:1] FGA_B cdef | fedc _BAGF | CDEF GABc | cBAG FEDC |
+[V:2] F,G,A,_B, CDEF | FEDC _B,A,G,F, | C,D,E,F, G,A,B,C | CB,A,G, F,E,D,C, |]`;
+
+const HANON_ABC = `X:1
+M:2/4
+L:1/16
+K:C
+%%staves {1 2}
+V:1 clef=treble
+V:2 clef=bass
+[V:1] CEFG AGFE | DFGA BAGF | EGAB cBAG | FABc dcBA |
+[V:2] C,E,F,G, A,G,F,E, | D,F,G,A, B,A,G,F, | E,G,A,B, CB,A,G, | F,A,B,C DCB,A, |
+[V:1] GBcd edcB | Acde fedc | Bdef gfed | gedc Bcde |
+[V:2] G,B,CD EDCB, | A,CDE FEDC | B,DEF GFED | GEDC B,CDE |
+[V:1] fdcB ABcd | ecBA GABc | dBAG FGAB | cAGF EFGA |
+[V:2] FDCB, A,B,CD | ECB,A, G,A,B,C | DB,A,G, F,G,A,B, | CA,G,F, E,F,G,A, |
+[V:1] BGFE DEFG | AFED CDEF | C8 |]
+[V:2] B,G,F,E, D,E,F,G, | A,F,E,D, C,D,E,F, | C,8 |]`;
+
+const CADENCES_ABC = `X:1
+M:4/4
+L:1/4
+K:C
+%%staves {1 2}
+V:1 clef=treble
+V:2 clef=bass
+[V:1] "C"[CEG]4 | "F"[CFA]4 | "G"[B,DG]4 | "C"[CEG]4 |
+[V:2] C,4 | F,,4 | G,,4 | C,4 |
+[V:1] "G"[G,B,D]4 | "C"[G,CE]4 | "D"[^F,A,D]4 | "G"[G,B,D]4 |
+[V:2] G,,4 | C,4 | D,4 | G,,4 |
+[V:1] "F"[A,CF]4 | "Bb"[_B,DF]4 | "C"[G,CE]4 | "F"[A,CF]4 |
+[V:2] F,,4 | _B,,4 | C,4 | F,,4 |]`;
+
+const ARPEGGIOS_ABC = `X:1
+M:4/4
+L:1/4
+K:C
+%%staves {1 2}
+V:1 clef=treble
+V:2 clef=bass
+[V:1] C E G c | G E C2 | G B d g | d B G2 |
+[V:2] C, E, G, C | G, E, C,2 | G,, B,, D, G, | D, B,, G,,2 |
+[V:1] F A c f | c A F2 | A c e a | e c A2 |
+[V:2] F,, A,, C, F, | C, A,, F,,2 | A,, C, E, A, | E, C, A,,2 |
+[V:1] E G B e | B G E2 | D F A d | A F D2 |]
+[V:2] E,, G,, B,, E, | B,, G,, E,,2 | D, F, A, D | A, F, D,2 |]`;
 
 export default {
   "pno-scales": {
@@ -119,35 +196,49 @@ export default {
   },
 
   "trk-pno-1": {
-    summary: "Five-finger patterns in C position, each hand on its own.",
-    shape: fiveFinger, bpm: 80,
+    summary: "Five-finger patterns in C position, then G — each hand written out on its own. Four sections: RH in C (1–4), LH in C (5–8), RH in G (9–12), LH in G (13–16).",
     steps: [
-      "Right hand: C-D-E-F-G with fingers 1-2-3-4-5 and back, even tone.",
-      "Left hand: C-D-E-F-G an octave lower, fingers 5-4-3-2-1 — the numbers run backwards.",
-      "Relax the wrist; take your eyes off the keys when you can.",
+      "Section 1, right hand: C-D-E-F-G with fingers 1-2-3-4-5 and back, even tone. Wait mode first.",
+      "Section 2, left hand: C-D-E-F-G an octave lower, fingers 5-4-3-2-1 — the numbers run backwards.",
+      "Sections 3–4 repeat the same shape a fifth higher, in G.",
+      "Once a section reads clean in wait mode, switch to play-along with the click; the tempo climbs toward 100 as you play it clean.",
     ],
     watch: ["No note louder than the others — listen for the weak fingers.", "Forearms level with the keys, elbows just in front of the body, fingers curved, shoulders loose."],
+    score: {
+      bpm: 72, target: 100,
+      sections: [{ name: "RH in C", from: 1, to: 4 }, { name: "LH in C", from: 5, to: 8 }, { name: "RH in G", from: 9, to: 12 }, { name: "LH in G", from: 13, to: 16 }],
+      abc: FIVE_FINGER_ABC,
+    },
   },
   "trk-pno-2": {
-    summary: "Contrary motion: both thumbs on middle C, hands moving outward and back together.",
-    shape: null, prescribe: "Both thumbs on middle C · move outward and back · slow and symmetrical", bpm: 70,
+    summary: "Contrary motion: both thumbs on middle C, hands stepping outward and back together. Two sections: A (1–4) and B (5–8).",
     steps: [
-      "Put both thumbs on middle C. Step the hands outward one note at a time, mirror-image.",
-      "Bring them back to middle C together.",
+      "Section A, hands together in wait mode: step outward from middle C one note at a time, mirror-image.",
+      "Section B: back to middle C together, then a short turn away and back once more.",
       "Because the fingering mirrors, your brain only tracks one shape — use that.",
+      "Play-along with the click once both sections read clean, slow and symmetrical.",
     ],
     watch: ["Keep both hands exactly in sync; if one lags, slow down."],
+    score: {
+      bpm: 60, target: 96,
+      sections: [{ name: "A", from: 1, to: 4 }, { name: "B", from: 5, to: 8 }],
+      abc: CONTRARY_ABC,
+    },
   },
   "trk-pno-3": {
-    summary: "One-octave C major scale hands together, watching the thumb-under.",
-    shape: { ...cMajorScale, hands: "together" }, bpm: 80,
+    summary: "One-octave major scales hands together, watching the thumb-under — C and G first, then F and back to C. Two sections: C and G (1–4), F and C (5–8).",
     steps: [
-      "Right hand up: 1-2-3, thumb under to F (1), then 2-3-4-5.",
-      "Left hand up: 5-4-3-2-1, then 3 crosses over the thumb onto A, 2-1 to finish.",
-      "Hands together, the right thumb goes under at F while the left 3 crosses at A — slow that bar down.",
-      "One note per click, even and unhurried.",
+      "Right hand up: 1-2-3, thumb under to F (1), then 2-3-4-5. Left hand up: 5-4-3-2-1, then 3 crosses over the thumb onto A, 2-1 to finish.",
+      "Section 1 (bars 1–4): C major, then G major — G's F is sharp, written in as an accidental.",
+      "Section 2 (bars 5–8): F major, then back to C — F's B is flat.",
+      "Hands together, the right thumb goes under at F while the left 3 crosses at A — slow that bar down. One note per click, even and unhurried.",
     ],
     watch: ["The thumb-under is where it gets bumpy — practice just that move."],
+    score: {
+      bpm: 56, target: 88,
+      sections: [{ name: "C and G", from: 1, to: 4 }, { name: "F and C", from: 5, to: 8 }],
+      abc: SCALES_ABC,
+    },
     snippet: SCALE_SNIPPET,
   },
   "pop-four-chords": {
@@ -268,6 +359,51 @@ export default {
       key: "G", meter: "3/4", chords: "G | G | G | C | G | G | G | D | G | G | G | C | G | G | D | G", pattern: "waltz",
       melody: GRACE_MELODY, bpm: 60, target: 90,
       sections: [{ name: "A", from: 1, to: 8 }, { name: "B", from: 9, to: 16 }],
+    },
+  },
+  "tec-hanon-1": {
+    summary: "Hanon No. 1: a five-finger pattern that climbs by step through two octaves and back, hands together the whole way. Two sections: up (1–7) and down (8–15).",
+    steps: [
+      "Right hand: 1-2-3-4-5-4-3-2, repeating one step higher each bar as it climbs.",
+      "Left hand: 5-4-3-2-1-2-3-4, mirroring the right hand's shape below it.",
+      "Wait mode first, both hands together — the pattern only shifts by one note each bar, so once bar 1 is secure the rest is repetition.",
+      "Play-along with the click once it's clean; the sixteenth notes want to rush — hold the tempo down until they don't.",
+    ],
+    watch: ["Bar 15 is a single held note — don't rush the landing."],
+    score: {
+      bpm: 50, target: 80,
+      sections: [{ name: "up", from: 1, to: 7 }, { name: "down", from: 8, to: 15 }],
+      abc: HANON_ABC,
+    },
+  },
+  "tec-cadences": {
+    summary: "Primary chords and cadences: I–IV–V–I as whole-note blocks, once in C, once in G, once in F. Three sections: C (1–4), G (5–8), F (9–12).",
+    steps: [
+      "Each section is the same four-chord move — I, IV, V, I — in a new key. Find the chord shape before you worry about the click.",
+      "Hands together, wait mode: right hand plays the chord, left hand holds the root below it.",
+      "Learn C first, then carry the same shape-and-motion to G, then F — the fingers change, the pattern doesn't.",
+      "Play-along with the click once a section is secure; hold each chord the full bar.",
+    ],
+    watch: ["G's cadence needs a sharp (the V chord's third) and F's needs a flat (the IV chord) — the accidental is written in, not implied by a key change."],
+    score: {
+      bpm: 60, target: 90,
+      sections: [{ name: "C", from: 1, to: 4 }, { name: "G", from: 5, to: 8 }, { name: "F", from: 9, to: 12 }],
+      abc: CADENCES_ABC,
+    },
+  },
+  "tec-arpeggios": {
+    summary: "One-octave arpeggios, root position: three major keys (C, G, F) then three minor (Am, Em, Dm), each up and back down. Two sections: major (1–6) and minor (7–12).",
+    steps: [
+      "Right hand: 1-2-3-5 up through the triad and octave, then back down. Wait mode first.",
+      "Left hand: 5-3-2-1, the same shape from the other end.",
+      "The major section moves C, G, F; the minor section moves A minor, E minor, D minor — same motion, new starting note each time.",
+      "Hands together, then play-along with the click once a key is secure.",
+    ],
+    watch: ["The stretch between fingers 3 and 5 is the hard part — keep the hand relaxed, don't force the reach."],
+    score: {
+      bpm: 56, target: 96,
+      sections: [{ name: "major", from: 1, to: 6 }, { name: "minor", from: 7, to: 12 }],
+      abc: ARPEGGIOS_ABC,
     },
   },
 };

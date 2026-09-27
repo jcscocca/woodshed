@@ -272,4 +272,11 @@ test("lead sheets: the melody is the right hand, over a generated left hand", ()
   assert.deepEqual(grace.meter, [3, 4]);
 });
 
+test("the technique track is six scored stages", () => {
+  const ids = TRACKS.find((t) => t.id === "trk-pno-hands").stages.map((s) => s.id);
+  assert.deepEqual(ids, ["trk-pno-1", "trk-pno-2", "trk-pno-3", "tec-hanon-1", "tec-cadences", "tec-arpeggios"]);
+  for (const id of ids) assert.ok(LESSONS[id].score && !LESSONS[id].shape, id);
+  assert.equal(parseScore(LESSONS["tec-hanon-1"].score.abc, abcjs).bars.length, 15);
+});
+
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });
