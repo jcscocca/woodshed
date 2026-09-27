@@ -8,10 +8,16 @@
 // ============================================================
 
 import { SCHEMA_VERSION } from "./engine.js";
-import { INSTRUMENTS, ECHO_SEED } from "./seed.js";
+import { INSTRUMENTS, ECHO_SEED, SEED, trackItems } from "./seed.js";
 import { COACH_ENABLED } from "./features.js";
 
 const KEY = "woodshed-state-v1";
+
+// v7 -> v8: placeholders retired (kept hidden, off their track, when they have history);
+// items that kept their id but changed meaning take their new content fields.
+export const RETIRED = ["pno-piece", "pno-voicings", "pno-hanon", "trk-pno-4", "trk-pno-5"];
+export const REHOMED = ["pno-minuet", "trk-pno-1", "trk-pno-2", "trk-pno-3", "pno-improv"];
+const CONTENT = ["title", "desc", "type", "diff", "min", "link", "trackId", "trackName", "order"];
 
 // Bring any saved state up to the current shape. Old saves stored practice
 // stats on each item; those are derived from the session log now, so we drop
@@ -55,7 +61,27 @@ export function migrate(state) {
   // missed). They're additive and read with safe defaults, so old sessions need
   // no backfill — only the stamped version changes.
   // v6 -> v7: the score engine remembers tempo-ladder bpm per section and the sight-reading level.
-  for (const k of ["ladder", "sightLevel"]) if (!s[k] || typeof s[k] !== "object" || Array.isArray(s[k])) s[k] = {};
+  // v7 -> v8: adds the tempo-clean-at-target flag and saved chord-chart songs.
+  for (const k of ["ladder", "sightLevel", "targetClean"]) if (!s[k] || typeof s[k] !== "object" || Array.isArray(s[k])) s[k] = {};
+  if (!Array.isArray(s.songs)) s.songs = [];
+  if ((s.version || 0) < 8) {
+    const defaults = Object.fromEntries([...SEED, ...trackItems()].map((d) => [d.id, d]));
+    const practised = new Set(s.sessions.map((x) => x.itemId));
+    s.items = s.items.flatMap((it) => {
+      if (RETIRED.includes(it.id)) {
+        if (!practised.has(it.id)) return [];
+        const { trackId, trackName, order, ...rest } = it;
+        return [{ ...rest, hidden: true }];
+      }
+      if (REHOMED.includes(it.id) && defaults[it.id]) {
+        const d = defaults[it.id], fresh = {};
+        for (const f of CONTENT) if (f in d) fresh[f] = d[f];
+        return [{ ...it, ...fresh }];
+      }
+      return [it];
+    });
+    if (s.currentSession?.items) s.currentSession.items = s.currentSession.items.filter((x) => !RETIRED.includes(x.itemId));
+  }
   s.version = SCHEMA_VERSION;
   return s;
 }

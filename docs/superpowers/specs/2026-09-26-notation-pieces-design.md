@@ -283,6 +283,15 @@ these rules.
   takes its hand from the clef.
 - **Layout:** one 4-bar system per source line (the stage draws one SVG per
   line).
+- **Clefs:** a mid-piece clef change is an inline `[K:clef=treble]` or
+  `[K:clef=bass]` in the voice, just before the note it applies from. abcjs
+  starts every source line in the voice's declared clef, so while the change
+  lasts, restate it at the start of each following source line — left hand
+  (voice 2) only, since abcjs ignores `[V:1] [K:clef=…]` at a line start
+  (`[V:2] [K:clef=treble] …`); and keys without sharps or flats only — the
+  stage doesn't move key-signature accidentals with a clef change. The stage
+  carries it across wrapped lines: `keepClefs` (renderAbc's `afterParsing`)
+  draws every line in the clef its notes were placed under.
 - **Form:** write repeats out — no `|:`, `:|`, `::` or first/second endings
   (the engine grades the page once, as written).
 - **Bars:** the first bar is full; pad a pickup with rests into a whole bar.
@@ -305,6 +314,8 @@ these rules.
   fine for 16 bars; make it incremental before multi-minute charts.
 - Status colours are hue-only (teal / gold / orange); a pattern for missed
   notes would help colour-blind players.
+- A one-voice score whose first note follows a `[K:clef=…]` after a rest bar
+  would switch hands in the stage but not in grading.
 - Hands-separately ignores every pitch the other hand plays anywhere in the
   section, so a wrong press on one of those pitches goes unmarked.
 - A tempo change landing just after Start can shift the count-in (the panel

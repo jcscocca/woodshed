@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import abcjs from "abcjs";
-const { parseScore, walkTune, inSection, forHands } = await import("../src/score/scoreModel.js");
+const { parseScore, walkTune, keepClefs, inSection, forHands } = await import("../src/score/scoreModel.js");
 const { LESSONS } = await import("../src/lessons/index.js");
+const { scoreFor } = await import("../src/score/scoreFor.js");
+const { generateDrill, drillBpm, LEVELS } = await import("../src/score/sightread.js");
 
 let failures = 0;
 const test = (name, fn) => { try { fn(); console.log(`ok   ${name}`); } catch (e) { failures++; console.error(`FAIL ${name}\n     ${e.message}`); } };
@@ -52,7 +54,25 @@ test("parseScore: bars count trailing rests, not just the last note", () => {
   assert.deepEqual(parseScore(MINI, abcjs).bars.map((b) => b.beat), [0, 3, 6, 9]);
 });
 
-// The Minuet as parsed before targets came from the walk (setUpAudio's tracks), a bar per row: hand, midi @ beat + dur.
+// The 16-bar simplified Minuet the app shipped before the full piece, frozen here, and its
+// targets as parsed before they came from the walk (setUpAudio's tracks), a bar per row: hand, midi @ beat + dur.
+const MINUET_ABC = `X:1
+T:Minuet in G
+C:Christian Petzold (arr. simplified)
+M:3/4
+L:1/8
+K:G
+%%staves {1 2}
+V:1 clef=treble
+V:2 clef=bass
+[V:1] d2 GABc | d2 G2 G2 | e2 cdef | g2 G2 G2 |
+[V:2] G,,6 | B,,6 | C,6 | B,,6 |
+[V:1] c2 dcBA | B2 cBAG | F2 GABG | A6 |
+[V:2] A,,6 | G,,6 | D,6 | D,6 |
+[V:1] d2 GABc | d2 G2 G2 | e2 cdef | g2 G2 G2 |
+[V:2] G,,6 | B,,6 | C,6 | B,,6 |
+[V:1] c2 dcBA | B2 cBAG | A2 BAGF | G6 |
+[V:2] A,,6 | G,,6 | D,6 | G,,6 |`;
 const MINUET_TARGETS = [
   "L43@0+3 R74@0+1 R67@1+0.5 R69@1.5+0.5 R71@2+0.5 R72@2.5+0.5", "L47@3+3 R74@3+1 R67@4+1 R67@5+1",
   "L48@6+3 R76@6+1 R72@7+0.5 R74@7.5+0.5 R76@8+0.5 R78@8.5+0.5", "L47@9+3 R79@9+1 R67@10+1 R67@11+1",
@@ -64,7 +84,7 @@ const MINUET_TARGETS = [
   "L50@42+3 R69@42+1 R71@43+0.5 R69@43.5+0.5 R67@44+0.5 R66@44.5+0.5", "L43@45+3 R67@45+3",
 ];
 test("parseScore: the Minuet's targets are unchanged by the walk", () => {
-  const s = parseScore(LESSONS["pno-minuet"].score.abc, abcjs);
+  const s = parseScore(MINUET_ABC, abcjs);
   assert.deepEqual(s.bars.map((b) => s.notes.filter((n) => n.bar === b.n).map((n) => `${n.hand}${n.midi}@${n.beat}+${n.dur}`).join(" ")), MINUET_TARGETS);
 });
 
@@ -109,6 +129,46 @@ test("walkTune: the stage's keys (hand + beat) are parseScore's, after tuplets t
   assert.deepEqual([...keys].sort(), [...new Set(s.notes.map((n) => n.hand + n.beat))].sort());
   assert.deepEqual(s.notes.filter((n) => n.hand === "R").map((n) => n.beat), [0, 0.333, 0.667, 1, 1.333, 1.667, 2, 3, 4]);
   assert.deepEqual(s.notes.filter((n) => n.hand === "L").map((n) => n.beat), [0, 2, 4]);
+});
+
+// The stage draws through renderAbc's afterParsing: keepClefs, as written or wrapped 2 bars a line (below 1280px).
+const layouts = (abc) => {
+  const n = parseScore(abc, abcjs).bars.length, breaks = Array.from({ length: Math.ceil(n / 2) - 1 }, (_, i) => 2 * i + 1);
+  return { "as written": keepClefs(abcjs.parseOnly(abc)[0]), wrapped: keepClefs(abcjs.parseOnly(abc, { lineBreaks: [breaks] })[0]) };
+};
+// "1-14 bass, 15-19 treble, …": the clef each bar's noteheads are drawn under, on staff s
+const clefRuns = (tune, s) => {
+  const runs = [];
+  let bar = 1;
+  for (const line of tune.lines) {
+    if (!line.staff || !line.staff[s]) continue;
+    let shown = line.staff[s].clef.type;
+    for (const el of line.staff[s].voices[0]) {
+      if (el.el_type === "bar") bar++;
+      if (el.el_type === "clef") shown = el.type;
+      if (el.el_type !== "note" || !el.pitches) continue;
+      const last = runs.at(-1);
+      if (last && last.clef === shown && last.to >= bar - 1) last.to = bar; else runs.push({ from: bar, to: bar, clef: shown });
+    }
+  }
+  return runs.map((r) => `${r.from === r.to ? r.from : `${r.from}-${r.to}`} ${r.clef}`).join(", ");
+};
+const checkKeptClefs = (id, abc) => {
+  for (const [name, tune] of Object.entries(layouts(abc))) tune.lines.forEach((line, l) => (line.staff || []).forEach((staff, s) => {
+    let shown = staff.clef;
+    for (const el of staff.voices[0]) {
+      if (el.el_type === "clef") { assert.notEqual(el.verticalPos, shown.verticalPos, `${id}, ${name}, line ${l + 1}: a clef change to the clef in force`); shown = el; }
+      for (const p of (el.el_type === "note" && el.pitches) || []) assert.equal(p.pitch - p.verticalPos, shown.verticalPos, `${id}, ${name}, line ${l + 1}, staff ${s + 1}: a notehead placed for another clef`);
+    }
+  }));
+};
+test("keepClefs: every notehead sits under the clef drawn before it, and no clef change repeats the clef in force", () => {
+  for (const [id, L] of Object.entries(LESSONS)) if (L.score || L.chart) checkKeptClefs(id, scoreFor(L).abc);
+  for (const level of [1, 4, 7, 10]) for (let seed = 0; seed < 3; seed++) checkKeptClefs(`sight-read L${level} seed ${seed}`, generateDrill(level, seed));
+});
+test("keepClefs: the left hand keeps the editions' clefs in La Candeur and the Arabesque, as written or wrapped", () => {
+  const want = { "pcs-la-candeur": "1-14 bass, 15-20 treble, 20-22 bass", "pcs-arabesque": "1-15 bass, 16-18 treble, 19-31 bass" };
+  for (const [id, runs] of Object.entries(want)) for (const [name, tune] of Object.entries(layouts(LESSONS[id].score.abc))) assert.equal(clefRuns(tune, 1), runs, `${id}, ${name}`);
 });
 
 const { gradeTimed, ON_MS, WINDOW_MS } = await import("../src/score/timedGrade.js");
@@ -191,7 +251,6 @@ test("createWaitRun: a wrong press flashes but never advances", () => {
   assert.deepEqual(run.result(), { found: 2, total: 3, wrong: 2, wrongBars: [1, 2] });
 });
 
-const { generateDrill, drillBpm, LEVELS } = await import("../src/score/sightread.js");
 const SCALE = { C: [0, 2, 4, 5, 7, 9, 11], G: [7, 9, 11, 0, 2, 4, 6], F: [5, 7, 9, 10, 0, 2, 4], D: [2, 4, 6, 7, 9, 11, 1], Bb: [10, 0, 2, 3, 5, 7, 9] };
 const TONIC = { C: 0, G: 7, F: 5, D: 2, Bb: 10 };
 const drillCache = {};
@@ -273,14 +332,14 @@ test("sightread: no tritone leaps in the melody's hand", () => {
 
 const { migrate } = await import("../src/storage.js");
 const { freshData, SCHEMA_VERSION } = await import("../src/engine.js");
-test("schema 7: ladder and sightLevel default to {}", () => {
-  assert.equal(SCHEMA_VERSION, 7);
+test("schema 8: ladder and sightLevel default to {}", () => {
+  assert.equal(SCHEMA_VERSION, 8);
   const f = freshData(); assert.deepEqual(f.ladder, {}); assert.deepEqual(f.sightLevel, {});
-  const m = migrate({ version: 6, items: [], sessions: [], settings: {} });
-  assert.deepEqual(m.ladder, {}); assert.deepEqual(m.sightLevel, {}); assert.equal(m.version, 7);
-  const kept = migrate({ version: 7, items: [], sessions: [], settings: {}, ladder: { "pno-minuet": { A: 80 } }, sightLevel: { "pno-sight": 3 } });
+  const m = migrate({ version: 7, items: [], sessions: [], settings: {} });
+  assert.deepEqual(m.ladder, {}); assert.deepEqual(m.sightLevel, {}); assert.equal(m.version, 8);
+  const kept = migrate({ version: 8, items: [], sessions: [], settings: {}, ladder: { "pno-minuet": { A: 80 } }, sightLevel: { "pno-sight": 3 } });
   assert.deepEqual(kept.ladder, { "pno-minuet": { A: 80 } }); assert.deepEqual(kept.sightLevel, { "pno-sight": 3 });
-  const arrays = migrate({ version: 7, items: [], sessions: [], settings: {}, ladder: [], sightLevel: [3] });
+  const arrays = migrate({ version: 8, items: [], sessions: [], settings: {}, ladder: [], sightLevel: [3] });
   assert.deepEqual(arrays.ladder, {}); assert.deepEqual(arrays.sightLevel, {});
 });
 const { runStore } = await import("../src/score/runStore.js");

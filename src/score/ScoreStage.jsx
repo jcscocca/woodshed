@@ -1,7 +1,8 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { parseScore, walkTune } from "./scoreModel.js";
+import { keepClefs, parseScore, walkTune } from "./scoreModel.js";
 import { runStore } from "./runStore.js";
 import { useRun } from "./useRun.js";
+import { scoreFor } from "./scoreFor.js";
 
 // The open piece in the main pane. abcjs only draws it (one SVG per system) and
 // maps notes to drawn elements; run statuses, the cursor and the section are
@@ -15,7 +16,8 @@ let shownId = null;
 
 export default function ScoreStage({ item, lesson, abc }) {
   const st = useRun();
-  const drill = !!lesson.sightread, src = abc || (drill ? st.drill : lesson.score?.abc);
+  const drill = !!lesson.sightread, fromPanel = drill || !!lesson.song;
+  const src = abc || (fromPanel ? st.abc : scoreFor(lesson).abc);
   const [abcjs, setAbcjs] = useState(null);
   const [size, setSize] = useState(null);
   const [drawn, setDrawn] = useState(null);
@@ -58,6 +60,7 @@ export default function ScoreStage({ item, lesson, abc }) {
     const [tune] = abcjs.renderAbc(paper, src.replace(/^K:/m, "%%barnumbers 1\nK:"), {
       oneSvgPerLine: true, add_classes: true, scale: SCALE, staffwidth: w / SCALE - 30, foregroundColor: fg, selectionColor: fg,
       clickListener: (el, _n, _c, an, _d, ev) => pick(el, an, ev),
+      afterParsing: keepClefs,
       ...(!drill && window.innerWidth < 1280 && { wrap: { preferredMeasuresPerLine: 2, minSpacing: 1.8, maxSpacing: 2.7 } }),
     });
 

@@ -100,7 +100,7 @@ export default function Woodshed() {
   const live = { ...data, items: withDerivedStats(data.items, data.sessions) };
   const itemById = (id) => live.items.find((it) => it.id === id);
   const session = data.currentSession;
-  const proposals = progressionProposals(data.items, data.sessions, (data.progress && data.progress.acked) || {});
+  const proposals = progressionProposals(data.items, data.sessions, (data.progress && data.progress.acked) || {}, { targetClean: data.targetClean, isScored: (id) => hasScore(getLesson(id)) });
 
   /* engine helpers always run on derived data */
   function derive(d) { return withDerivedStats(d.items, d.sessions); }
@@ -139,6 +139,7 @@ export default function Woodshed() {
   const recordCoachResult = (itemId, res) => setCoachResults((m) => ({ ...m, [itemId]: res }));
   const saveLadder = (itemId, key, bpm) => setData((d) => ({ ...d, ladder: { ...d.ladder, [itemId]: { ...d.ladder[itemId], [key]: bpm } } }));
   const saveSightLevel = (itemId, level) => setData((d) => ({ ...d, sightLevel: { ...d.sightLevel, [itemId]: level } }));
+  const saveTargetClean = (itemId) => setData((d) => (d.targetClean[itemId] ? d : { ...d, targetClean: { ...d.targetClean, [itemId]: todayStr() } }));
 
   // session length and instruments shape today's set, so rebuild it unless it's already been logged
   const rebuildIfOpen = (d) => (d.currentSession.completed ? d : { ...d, currentSession: gen(d) });
@@ -300,8 +301,10 @@ export default function Woodshed() {
                 <ScorePanel
                   key={lessonFor.id} item={lessonFor} lesson={getLesson(lessonFor.id)} ladder={data.ladder[lessonFor.id]}
                   sightLevel={data.sightLevel[lessonFor.id] ?? getLesson(lessonFor.id).sightread?.defaultLevel}
+                  songs={data.songs} onSongs={(songs) => setData((d) => ({ ...d, songs }))}
                   onLadder={(key, bpm) => saveLadder(lessonFor.id, key, bpm)} onSightLevel={(level) => saveSightLevel(lessonFor.id, level)}
                   onResult={(res) => recordCoachResult(lessonFor.id, res)} onRequestLog={requestLog}
+                  onTargetClean={() => saveTargetClean(lessonFor.id)}
                 />
               ) : <LessonBody key={lessonFor.id} {...lessonProps} />)}
               scored={isScored}
@@ -652,7 +655,7 @@ function Library({ items, onOpen, onAdd, onLearn, selectedId }) {
           </div>
         );
       })}
-      <p className="ws-hint">Tap any exercise to edit, hide, or rename it. "Your current piece" is the one to rename to whatever you're learning.</p>
+      <p className="ws-hint">Tap any exercise to edit, hide, or rename it.</p>
     </>
   );
 }

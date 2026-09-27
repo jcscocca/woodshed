@@ -6,4 +6,4 @@ import ear from "./ear.js";
 // render time and never written to storage, so updates reach existing users.
 export const LESSONS = { ...guitar, ...piano, ...ear };
 export const getLesson = (id) => LESSONS[id] || null;
-export const hasScore = (lesson) => !!(lesson && (lesson.score || lesson.sightread));
+export const hasScore = (lesson) => !!(lesson && (lesson.score || lesson.chart || lesson.sightread || lesson.song));

@@ -32,6 +32,30 @@ export function walkTune(tune, visit) {
   return round(Math.max(0, ...beats));
 }
 
+// abcjs places each note under the clef in effect as it parses (a source line starts in the
+// voice's declared clef, then each inline [K:clef=…] holds until the next), but draws each line
+// from its staff's clef, and a line re-broken by `wrap` gets the first line's. renderAbc's
+// afterParsing: draw every line, and every clef change in it, where its notes were placed, and
+// drop clef changes that change nothing. Key signatures are left as parsed.
+export function keepClefs(tune) {
+  const staves = tune.lines.flatMap((l) => l.staff || []), inEffect = [];
+  const clefs = new Map([...staves.map((st) => st.clef), ...staves.flatMap((st) => st.voices.flat()).filter((el) => el.el_type === "clef")].reverse().map((c) => [c.verticalPos, c]));
+  const placed = (el) => { const p = el.el_type === "note" && ((el.pitches || el.gracenotes || [])[0]); return p ? clefs.get(p.pitch - p.verticalPos) : null; };
+  for (const line of tune.lines) (line.staff || []).forEach((staff, s) => staff.voices.forEach((voice, v) => {
+    const first = voice.find((el) => el.el_type === "clef" || placed(el));
+    let shown = !first ? inEffect[s] || staff.clef : first.el_type === "clef" ? voice.splice(voice.indexOf(first), 1)[0] : placed(first);
+    if (v === 0) staff.clef = { ...staff.clef, type: shown.type, verticalPos: shown.verticalPos, clefPos: shown.clefPos };
+    for (let i = 0; i < voice.length; i++) {
+      const el = voice[i], c = el.el_type === "clef" ? el : placed(el);
+      if (!c || c.verticalPos === shown.verticalPos) { if (el.el_type === "clef") voice.splice(i--, 1); continue; }
+      if (c !== el) voice.splice(i++, 0, { type: c.type, verticalPos: c.verticalPos, clefPos: c.clefPos, el_type: "clef", startChar: -1, endChar: -1 });
+      shown = c;
+    }
+    inEffect[s] = shown;
+  }));
+  return tune;
+}
+
 // One target per sounding pitch. setUpAudio() annotates each note element with its
 // midiPitches: a tied-to note gets none (the first note's duration covers the tie), and
 // a graced note's is halved to make room for the graces.

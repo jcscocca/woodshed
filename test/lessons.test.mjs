@@ -25,7 +25,7 @@ test("shapeToVoices: keyboard yields one voice per note", () => {
 // --- schema section appended in Task 2 ---
 
 import { LESSONS } from "../src/lessons/index.js";
-import { SEED, ECHO_SEED, trackItems } from "../src/seed.js";
+import { SEED, ECHO_SEED, trackItems, TRACKS } from "../src/seed.js";
 
 const validIds = new Set([...SEED.map((s) => s.id), ...ECHO_SEED.map((s) => s.id), ...trackItems().map((s) => s.id)]);
 const STRINGS = { guitar: 6 };
@@ -73,7 +73,7 @@ test("every lesson conforms to the schema", () => {
     assert.ok(typeof L.summary === "string" && L.summary.length, `${id}: missing summary`);
     assert.ok(Array.isArray(L.steps) && L.steps.length >= 1, `${id}: needs >= 1 step`);
     assert.ok(Array.isArray(L.watch), `${id}: watch must be an array`);
-    assert.ok(L.shape || L.prescribe || L.score || L.sightread, `${id}: needs a shape, a prescription, a score or sightread`);
+    assert.ok(L.shape || L.prescribe || L.score || L.chart || L.sightread || L.song, `${id}: needs a shape, a prescription, a score, a chart, sightread or song`);
     validateShape(L.shape ?? null);
   }
 });
@@ -157,23 +157,16 @@ test("lesson copy is plain text — no markdown asterisks", () => {
 import abcjs from "abcjs";
 import { parseScore } from "../src/score/scoreModel.js";
 import { hasScore } from "../src/lessons/index.js";
+const { scoreFor } = await import("../src/score/scoreFor.js");
 
-test("the Minuet parses: 16 bars, key G, meter 3/4, sections, RH stays in G major", () => {
+// Every note is checked against the reference in test/pieces.test.mjs.
+test("the Minuet parses: 32 bars, key G, meter 3/4, sections A1 1–8, A2 9–16, B1 17–24, B2 25–32", () => {
   const { abc, sections } = LESSONS["pno-minuet"].score;
   const s = parseScore(abc, abcjs);
   assert.deepEqual(s.meter, [3, 4]);
   assert.equal(s.key, "G");
-  assert.equal(s.bars.length, 16);
-  const a = sections.find((sec) => sec.name === "A");
-  const b = sections.find((sec) => sec.name === "B");
-  assert.deepEqual([a.from, a.to], [1, 8]);
-  assert.deepEqual([b.from, b.to], [9, 16]);
-  const G_MAJOR = new Set([7, 9, 11, 0, 2, 4, 6]); // G A B C D E F#
-  const rh = s.notes.filter((n) => n.hand === "R");
-  for (const n of rh) assert.ok(G_MAJOR.has(n.midi % 12), `midi ${n.midi} (pc ${n.midi % 12}) not in G major`);
-  const lastInBar = (n) => rh.filter((x) => x.bar === n).at(-1);
-  assert.equal(lastInBar(8).midi, 69); // A4
-  assert.equal(lastInBar(16).midi, 67); // G4
+  assert.equal(s.bars.length, 32);
+  assert.deepEqual(sections.map((sec) => [sec.name, sec.from, sec.to]), [["A1", 1, 8], ["A2", 9, 16], ["B1", 17, 24], ["B2", 25, 32]]);
 });
 
 test("the scale snippet parses to 2 bars, RH C4-C5, LH C3-C4", () => {
@@ -225,14 +218,14 @@ test("the score lint catches repeats, endings, overlays, extra voices, metre cha
 
 test("every score and snippet is one the engine can grade", () => {
   for (const [id, L] of Object.entries(LESSONS))
-    for (const abc of [L.score && L.score.abc, L.snippet].filter(Boolean)) assert.deepEqual(ungradable(abc), [], id);
+    for (const abc of [(L.score || L.chart) && scoreFor(L).abc, L.snippet].filter(Boolean)) assert.deepEqual(ungradable(abc), [], id);
 });
 
 test("a score has bpm, target >= bpm and sections inside the piece; scored lessons carry no shape", () => {
   for (const [id, L] of Object.entries(LESSONS)) {
-    if (L.score || L.sightread) assert.ok(!L.shape, `${id}: a scored lesson has no shape`);
-    if (!L.score) continue;
-    const { abc, bpm, target, sections } = L.score, n = parseScore(abc, abcjs).bars.length;
+    if (L.score || L.chart || L.sightread || L.song) assert.ok(!L.shape, `${id}: a scored lesson has no shape`);
+    if (!L.score && !L.chart) continue;
+    const { abc, bpm, target, sections } = scoreFor(L), n = parseScore(abc, abcjs).bars.length;
     assert.ok(Number.isInteger(bpm) && bpm > 0, `${id}: bpm`);
     assert.ok(target >= bpm, `${id}: target ${target} below bpm ${bpm}`);
     assert.ok(Array.isArray(sections) && sections.length, `${id}: sections`);
@@ -240,10 +233,42 @@ test("a score has bpm, target >= bpm and sections inside the piece; scored lesso
   }
 });
 
-test("hasScore is true for score/sightread lessons, false otherwise", () => {
+test("hasScore is true for score/chart/sightread lessons, false otherwise", () => {
   assert.equal(hasScore(LESSONS["pno-minuet"]), true);
   assert.equal(hasScore(LESSONS["pno-sight"]), true);
-  assert.equal(hasScore(LESSONS["pno-hanon"]), false);
+  assert.equal(hasScore(LESSONS["pop-four-chords"]), true);
+  assert.equal(hasScore(LESSONS["pno-ear"]), false);
+});
+
+test("a chart lesson writes out to a two-hand score with its chord symbols", () => {
+  const S = scoreFor(LESSONS["pop-four-chords"]), s = parseScore(S.abc, abcjs);
+  assert.equal(s.bars.length, 8);
+  assert.ok(S.abc.includes('"Am"'));
+  assert.ok(s.notes.some((n) => n.hand === "L") && s.notes.some((n) => n.hand === "R"));
+  assert.equal(scoreFor(LESSONS["pop-four-chords"]), S);
+});
+
+// --- pop track stages ---
+
+test("the Pop track runs in order and every stage is a chart", () => {
+  const pop = TRACKS.find((t) => t.id === "trk-pno-pop").stages.map((s) => s.id);
+  assert.deepEqual(pop.slice(0, 6), ["pop-four-chords", "pop-voice-leading", "pop-ballad", "pop-pulse", "pop-fifties", "pop-blues"]);
+  for (const id of pop.slice(0, 6)) assert.ok(LESSONS[id].chart, id);
+});
+
+test("lead sheets: the melody is the right hand, over a generated left hand", () => {
+  const ode = parseScore(scoreFor(LESSONS["pop-ode-to-joy"]).abc, abcjs), grace = parseScore(scoreFor(LESSONS["pop-amazing-grace"]).abc, abcjs);
+  assert.equal(ode.bars.length, 16); assert.equal(grace.bars.length, 16);
+  assert.deepEqual(ode.notes.filter((n) => n.hand === "R").slice(0, 8).map((n) => n.midi), [64, 64, 65, 67, 67, 65, 64, 62]);
+  assert.deepEqual(grace.notes.filter((n) => n.hand === "R").slice(0, 5).map((n) => n.midi), [62, 67, 71, 67, 71]);
+  assert.deepEqual(grace.meter, [3, 4]);
+});
+
+test("the technique track is six scored stages", () => {
+  const ids = TRACKS.find((t) => t.id === "trk-pno-hands").stages.map((s) => s.id);
+  assert.deepEqual(ids, ["trk-pno-1", "trk-pno-2", "trk-pno-3", "tec-hanon-1", "tec-cadences", "tec-arpeggios"]);
+  for (const id of ids) assert.ok(LESSONS[id].score && !LESSONS[id].shape, id);
+  assert.equal(parseScore(LESSONS["tec-hanon-1"].score.abc, abcjs).bars.length, 15);
 });
 
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });

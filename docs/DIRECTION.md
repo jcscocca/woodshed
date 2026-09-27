@@ -83,6 +83,11 @@ cross-device sync. Specs stay in `docs/` for reference.
    projects: the notation engine — grand-staff pieces, wait mode and
    play-along grading, the tempo ladder, sight-reading drills (its own spec,
    `docs/superpowers/specs/2026-09-26-notation-pieces-design.md`) — is
-   **done**; piano content (more pieces, deeper tracks) is next, its own
-   spec. Parked until the metronome and the lesson synth share one
-   AudioContext: "Hear this section" and the app playing the other hand.
+   **done**. Piano content — its own spec,
+   `docs/superpowers/specs/2026-09-27-piano-content-design.md` — is **done**
+   too: 22 scored stages across three tracks (**Pieces**, **Pop from
+   chords**, **Two-Hand Coordination**), plus "Your song" for typing in any
+   song's chords. **Next: guitar content**, its own spec. Parked: any-voicing
+   chord grading, swing/shuffle feel, compound metres (6/8, 3/8), and "Hear
+   this section"/the app playing the other hand — the last two until the
+   metronome and the lesson synth share one AudioContext.
