@@ -89,6 +89,40 @@ only. The app never plays your live notes through the speakers — the piano
 already makes its own sound; app audio stays limited to lesson demos and Play
 back.
 
+### Reading music
+
+Open the Minuet in G (Petzold) — Woodshed's first piece — or the
+sight-reading drill, and it takes over the middle pane as a **grand staff**,
+four bars to a system, with a **Score** entry in the sidebar (key **5**)
+while it's open.
+
+Work a **section** — the piece's own presets (**A**, **B**, **all**) or click
+a bar number (shift-click sets the far end) — and the rest of the staff dims
+without reflowing. **Hands** narrows to right or left alone, dimming and
+ignoring the other staff. **Wait mode** holds at each note (or chord) until
+you play it, lighting it on the staff and outlining what's next on the band;
+wrong presses flash and never advance. **Play-along** opens with a one-bar
+count-in on the click, then grades every note's pitch and timing against it —
+on time, early, late, missed or wrong, colored on the staff — and ends with a
+summary: notes % and rhythm % (a clean pass is 90%+ notes, 80%+ rhythm), any
+extra notes, and which bars to revisit. A clean pass climbs that section's
+own tempo ladder by 4 bpm toward the piece's target, remembered per section;
+**Log it** records minutes plus accuracy, rhythm, section and tempo.
+
+**Sight-reading** drills are generated fresh each time — never the same
+twice — across **10 levels**, from one hand in C major up to both hands
+together, sharp and flat keys, and chromatic neighbor notes. Play it with the
+click; three clean drills in a row and the app offers **Level up →** — it
+only advances if you take the offer.
+
+New shortcuts: **W** wait mode / play-along, **H** cycles hands, **N** a new
+drill, **[ / ]** previous/next section, **5** back to the open score, **↑/↓**
+move the page. Mid-run, **Space** or **C** stops it, and ←/→ and the rail's
+tempo controls lock for the run; **Esc** stops a run on the first press and
+closes the score on the second.
+
+Desktop and piano only, like the rest of this section.
+
 ---
 
 ## Run it
@@ -179,6 +213,14 @@ The code is split so the parts you'll want to change are easy to find:
 | `src/midi/overlay.js` | Small subscribable store a piano lesson uses to put its targets and progress on the band, without routing through `App`. |
 | `src/midi/MidiProvider.jsx` | Mounts the MIDI connection on desktop when piano is enabled; exposes status, `connect()`, `subscribe()` and Play back via `useMidi()`. |
 | `src/midi/MidiBand.jsx` | The 88-key band and its readout — keys lit by velocity, chord/note readout, Play back, collapse to a thin bar. |
+| `src/score/scoreModel.js` | Parses a piece's ABC notation into notes, bars and beats (pure, node-tested) — `parseScore`, plus the `inSection`/`forHands` helpers. |
+| `src/score/timedGrade.js` | Grades a play-along run's pitch and timing against the metronome — on / early / late / missed / wrong, notes % and rhythm % (pure). |
+| `src/score/waitGrade.js` | Grades wait mode — an onset (a note or chord) advances only once every note in it has been pressed; wrong presses flash but never advance (pure). |
+| `src/score/sightread.js` | Generates the sight-reading drills — 10 leveled, seeded patterns as ABC, never the same twice (pure). |
+| `src/score/runStore.js` + `src/score/useRun.js` | A small subscribable store for the live score run (section, hands, mode, run state, readout), like `src/midi/overlay.js`; `ScoreStage`, `ScorePanel` and the band all read it via the `useRun()` hook. |
+| `src/score/ScoreStage.jsx` | The grand staff itself, in the main pane — renders the open piece or drill with lazy-loaded abcjs, colors notes by grading, dims sections, takes bar clicks, scrolls the system window. |
+| `src/score/ScorePanel.jsx` | The rail controls for a scored item — section / hands / mode, Start, the tempo ladder and summary, and the sight-reading level picker. |
+| `src/score/ScoreSnippet.jsx` | A small static staff snippet for the rail (e.g. the C-major-scale lesson) — no cursor, no grading. |
 | `src/styles.css` | All styling and the color palette (CSS variables at the top). |
 | `src/App.jsx` | The views (Today / Tracks / Library / Progress), the dialogs, and the switch between the phone and desktop layouts. |
 | `test/` | The suites `npm test` runs (DSP smoke, lessons schema, coach, ear, engine, desktop, MIDI), plus the real-audio suite in `test/audio/`. |
