@@ -197,11 +197,13 @@ test("every lesson with score/snippet parses without throwing", () => {
 // What the engine can grade (the spec's ABC authoring conventions): at most two voices, one per
 // staff; a full first bar; repeats written out; no inline metre change; 2/4, 3/4 or 4/4.
 const ungradable = (abc) => {
-  const [tune] = abcjs.parseOnly(abc), { num, den } = tune.getMeterFraction(), out = [];
+  const [tune] = abcjs.parseOnly(abc), { num, den } = tune.getMeterFraction(), metre = JSON.stringify(tune.getMeter()), out = [];
   if (den !== 4 || ![2, 3, 4].includes(num)) out.push(`metre ${num}/${den}`);
   if (tune.getPickupLength()) out.push("pickup");
   for (const line of tune.lines.filter((l) => l.staff)) {
     if (line.staff.length > 2 || line.staff.some((s) => s.voices.length !== 1)) out.push("voices");
+    // a body M: line lands on the staff, not in the voice
+    if (line.staff.some((s) => s.meter && JSON.stringify(s.meter) !== metre)) out.push("metre change");
     for (const el of line.staff.flatMap((s) => s.voices.flat())) {
       if (el.el_type === "bar" && (/repeat/.test(el.type) || el.startEnding)) out.push("repeat");
       if (el.el_type === "meter") out.push("metre change");
@@ -217,6 +219,7 @@ test("the score lint catches repeats, endings, overlays, extra voices, metre cha
     ["%%staves {1 2 3}\nV:1\nV:2\nV:3\n[V:1] C8 |]\n[V:2] E8 |]\n[V:3] G8 |]", "voices"]];
   for (const [body, why] of bad) assert.ok(ungradable(H + body).includes(why), `${why}: ${body}`);
   assert.deepEqual(ungradable("X:1\nM:6/8\nL:1/8\nK:C\nC6 | D6 |]"), ["metre 6/8"]);
+  assert.deepEqual(ungradable(`${H}C8 | D8 |\nM:3/4\nE6 | F6 |]`), ["metre change"]);
   assert.deepEqual(ungradable(`${H}"C"(3CDE {g}F2 G2- G2 y | c8 |]`), []);
 });
 

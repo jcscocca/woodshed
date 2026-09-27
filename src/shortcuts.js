@@ -49,11 +49,13 @@ export function actionFor(e, { typing = false, dialogOpen = false, buttonFocused
   return null;
 }
 
-// A live play-along run owns the metronome: Space and Esc stop the run (a second Esc then
-// closes), the tempo keys do nothing. Wait mode never touches the metronome, so it locks nothing.
+// Esc stops a live run first (a second Esc closes). A play-along run also owns the metronome:
+// Space stops the run and the tempo keys do nothing; wait mode never touches the metronome.
 export function routeAction(a, run) {
-  if (!run.play || (run.state !== "countin" && run.state !== "running")) return a;
+  if (run.state !== "countin" && run.state !== "running") return a;
+  if (a.type === "close") return { type: "coach" };
+  if (!run.play) return a;
   if (a.type === "bpm" || a.type === "tap") return null;
-  if (a.type === "metronome" || a.type === "close") return { type: "coach" };
+  if (a.type === "metronome") return { type: "coach" };
   return a;
 }

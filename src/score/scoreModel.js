@@ -12,11 +12,12 @@ export function walkTune(tune, visit) {
   const { num, den } = tune.getMeterFraction(), bpb = (num * 4) / den;
   const voices = first.staff.reduce((n, s) => n + s.voices.length, 0);
   const hand = (v) => (voices > 1 ? (v ? "L" : "R") : first.staff[0].clef.type === "bass" ? "L" : "R");
-  const beats = [], tuplet = [];
+  const beats = [];
   tune.lines.forEach((line, l) => {
     let v = 0;
     (line.staff || []).forEach((staff, s) => staff.voices.forEach((voice) => {
-      let beat = beats[v] || 0, k = tuplet[v] || 1;
+      // abcjs (parse and audio) closes a tuplet left open at the end of its line
+      let beat = beats[v] || 0, k = 1;
       for (const el of voice) {
         if (el.el_type !== "note" || !el.duration || (el.rest && el.rest.type === "spacer")) continue;
         if (el.startTriplet) k = el.tripletMultiplier;
@@ -25,8 +26,7 @@ export function walkTune(tune, visit) {
         beat += el.duration * 4 * k;
         if (el.endTriplet) k = 1;
       }
-      beats[v] = beat;
-      tuplet[v++] = k;
+      beats[v++] = beat;
     }));
   });
   return round(Math.max(0, ...beats));

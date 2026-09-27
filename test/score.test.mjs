@@ -91,6 +91,11 @@ test("parseScore: a tie across a barline is one target", () => {
 test("parseScore: a y spacer takes no time", () => {
   assert.deepEqual(at(probe("C2 y D2 E2 F2 | G8 |")), ["60@0", "62@1", "64@2", "65@3", "67@4"]);
 });
+test("parseScore: a tuplet left open at a line end doesn't squeeze the next line", () => {
+  const s = probe("C2 D2 E2 (3FG |\nA2 B2 c2 d2 |");
+  assert.deepEqual(s.notes.map((n) => n.beat), [0, 1, 2, 3, 3.333, 3.667, 4.667, 5.667, 6.667]);
+  assert.deepEqual(s.notes.slice(-4).map((n) => n.dur), [1, 1, 1, 1]);
+});
 test("parseScore: repeats are graded as written, once", () => {
   const s = probe("|: C2 D2 E2 F2 :| G8 |");
   assert.deepEqual(at(s), ["60@0", "62@1", "64@2", "65@3", "67@4"]);

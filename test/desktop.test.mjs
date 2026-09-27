@@ -91,9 +91,16 @@ test("a live play-along run owns the tempo: Space and Esc stop it, ←/→ and T
     assert.deepEqual(routeAction(c, run), c, state);
   }
 });
-test("wait mode, idle and finished runs leave the keys alone", () => {
+test("a wait-mode run leaves the metronome keys alone; Esc stops it first", () => {
+  const keys = [" ", "ArrowLeft", "ArrowRight", "t", "c"].map((k) => actionFor(key(k)));
+  for (const run of [{ state: "running" }, { state: "running", play: false }]) {
+    for (const a of keys) assert.deepEqual(routeAction(a, run), a, `${JSON.stringify(run)} ${a.type}`);
+    assert.deepEqual(routeAction(actionFor(key("Escape")), run), { type: "coach" }, JSON.stringify(run));
+  }
+});
+test("idle and finished runs leave the keys alone", () => {
   const keys = [" ", "Escape", "ArrowLeft", "ArrowRight", "t", "c"].map((k) => actionFor(key(k)));
-  for (const run of [{ state: "running" }, { state: "running", play: false }, { state: "idle" }, { state: "done", play: true }])
+  for (const run of [{ state: "idle" }, { state: "done" }, { state: "done", play: true }])
     for (const a of keys) assert.deepEqual(routeAction(a, run), a, `${JSON.stringify(run)} ${a.type}`);
 });
 test("K toggles the band, P plays back", () => {

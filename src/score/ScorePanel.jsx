@@ -141,7 +141,7 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
     const teardown = () => { cancelAnimationFrame(raf); off(); overlay.reset(); metroRef.current.stop(); live.current = null; };
     const finish = (g, complete) => {
       teardown();
-      setRun({ state: "done", statuses: g.statuses, cursor: -1, result: { ...g, bpm, section: k } });
+      setRun({ state: "done", statuses: g.statuses, cursor: -1, result: { ...g, bpm, section: k, from, to } });
       // a drill counts toward the level-up streak once, on its first graded pass; any pass that isn't clean resets it
       if (sight) { if (!complete || !g.clean) setStreak(0); else if (!graded.current) setStreak((s) => s + 1); graded.current = true; }
       else if (complete && g.clean) {
@@ -215,7 +215,7 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
 
   const r = st.run.state === "done" && st.run.result;
   const next = r && Math.min(spec.target, r.bpm + 4);
-  const revisit = r && !r.wait ? r.revisitBars.filter((b) => b >= sec.from && b <= sec.to) : [];
+  const revisit = r && !r.wait ? r.revisitBars.filter((b) => b >= r.from && b <= r.to) : [];
   const note = !connected && (midi && midi.status === "unsupported" ? "MIDI needs Chrome or Edge."
     : `${midi && midi.status === "disconnected" ? "Keyboard disconnected. Plug it back in" : "Connect your keyboard"} to practise this.`);
   const logIt = () => {
@@ -288,7 +288,7 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
           )}
           <div className="ws-coach-actions">
             <button className="ws-btn ghost sm" onClick={start} disabled={!connected}>↻ again</button>
-            {!sight && !r.wait && next > metro.bpm && (
+            {!sight && !r.wait && r.section === key && next > metro.bpm && (
               <button className="ws-btn ghost sm" disabled={!connected} onClick={() => { metro.setBpm(next); requestAnimationFrame(() => toggle.current()); }}>↑ {next}</button>
             )}
             <button className="ws-btn primary sm" onClick={logIt}>Log it →</button>

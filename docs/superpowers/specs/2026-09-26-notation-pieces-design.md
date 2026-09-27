@@ -106,8 +106,10 @@ pieces (project 2).
 
 - **`src/score/scoreModel.js`** (pure; node-tested): `parseScore(abc, abcjs)`
   → `{ meter: [n, 4], key, bars: [{ n, beat }], notes: [{ midi, beat, dur,
-  bar, hand, onset }] }` from `abcjs.parseOnly(abc)[0].setUpAudio()` (verified
-  to work without a DOM). `abcjs` is passed in so the browser can lazy-load it
+  bar, hand, onset }] }` from one walk over the parsed voices, `walkTune(tune,
+  visit)`, which the stage shares for its note map; each note's pitches come
+  from its `el.midiPitches`, which `setUpAudio()` annotates (verified to work
+  without a DOM). `abcjs` is passed in so the browser can lazy-load it
   and tests can `import` it. Beats are quarter notes from the start of the
   piece; `bar` from the metre (no pickups); `onset` groups notes starting on
   the same beat. **ABC convention:** voice 1 = right hand, voice 2 = left
