@@ -245,7 +245,7 @@ export default {
     summary: "A pop-ballad left hand: root, fifth, octave, fifth in even eighth notes, under the same chords played two ways — I–V–vi–IV, then its vi–IV–I–V twin.",
     steps: [
       "Left hand alone: root-fifth-octave-fifth, even eighth notes, one pattern per chord.",
-      "Right hand alone: the block chords from the four-chords stage.",
+      "Right hand alone: the voice-led shapes from the last stage.",
       "Hands together, wait mode, then with the click.",
       "The second half swaps the order to vi–IV–I–V — the progression under \"Zombie\" and the verse of \"Despacito\".",
     ],
@@ -272,14 +272,14 @@ export default {
     },
   },
   "pop-fifties": {
-    summary: "The '50s progression — I–vi–IV–V — played as a right-hand arpeggio: 1-3-5-3 through each chord.",
+    summary: "The '50s progression — I–vi–IV–V — played as a right-hand arpeggio: low–middle–top–middle through each chord.",
     steps: [
-      "Right hand alone: the chord's root, third, fifth, then back down to the third — 1-3-5-3, one pattern per bar.",
+      "Right hand alone: the lowest note of the shape, then the middle, the top, and back to the middle — one pattern per bar.",
       "Left hand holds the root underneath.",
       "Hands together, wait mode, then with the click.",
       "This is the loop under \"Stand By Me\" and the verse of \"Every Breath You Take\".",
     ],
-    watch: ["Keep the arpeggio's four notes evenly spaced — don't rush the turnaround back down to the third."],
+    watch: ["Keep the arpeggio's four notes evenly spaced — don't rush the turnaround back down to the middle."],
     chart: {
       key: "G", meter: "4/4", chords: "G | Em | C | D | G | Em | C | D", pattern: "arpeggio",
       bpm: 52, target: 80,
@@ -291,7 +291,7 @@ export default {
     steps: [
       "Learn the form first, away from the keyboard: 4 bars of C7, 2 of F7, 2 of C7, then G7-F7-C7-G7.",
       "Left hand: root-fifth-sixth-fifth in even eighths under each chord — the boogie pattern.",
-      "Right hand alone: the 7th-chord shapes, then hands together in wait mode.",
+      "Right hand alone: the 7th-chord shells — third, fifth and seventh; the root is in your left hand — then hands together in wait mode.",
       "Straight eighths for now — the shuffle swing feel comes later.",
     ],
     watch: ["This form is under \"Johnny B. Goode\" and \"Hound Dog\" — recognizing it by ear is half the job."],
@@ -332,7 +332,7 @@ export default {
     },
   },
   "tec-hanon-1": {
-    summary: "Hanon No. 1: a five-finger pattern that climbs by step through two octaves and back, hands together the whole way. Two sections: up (1–7) and down (8–15).",
+    summary: "Hanon No. 1: a five-finger pattern that climbs by step, the first half of Hanon No. 1, an octave and a half up and back, hands together the whole way. Two sections: up (1–7) and down (8–15).",
     steps: [
       "Right hand: 1-2-3-4-5-4-3-2, repeating one step higher each bar as it climbs.",
       "Left hand: 5-4-3-2-1-2-3-4, mirroring the right hand's shape below it.",

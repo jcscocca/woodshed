@@ -35,7 +35,7 @@ export default {
     "Switch to play-along with the click at 66. Each clean pass nudges the tempo up toward 100.",
   ],
   watch: [
-    "The key signature has two flats, B flat and E flat, but the F sharp that G minor needs isn't in it — it's written in each time (bars 7 and 27–31). The second half also has E naturals (bars 17, 19, 28, 29), and the left hand has B naturals in bars 12, 13 and 25.",
+    "The key signature has two flats, B flat and E flat, but the F sharp that G minor needs isn't in it — it's written in each time (bars 7, 27–29 and 31). The second half also has E naturals (bars 17, 19, 28, 29), and the left hand has B naturals in bars 12, 13 and 25.",
     "The edition's ornaments — trills and mordents in bars 8, 9, 13, 15, 22 and 31 — are left off the score. Add them once the notes are secure.",
   ],
   source: { label: "Mutopia Project — Menuet in G minor, BWV Anh. 115 (Bach-Gesellschaft)", url: "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=76" },

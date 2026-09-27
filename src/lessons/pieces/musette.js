@@ -17,7 +17,7 @@ V:2 clef=bass
 [V:2] A,,2A,2 A,,2A,2 | A,,2A,2 A,,2A,2 | A,,2A,2 A,,2A,2 | A,,2A,2 E,,2E,2 |
 [V:1] e2^d2 E2=d2- | d2c2 a2^g2 | e2^d2 E2=d2- | d2c2 a2^g2 |
 [V:2] E,,2E,2 E,,2E,2 | E,,2E,2 E,,2E,2 | E,,2E,2 E,,2E,2 | E,,2E,2 E,,2E,2 |
-[V:1] e^dc^d e^dc^d | e2^G2 A2=d2 | cde2 A2D2 | CDE2 A,4 ||
+[V:1] e^dcd edcd | e2^G2 A2=d2 | cde2 A2D2 | CDE2 A,4 ||
 [V:2] E,,2E,2 E,,2E,2 | E,,2D,2 C,2D,2 | E,4 A,,2D,2 | C,D,E,2 A,,4 ||
 [V:1] a4 gfed | a4 gfed | FGA2 G2F2 | E2A2 F2D2 |
 [V:2] D,,2D,2 D,,2D,2 | D,,2D,2 D,,2D,2 | F,G,A,2 G,2F,2 | E,2A,2 F,2D,2 |

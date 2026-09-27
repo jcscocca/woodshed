@@ -30,8 +30,8 @@ export default {
     "Switch to play-along with the click at 52, the tune a little louder than the eighths. Each clean pass nudges the tempo up toward 80.",
   ],
   watch: [
-    "Both staves are in the treble clef, as Schumann wrote it — the left hand sits around middle C and just above. Read the lower staff as bass clef and every note comes out a third wrong.",
-    "In bars 8 and 16 the right hand holds its F for three eighths while it plays A, C, B and D underneath. The score writes the F short so the hand fits on one line, but keep it held.",
+    "Both staves are in the treble clef, as Schumann wrote it — the left hand sits around middle C and just above. Read the lower staff as bass clef and every note comes out two letter names off, and far too low.",
+    "In bars 8 and 16 the right hand holds its F for three eighths while it plays A, C and B underneath, then D. The score writes the F short so the hand fits on one line, but keep it held.",
   ],
   source: { label: "Mutopia Project — Schumann, Melodie, Op. 68 No. 1 (typeset by Philippe Hézaine, CC BY-SA 2.5)", url: "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=647" },
   score: {

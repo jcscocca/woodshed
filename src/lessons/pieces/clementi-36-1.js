@@ -32,7 +32,7 @@ V:2 clef=bass
 [V:2] G,2 z2 G,,2 z2 | C,,E,,G,,C, C,,2 z2 |]`;
 
 export default {
-  summary: "The first movement (Spiritoso) of Clementi's Sonatina in C, Op. 36 No. 1, all 38 bars — a sonata form in miniature. The exposition (bars 1–15) sets out a bold C major theme and moves to G major; the development (16–23) darkens it with E flats and waits on G; the recapitulation (24–38) brings both ideas back in C. Five sections: Exposition 1 (bars 1–8), Exposition 2 (9–15), Development (16–23), Recap 1 (24–31) and Recap 2 (32–38). The original repeats the exposition, then bars 16–38; here you play each once.",
+  summary: "The first movement (Spiritoso) of Clementi's Sonatina in C, Op. 36 No. 1, all 38 bars — a sonata form in miniature, in an edition written in 2/2 (alla breve) though the click counts four here. The exposition (bars 1–15) sets out a bold C major theme and moves to G major; the development (16–23) darkens it with E flats and waits on G; the recapitulation (24–38) brings both ideas back in C. Five sections: Exposition 1 (bars 1–8), Exposition 2 (9–15), Development (16–23), Recap 1 (24–31) and Recap 2 (32–38). The original repeats the exposition, then bars 16–38; here you play each once.",
   steps: [
     "Right hand alone through the exposition, in wait mode. Bars 8, 10 and 12 are runs of even eighths up a scale or a chord; keep every note the same length, and let the quarter notes in bars 9 and 11 jump cleanly up the octave.",
     "Left hand alone. Mostly it marks the beat with single notes between rests, but in bars 9 and 11, and again in 32 and 34, it plays an Alberti figure — low, high, middle, high. Keep the hand still over the notes and let the fingers do the work.",
