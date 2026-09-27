@@ -47,9 +47,9 @@ guitar ones stay open:
 
 1. **Decided, piano:** the coach is back **piano-first over MIDI** (its own
    spec, `docs/superpowers/specs/2026-09-24-piano-midi-design.md`). Grading is
-   exact — MIDI pitch needs no stabilizer — and chords work as played: rolled
-   chords grade in order, and the two hands-together scale lessons grade each
-   pair of hands as a chord. Mic grading stays off for piano; there's no
+   exact — MIDI pitch needs no stabilizer: rolled chords grade in order, and
+   the two hands-together scale lessons grade each hand as its own line (a
+   pair counts when both hands got it). Mic grading stays off for piano; there's no
    fallback. `COACH_ENABLED` (mic) stays `false` throughout.
 2. **Open:** is mic grading for **guitar** worth keeping, and for which lesson
    kinds?
