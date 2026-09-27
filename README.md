@@ -217,6 +217,10 @@ The code is split so the parts you'll want to change are easy to find:
 | `src/score/timedGrade.js` | Grades a play-along run's pitch and timing against the metronome — on / early / late / missed / wrong, notes % and rhythm % (pure). |
 | `src/score/waitGrade.js` | Grades wait mode — an onset (a note or chord) advances only once every note in it has been pressed; wrong presses flash but never advance (pure). |
 | `src/score/sightread.js` | Generates the sight-reading drills — 10 leveled, seeded patterns as ABC, never the same twice (pure). |
+| `src/score/chords.js` | Chord symbols — parses a symbol (`Am7`, `F#m`, `C/E`) or a whole chart line into bars, and spells each chord's tones from its root (pure). |
+| `src/score/patterns.js` | The accompaniment patterns (block, voice-led, ballad, pulse, arpeggio, boogie, waltz) as per-chord figures, plus the close-voicing helpers that pick each chord's inversion (pure). |
+| `src/score/chartToAbc.js` | Writes a chord chart (key, metre, chords, pattern, optional melody) out as two-voice ABC with chord symbols, so a chart plays and grades like any piece (pure). |
+| `src/score/scoreFor.js` | What a scored lesson plays — its ABC, bpm, target and sections, from `score` or a chart written out once; drills and Your song take their ABC from the panel instead. |
 | `src/score/runStore.js` + `src/score/useRun.js` | A small subscribable store for the live score run (section, hands, mode, run state, the current drill, the visible window), like `src/midi/overlay.js`; `ScoreStage` and `ScorePanel` read it via the `useRun()` hook, and the shortcuts and rail metronome check whether a run is live. |
 | `src/score/ScoreStage.jsx` | The grand staff itself, in the main pane — renders the open piece or drill with lazy-loaded abcjs, colors notes by grading, dims sections, takes bar clicks, scrolls the system window. |
 | `src/score/ScorePanel.jsx` | The rail controls for a scored item — section / hands / mode, Start, the tempo ladder and summary, and the sight-reading level picker. |

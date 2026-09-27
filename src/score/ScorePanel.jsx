@@ -5,6 +5,7 @@ import { createWaitRun } from "./waitGrade.js";
 import { generateDrill, drillBpm, LEVELS } from "./sightread.js";
 import { runStore } from "./runStore.js";
 import { useRun } from "./useRun.js";
+import { scoreFor } from "./scoreFor.js";
 import { usePractice } from "../PracticeProvider.jsx";
 import { useMidi } from "../midi/MidiProvider.jsx";
 import { overlay } from "../midi/overlay.js";
@@ -40,8 +41,8 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
   const live = useRef(null), metroRef = useRef(metro), passes = useRef({}), shownKey = useRef(null), toggle = useRef(null), onKey = useRef(null), graded = useRef(false), picked = useRef(false);
   metroRef.current = metro;
   const sight = !!lesson.sightread, level = sightLevel;
-  const spec = lesson.score || {};
-  const src = sight ? st.drill : spec.abc;
+  const spec = scoreFor(lesson);
+  const src = sight ? st.abc : spec.abc;
   const score = useMemo(() => (abcjs && src ? parseScore(src, abcjs) : null), [abcjs, src]);
   const n = score ? score.bars.length : 0;
   const sec = (!sight && st.section) || { from: 1, to: n };
@@ -65,7 +66,7 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
       window.removeEventListener("woodshed:coach", onCoach);
       window.removeEventListener("woodshed:score", onScore);
       if (live.current) live.current.cancel();
-      if (sight) runStore.set({ drill: null });
+      if (sight) runStore.set({ abc: null });
     };
   }, []);
 
@@ -73,9 +74,9 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
   const newDrill = () => {
     if (live.current) return;
     let abc;
-    do abc = generateDrill(level, seed()); while (abc === runStore.get().drill);
+    do abc = generateDrill(level, seed()); while (abc === runStore.get().abc);
     graded.current = false;
-    runStore.set({ drill: abc, run: IDLE });
+    runStore.set({ abc, run: IDLE });
   };
   useEffect(() => {
     if (!sight) return;

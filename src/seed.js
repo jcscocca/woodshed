@@ -97,6 +97,13 @@ export const TRACKS = [
       { id: "trk-pno-5", title: "Arpeggiated accompaniment", type: "technique", diff: 4, min: 10, desc: "Break the left-hand chords into rolling arpeggios under the melody. Aim for an even, flowing accompaniment." },
     ],
   },
+  {
+    id: "trk-pno-pop", inst: "piano", name: "Pop from chords",
+    blurb: "Play songs from chord charts: the four chords everyone uses, then accompaniment patterns, then real melodies over your own left hand.",
+    stages: [
+      { id: "pop-four-chords", title: "The four chords", type: "song", diff: 2, min: 10, desc: "I–V–vi–IV in C as block chords — the progression under a huge share of pop songs." },
+    ],
+  },
 ];
 
 // Flatten every track stage into library-item form (adds inst, trackId,

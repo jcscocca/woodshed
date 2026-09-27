@@ -184,4 +184,20 @@ export default {
     ],
     watch: ["Even spacing between the rolled notes matters more than speed."],
   },
+
+  "pop-four-chords": {
+    summary: "I–V–vi–IV in C — C, G, Am, F — as block chords: the left hand plays each root, the right hand the whole chord.",
+    steps: [
+      "Right hand alone, wait mode: find each chord shape — C-E-G, G-B-D, A-C-E, F-A-C, all in root position.",
+      "Left hand alone: the roots C, G, A, F, low and held for the whole bar.",
+      "Both hands in wait mode, then play-along with the click. Change on the downbeat, not a moment after.",
+      "Songs built on this loop: \"Let It Be\", \"Don't Stop Believin'\", \"Someone Like You\". Try one from memory over it.",
+    ],
+    watch: ["The G shape sits lower than the C — let the hand drop without looking."],
+    chart: {
+      key: "C", meter: "4/4", chords: "C | G | Am | F | C | G | Am | F", pattern: "block",
+      bpm: 56, target: 84,
+      sections: [{ name: "A", from: 1, to: 4 }, { name: "B", from: 5, to: 8 }],
+    },
+  },
 };

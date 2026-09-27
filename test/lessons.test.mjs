@@ -73,7 +73,7 @@ test("every lesson conforms to the schema", () => {
     assert.ok(typeof L.summary === "string" && L.summary.length, `${id}: missing summary`);
     assert.ok(Array.isArray(L.steps) && L.steps.length >= 1, `${id}: needs >= 1 step`);
     assert.ok(Array.isArray(L.watch), `${id}: watch must be an array`);
-    assert.ok(L.shape || L.prescribe || L.score || L.sightread, `${id}: needs a shape, a prescription, a score or sightread`);
+    assert.ok(L.shape || L.prescribe || L.score || L.chart || L.sightread || L.song, `${id}: needs a shape, a prescription, a score, a chart, sightread or song`);
     validateShape(L.shape ?? null);
   }
 });
@@ -157,6 +157,7 @@ test("lesson copy is plain text — no markdown asterisks", () => {
 import abcjs from "abcjs";
 import { parseScore } from "../src/score/scoreModel.js";
 import { hasScore } from "../src/lessons/index.js";
+const { scoreFor } = await import("../src/score/scoreFor.js");
 
 test("the Minuet parses: 16 bars, key G, meter 3/4, sections, RH stays in G major", () => {
   const { abc, sections } = LESSONS["pno-minuet"].score;
@@ -225,14 +226,14 @@ test("the score lint catches repeats, endings, overlays, extra voices, metre cha
 
 test("every score and snippet is one the engine can grade", () => {
   for (const [id, L] of Object.entries(LESSONS))
-    for (const abc of [L.score && L.score.abc, L.snippet].filter(Boolean)) assert.deepEqual(ungradable(abc), [], id);
+    for (const abc of [(L.score || L.chart) && scoreFor(L).abc, L.snippet].filter(Boolean)) assert.deepEqual(ungradable(abc), [], id);
 });
 
 test("a score has bpm, target >= bpm and sections inside the piece; scored lessons carry no shape", () => {
   for (const [id, L] of Object.entries(LESSONS)) {
-    if (L.score || L.sightread) assert.ok(!L.shape, `${id}: a scored lesson has no shape`);
-    if (!L.score) continue;
-    const { abc, bpm, target, sections } = L.score, n = parseScore(abc, abcjs).bars.length;
+    if (L.score || L.chart || L.sightread || L.song) assert.ok(!L.shape, `${id}: a scored lesson has no shape`);
+    if (!L.score && !L.chart) continue;
+    const { abc, bpm, target, sections } = scoreFor(L), n = parseScore(abc, abcjs).bars.length;
     assert.ok(Number.isInteger(bpm) && bpm > 0, `${id}: bpm`);
     assert.ok(target >= bpm, `${id}: target ${target} below bpm ${bpm}`);
     assert.ok(Array.isArray(sections) && sections.length, `${id}: sections`);
@@ -240,10 +241,19 @@ test("a score has bpm, target >= bpm and sections inside the piece; scored lesso
   }
 });
 
-test("hasScore is true for score/sightread lessons, false otherwise", () => {
+test("hasScore is true for score/chart/sightread lessons, false otherwise", () => {
   assert.equal(hasScore(LESSONS["pno-minuet"]), true);
   assert.equal(hasScore(LESSONS["pno-sight"]), true);
+  assert.equal(hasScore(LESSONS["pop-four-chords"]), true);
   assert.equal(hasScore(LESSONS["pno-hanon"]), false);
+});
+
+test("a chart lesson writes out to a two-hand score with its chord symbols", () => {
+  const S = scoreFor(LESSONS["pop-four-chords"]), s = parseScore(S.abc, abcjs);
+  assert.equal(s.bars.length, 8);
+  assert.ok(S.abc.includes('"Am"'));
+  assert.ok(s.notes.some((n) => n.hand === "L") && s.notes.some((n) => n.hand === "R"));
+  assert.equal(scoreFor(LESSONS["pop-four-chords"]), S);
 });
 
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });

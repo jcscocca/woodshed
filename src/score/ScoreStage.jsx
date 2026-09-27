@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "re
 import { parseScore, walkTune } from "./scoreModel.js";
 import { runStore } from "./runStore.js";
 import { useRun } from "./useRun.js";
+import { scoreFor } from "./scoreFor.js";
 
 // The open piece in the main pane. abcjs only draws it (one SVG per system) and
 // maps notes to drawn elements; run statuses, the cursor and the section are
@@ -15,7 +16,8 @@ let shownId = null;
 
 export default function ScoreStage({ item, lesson, abc }) {
   const st = useRun();
-  const drill = !!lesson.sightread, src = abc || (drill ? st.drill : lesson.score?.abc);
+  const drill = !!lesson.sightread, fromPanel = drill || !!lesson.song;
+  const src = abc || (fromPanel ? st.abc : scoreFor(lesson).abc);
   const [abcjs, setAbcjs] = useState(null);
   const [size, setSize] = useState(null);
   const [drawn, setDrawn] = useState(null);
