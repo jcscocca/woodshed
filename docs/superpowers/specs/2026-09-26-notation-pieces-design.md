@@ -267,3 +267,29 @@ is saved per item.
 6. Sight-reading generates valid drills for all 10 levels; New drill replaces in place; "Level up →" appears after 3 clean drills in a row.
 7. The C-scale snippet shows in the major-scales lessons' rail; guitar and the phone layout are unchanged apart from the phone fallback note.
 8. abcjs is lazy-loaded; `npm test` and `npm run build` pass.
+
+## ABC authoring conventions
+
+The engine grades the music as written: one walk over the parsed voices
+(`walkTune` in `scoreModel.js`) gives both the grading targets and the stage's
+note map. `test/lessons.test.mjs` lints every `score.abc` and `snippet` against
+these rules.
+
+- **Hands:** voice 1 is the right hand, voice 2 the left, one voice per staff
+  (`%%staves {1 2}` or `%%score {1 2}`, with `V:1 clef=treble` and `V:2
+  clef=bass`). At most two voices; no voice overlay (`&`). A one-voice score
+  takes its hand from the clef.
+- **Layout:** one 4-bar system per source line (the stage draws one SVG per
+  line).
+- **Form:** write repeats out — no `|:`, `:|`, `::` or first/second endings
+  (the engine grades the page once, as written).
+- **Bars:** the first bar is full; pad a pickup with rests into a whole bar.
+- **Metre:** 2/4, 3/4 or 4/4, set once in the header; no inline `[M:]`
+  changes.
+- **Ornaments:** chord symbols (`"C"`) are display only; grace notes and
+  decorations (`!trill!`) are graded on their main note; a tie is one note;
+  tuplets and `y` spacers are fine.
+- **Tempo:** `bpm` and `target` are quarter-note beats per minute.
+- **A `score`** needs `abc`, `bpm`, `target` (≥ `bpm`) and `sections` (`{
+  name, from, to }`, bars within the piece). A scored lesson carries no
+  `shape`.

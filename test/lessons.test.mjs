@@ -194,6 +194,49 @@ test("every lesson with score/snippet parses without throwing", () => {
   }
 });
 
+// What the engine can grade (the spec's ABC authoring conventions): at most two voices, one per
+// staff; a full first bar; repeats written out; no inline metre change; 2/4, 3/4 or 4/4.
+const ungradable = (abc) => {
+  const [tune] = abcjs.parseOnly(abc), { num, den } = tune.getMeterFraction(), out = [];
+  if (den !== 4 || ![2, 3, 4].includes(num)) out.push(`metre ${num}/${den}`);
+  if (tune.getPickupLength()) out.push("pickup");
+  for (const line of tune.lines.filter((l) => l.staff)) {
+    if (line.staff.length > 2 || line.staff.some((s) => s.voices.length !== 1)) out.push("voices");
+    for (const el of line.staff.flatMap((s) => s.voices.flat())) {
+      if (el.el_type === "bar" && (/repeat/.test(el.type) || el.startEnding)) out.push("repeat");
+      if (el.el_type === "meter") out.push("metre change");
+    }
+  }
+  return [...new Set(out)];
+};
+
+test("the score lint catches repeats, endings, overlays, extra voices, metre changes, pickups and odd metres", () => {
+  const H = "X:1\nM:4/4\nL:1/8\nK:C\n";
+  const bad = [["|: C8 :| D8 |]", "repeat"], ["C8 :: D8 :|", "repeat"], ["C8 [1 D8 :| [2 E8 |]", "repeat"], ["C8 |1 D8 :|2 E8 |]", "repeat"],
+    ["C8 & E8 | D8 |]", "voices"], ["C8 | [M:3/4] D6 |]", "metre change"], ["C2 | D8 |]", "pickup"],
+    ["%%staves {1 2 3}\nV:1\nV:2\nV:3\n[V:1] C8 |]\n[V:2] E8 |]\n[V:3] G8 |]", "voices"]];
+  for (const [body, why] of bad) assert.ok(ungradable(H + body).includes(why), `${why}: ${body}`);
+  assert.deepEqual(ungradable("X:1\nM:6/8\nL:1/8\nK:C\nC6 | D6 |]"), ["metre 6/8"]);
+  assert.deepEqual(ungradable(`${H}"C"(3CDE {g}F2 G2- G2 y | c8 |]`), []);
+});
+
+test("every score and snippet is one the engine can grade", () => {
+  for (const [id, L] of Object.entries(LESSONS))
+    for (const abc of [L.score && L.score.abc, L.snippet].filter(Boolean)) assert.deepEqual(ungradable(abc), [], id);
+});
+
+test("a score has bpm, target >= bpm and sections inside the piece; scored lessons carry no shape", () => {
+  for (const [id, L] of Object.entries(LESSONS)) {
+    if (L.score || L.sightread) assert.ok(!L.shape, `${id}: a scored lesson has no shape`);
+    if (!L.score) continue;
+    const { abc, bpm, target, sections } = L.score, n = parseScore(abc, abcjs).bars.length;
+    assert.ok(Number.isInteger(bpm) && bpm > 0, `${id}: bpm`);
+    assert.ok(target >= bpm, `${id}: target ${target} below bpm ${bpm}`);
+    assert.ok(Array.isArray(sections) && sections.length, `${id}: sections`);
+    for (const s of sections) assert.ok(s.from >= 1 && s.from <= s.to && s.to <= n, `${id}: section ${s.name} ${s.from}–${s.to} of ${n} bars`);
+  }
+});
+
 test("hasScore is true for score/sightread lessons, false otherwise", () => {
   assert.equal(hasScore(LESSONS["pno-minuet"]), true);
   assert.equal(hasScore(LESSONS["pno-sight"]), true);
