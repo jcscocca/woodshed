@@ -79,13 +79,11 @@ export function useMetronome(initialBpm = 90, initialBeats = 4) {
     const ctx = ac.current;
     if (!ctx || !tickInterval.current) return null;
     const audioT = firstClick.current + (countIn.current * 60) / bpmRef.current;
-    let t0;
-    if (ctx.getOutputTimestamp) {
-      const { contextTime, performanceTime } = ctx.getOutputTimestamp();
-      t0 = performanceTime + (audioT - contextTime) * 1000;
-    } else {
-      t0 = performance.now() + (audioT - ctx.currentTime) * 1000;
-    }
+    // the output timestamp is {0, 0} on a new context and frozen while it is suspended; trust it only when live
+    const now = performance.now(), ts = ctx.getOutputTimestamp ? ctx.getOutputTimestamp() : null;
+    const t0 = ts && ts.performanceTime > 0 && now - ts.performanceTime < 100
+      ? ts.performanceTime + (audioT - ts.contextTime) * 1000
+      : now + (audioT - ctx.currentTime + (ctx.outputLatency || 0)) * 1000;
     return { t0, bpm: bpmRef.current, beatsPer: beatsRef.current };
   }, []);
 

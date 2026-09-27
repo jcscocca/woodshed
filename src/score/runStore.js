@@ -8,12 +8,13 @@ const INITIAL = {
   window: 0,
   drill: null,
 };
-let state = INITIAL;
+const fresh = () => ({ ...INITIAL, run: { ...INITIAL.run } });
+let state = fresh();
 const subs = new Set();
 
 export const runStore = {
   get: () => state,
   set(patch) { state = { ...state, ...patch }; for (const f of subs) f(state); },
-  reset() { state = INITIAL; for (const f of subs) f(state); },
+  reset() { state = fresh(); for (const f of subs) f(state); },
   subscribe(f) { subs.add(f); return () => subs.delete(f); },
 };

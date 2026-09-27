@@ -167,7 +167,7 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
       }
       raf = requestAnimationFrame(frame);
     };
-    runStore.set({ run: { ...IDLE, state: "countin", targets } });
+    runStore.set({ run: { ...IDLE, state: "countin", targets, play: true } });
     setSay(`Count-in, ${bpm} bpm`);
     raf = requestAnimationFrame(frame);
     live.current = {

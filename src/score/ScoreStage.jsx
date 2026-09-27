@@ -23,7 +23,7 @@ export default function ScoreStage({ item, lesson, abc }) {
   const running = st.run.state === "countin" || st.run.state === "running";
 
   useEffect(() => {
-    if (shownId !== item.id) { shownId = item.id; runStore.set({ section: null, window: 0 }); }
+    if (shownId !== item.id) { shownId = item.id; runStore.set({ section: null, window: 0, hands: "both", mode: "play" }); }
   }, [item.id]);
 
   useEffect(() => {

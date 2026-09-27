@@ -275,6 +275,17 @@ test("schema 7: ladder and sightLevel default to {}", () => {
   assert.deepEqual(m.ladder, {}); assert.deepEqual(m.sightLevel, {}); assert.equal(m.version, 7);
   const kept = migrate({ version: 7, items: [], sessions: [], settings: {}, ladder: { "pno-minuet": { A: 80 } }, sightLevel: { "pno-sight": 3 } });
   assert.deepEqual(kept.ladder, { "pno-minuet": { A: 80 } }); assert.deepEqual(kept.sightLevel, { "pno-sight": 3 });
+  const arrays = migrate({ version: 7, items: [], sessions: [], settings: {}, ladder: [], sightLevel: [3] });
+  assert.deepEqual(arrays.ladder, {}); assert.deepEqual(arrays.sightLevel, {});
+});
+const { runStore } = await import("../src/score/runStore.js");
+test("runStore.reset hands out a fresh state, never the shared initial one", () => {
+  runStore.reset();
+  const a = runStore.get();
+  a.run.state = "running"; a.hands = "L";
+  runStore.reset();
+  assert.equal(runStore.get().run.state, "idle"); assert.equal(runStore.get().hands, "both");
+  assert.notEqual(runStore.get(), a); assert.notEqual(runStore.get().run, a.run);
 });
 
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });
