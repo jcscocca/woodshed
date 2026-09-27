@@ -46,4 +46,64 @@ test("inSection and forHands filter notes", () => {
   assert.equal(forHands(s.notes, "both").length, s.notes.length);
 });
 
+const { gradeTimed, ON_MS, WINDOW_MS } = await import("../src/score/timedGrade.js");
+const { createWaitRun } = await import("../src/score/waitGrade.js");
+const T = (midi, beat, bar = 1) => ({ midi, beat, bar });
+const E = (midi, tStart) => ({ midi, tStart });
+// 60 bpm: one beat = 1000 ms; t0 = 10000
+const opts = (now = Infinity) => ({ t0: 10000, bpm: 60, beatsPerBar: 4, now });
+
+test("gradeTimed: on, early, late at the 60 and 180 ms edges", () => {
+  const targets = [T(60, 0), T(62, 1), T(64, 2), T(65, 3)];
+  const r = gradeTimed(targets, [E(60, 10060), E(62, 10939), E(64, 12180), E(65, 13181)], opts());
+  assert.deepEqual(r.statuses, ["on", "early", "late", "missed"]);
+  assert.equal(ON_MS, 60); assert.equal(WINDOW_MS, 180);
+});
+test("gradeTimed: pending before a window closes, missed after", () => {
+  const targets = [T(60, 0), T(62, 1)];
+  assert.deepEqual(gradeTimed(targets, [], opts(11100)).statuses, ["missed", "pending"]);
+  assert.equal(gradeTimed(targets, [], opts(11100)).done, false);
+  assert.equal(gradeTimed(targets, [], opts(11181)).done, true);
+});
+test("gradeTimed: a slip doesn't shift later notes", () => {
+  const targets = [T(60, 0), T(62, 1), T(64, 2), T(65, 3)];
+  const r = gradeTimed(targets, [E(61, 10000), E(62, 11000), E(64, 12000), E(65, 13000)], opts());
+  assert.deepEqual(r.statuses, ["missed", "on", "on", "on"]);
+  assert.deepEqual(r.extras, [{ midi: 61, bar: 1 }]);
+});
+test("gradeTimed: repeated notes and chords each match their own press", () => {
+  const targets = [T(60, 0), T(64, 0), T(67, 0), T(60, 1), T(60, 2)];
+  const r = gradeTimed(targets, [E(67, 10010), E(60, 10020), E(64, 10030), E(60, 11010), E(60, 12100)], opts());
+  assert.deepEqual(r.statuses, ["on", "on", "on", "on", "late"]);
+});
+test("gradeTimed: notes % and rhythm %, clean pass, revisit bars", () => {
+  const targets = [T(60, 0, 1), T(62, 1, 1), T(64, 4, 2), T(65, 5, 2), T(67, 8, 3)];
+  const r = gradeTimed(targets, [E(60, 10000), E(62, 11100), E(64, 14000), E(65, 15000)], opts());
+  assert.equal(r.notesPct, 80); assert.equal(r.rhythmPct, 75); assert.equal(r.clean, false);
+  assert.deepEqual(r.revisitBars, [1, 3]);
+  const clean = gradeTimed(targets, targets.map((t) => E(t.midi, 10000 + t.beat * 1000)), opts());
+  assert.equal(clean.notesPct, 100); assert.equal(clean.rhythmPct, 100); assert.equal(clean.clean, true);
+});
+test("gradeTimed: the section's first beat lands at t0", () => {
+  const targets = [T(60, 9, 4), T(62, 10, 4)];
+  assert.deepEqual(gradeTimed(targets, [E(60, 10000), E(62, 11000)], opts()).statuses, ["on", "on"]);
+});
+test("gradeTimed: cursor is the first pending target in time", () => {
+  const targets = [T(60, 0), T(62, 1), T(64, 2)];
+  assert.equal(gradeTimed(targets, [E(60, 10000)], opts(10500)).cursor, 1);
+  assert.equal(gradeTimed(targets, targets.map((t) => E(t.midi, 10000 + t.beat * 1000)), opts()).cursor, -1);
+});
+test("createWaitRun: a chord advances only when all its notes are pressed, rolled is fine", () => {
+  const run = createWaitRun([T(60, 0), T(64, 0), T(67, 0), T(62, 1)]);
+  assert.equal(run.press(64), "held"); assert.equal(run.press(60), "held"); assert.equal(run.cursor, 0);
+  assert.equal(run.press(67), "advance"); assert.equal(run.cursor, 1);
+  assert.equal(run.press(62), "done"); assert.equal(run.done, true);
+});
+test("createWaitRun: a wrong press flashes but never advances", () => {
+  const run = createWaitRun([T(60, 0, 1), T(62, 1, 1), T(64, 4, 2)]);
+  assert.equal(run.press(61), "wrong"); assert.equal(run.cursor, 0);
+  run.press(60); run.press(62); run.press(65);
+  assert.deepEqual(run.result(), { found: 2, total: 3, wrong: 2, wrongBars: [1, 2] });
+});
+
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });
