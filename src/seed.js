@@ -90,6 +90,7 @@ export const TRACKS = [
       { id: "pcs-minuet-gmin", title: "Minuet in G minor (Petzold)", type: "song", diff: 2, min: 12, desc: "The Minuet in G minor, the G major Minuet's partner — a minor key, with B flat and E flat in the signature and the F sharp written in." },
       { id: "pcs-musette", title: "Musette in D", type: "song", diff: 2, min: 12, desc: "The Musette in D from the Anna Magdalena notebook — left-hand octave leaps under a dancing tune, with the da capo written out." },
       { id: "pcs-schumann-melody", title: "Melody (Schumann)", type: "song", diff: 2, min: 12, desc: "Schumann's Melody from the Album for the Young — a singing right-hand line over flowing left-hand eighths, both hands in the treble clef." },
+      { id: "pcs-soldiers-march", title: "Soldier's March (Schumann)", type: "song", diff: 3, min: 12, desc: "Schumann's Soldier's March from the Album for the Young — a dotted march rhythm, with short, crisp chords in both hands." },
     ],
   },
   {
