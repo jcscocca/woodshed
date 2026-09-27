@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import abcjs from "abcjs";
 const { parseScore } = await import("../src/score/scoreModel.js");
 const { LESSONS } = await import("../src/lessons/index.js");
+const { default: PIECES } = await import("../src/lessons/pieces/index.js");
 
 let failures = 0;
 const test = (name, fn) => { try { fn(); console.log(`ok   ${name}`); } catch (e) { failures++; console.error(`FAIL ${name}\n     ${e.message}`); } };
@@ -14,14 +15,23 @@ const round = (x) => Math.round(x * 1000) / 1000;
 const key = ([beat, midi]) => `${beat} ${midi}`;
 const count = (onsets) => onsets.reduce((m, o) => m.set(key(o), (m.get(key(o)) || 0) + 1), new Map());
 
+test("every piece has a fixture", () => {
+  const without = Object.keys(PIECES).filter((id) => !existsSync(new URL(`${id}.json`, dir)));
+  assert.ok(!without.length, `no test/fixtures/pieces/<id>.json for ${without.join(", ")}`);
+});
+
 for (const file of readdirSync(dir).filter((f) => f.endsWith(".json"))) {
-  const fx = JSON.parse(readFileSync(new URL(file, dir), "utf8"));
-  test(`${fx.id}: the score matches its reference`, () => {
+  const fx = JSON.parse(readFileSync(new URL(file, dir), "utf8")), id = file.slice(0, -".json".length);
+  test(`${id}: the score matches its reference`, () => {
+    assert.equal(fx.id, id, "the fixture's id differs from its filename");
     const L = LESSONS[fx.id];
     assert.ok(L && L.score, `no scored lesson ${fx.id}`);
     assert.ok(fx.source && fx.source.url, "the fixture has no source url");
     assert.equal(L.source && L.source.url, fx.source.url, "the lesson's source.url differs from the fixture's");
-    if (fx.verified === "manual") return assert.ok(typeof fx.note === "string" && fx.note.trim(), "a manual check needs a note");
+    if (fx.verified === "manual") {
+      assert.ok(!fx.onsets, "a manual check carries no onsets — drop them or drop verified");
+      return assert.ok(typeof fx.note === "string" && fx.note.trim(), "a manual check needs a note");
+    }
     const s = parseScore(L.score.abc, abcjs);
     const expected = count(fx.onsets), got = count(s.notes.map((n) => [round(n.beat), n.midi]));
     for (const d of fx.deviations) {
