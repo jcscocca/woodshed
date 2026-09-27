@@ -80,6 +80,7 @@ export function migrate(state) {
       }
       return [it];
     });
+    if (s.currentSession?.items) s.currentSession.items = s.currentSession.items.filter((x) => !RETIRED.includes(x.itemId));
   }
   s.version = SCHEMA_VERSION;
   return s;
