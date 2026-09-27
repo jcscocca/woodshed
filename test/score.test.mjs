@@ -106,4 +106,69 @@ test("createWaitRun: a wrong press flashes but never advances", () => {
   assert.deepEqual(run.result(), { found: 2, total: 3, wrong: 2, wrongBars: [1, 2] });
 });
 
+const { generateDrill, drillBpm, LEVELS } = await import("../src/score/sightread.js");
+const SCALE = { C: [0, 2, 4, 5, 7, 9, 11], G: [7, 9, 11, 0, 2, 4, 6], F: [5, 7, 9, 10, 0, 2, 4], D: [2, 4, 6, 7, 9, 11, 1], Bb: [10, 0, 2, 3, 5, 7, 9] };
+const TONIC = { C: 0, G: 7, F: 5, D: 2, Bb: 10 };
+const drillCache = {};
+const drills = (level, n = 150) => (drillCache[`${level}:${n}`] ??= Array.from({ length: n }, (_, seed) => { const abc = generateDrill(level, seed); return { seed, abc, s: parseScore(abc, abcjs) }; }));
+const perBarFull = (s) => [..."RL"].every((h) => {
+  const ns = s.notes.filter((x) => x.hand === h);
+  if (!ns.length) return true;
+  return ns.every((x) => Math.floor(x.beat / s.beatsPerBar + 1e-9) === Math.floor((x.beat + x.dur - 1e-6) / s.beatsPerBar));
+});
+
+test("sightread: 10 levels; tempo 60 rising to 72", () => {
+  assert.equal(LEVELS.length, 10); assert.equal(drillBpm(1), 60); assert.equal(drillBpm(10), 72);
+  for (let l = 2; l <= 10; l++) assert.ok(drillBpm(l) >= drillBpm(l - 1));
+});
+test("sightread: deterministic per seed, varied across seeds", () => {
+  for (let l = 1; l <= 10; l++) {
+    assert.equal(generateDrill(l, 7), generateDrill(l, 7));
+    assert.ok(new Set(Array.from({ length: 40 }, (_, s) => generateDrill(l, s))).size >= 20, `level ${l} varies`);
+  }
+});
+test("sightread: every drill parses, has the right bar count, no note crosses a barline, the melody ends on the tonic", () => {
+  for (let l = 1; l <= 10; l++) for (const { s } of drills(l)) {
+    assert.equal(s.bars.length, l >= 9 ? 4 : 2, `level ${l} bars`);
+    assert.ok(perBarFull(s), `level ${l} barlines`);
+    // levels 1-3: the last note of all (one hand, or the hands taking turns); 4+: the right hand's last note
+    const mel = l >= 4 ? s.notes.filter((n) => n.hand === "R") : s.notes;
+    assert.equal(((mel[mel.length - 1].midi % 12) + 12) % 12, TONIC[s.key], `level ${l} ends on tonic`);
+  }
+});
+test("sightread: ranges, hands and keys per level", () => {
+  for (const { s } of drills(1)) { assert.ok(s.notes.every((n) => n.hand === "R" && n.midi >= 60 && n.midi <= 67)); assert.equal(s.key, "C"); }
+  for (const { s } of drills(2)) assert.ok(s.notes.every((n) => n.hand === "L" && n.midi >= 48 && n.midi <= 55));
+  for (const { s } of drills(3)) {
+    const beatsR = new Set(s.notes.filter((n) => n.hand === "R").map((n) => n.bar)), beatsL = new Set(s.notes.filter((n) => n.hand === "L").map((n) => n.bar));
+    assert.ok(beatsR.size && beatsL.size && [...beatsR].every((b) => !beatsL.has(b)), "level 3 alternates by bar");
+  }
+  for (const l of [4, 5, 6, 7, 8]) for (const { s } of drills(l)) {
+    const lh = s.notes.filter((n) => n.hand === "L");
+    assert.ok(lh.length && lh.every((n) => n.beat % s.beatsPerBar === 0), `level ${l} LH on downbeats`);
+  }
+  for (const { s } of drills(6)) assert.deepEqual(s.meter, [3, 4]);
+  for (const { s } of drills(7)) assert.equal(s.key, "G");
+  for (const { s } of drills(8)) assert.equal(s.key, "F");
+  for (const l of [1, 2, 3, 4, 5, 6, 7, 8, 9]) for (const { s } of drills(l)) {
+    const sc = SCALE[s.key]; assert.ok(s.notes.every((n) => sc.includes(((n.midi % 12) + 12) % 12)), `level ${l} stays in key`);
+  }
+});
+test("sightread: rhythm features appear where the ladder adds them", () => {
+  const has = (l, pred) => drills(l).some(({ s }) => s.notes.some(pred));
+  assert.ok(!has(4, (n) => n.hand === "R" && n.dur === 0.5), "no eighths before level 5");
+  assert.ok(has(5, (n) => n.hand === "R" && n.dur === 0.5), "eighths at level 5");
+  assert.ok(has(6, (n) => n.dur === 3), "dotted halves at level 6");
+  assert.ok(has(8, (n) => n.dur === 1.5), "dotted quarters at level 8");
+  assert.ok(drills(9).every(({ s }) => s.notes.filter((n) => n.hand === "L").every((n) => n.dur === 1)), "level 9 LH quarters");
+  assert.ok(drills(10).some(({ s }) => s.notes.some((n) => !SCALE[s.key].includes(((n.midi % 12) + 12) % 12))), "level 10 accidentals");
+});
+test("sightread: melodies move mostly by step", () => {
+  for (let l = 1; l <= 10; l++) for (const { s } of drills(l, 60)) {
+    const top = s.notes.filter((n) => n.hand === (l === 2 ? "L" : "R"));
+    const steps = top.slice(1).filter((n, i) => Math.abs(n.midi - top[i].midi) <= 2).length;
+    assert.ok(top.length < 3 || steps / (top.length - 1) >= 0.6, `level ${l} stepwise`);
+  }
+});
+
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });
