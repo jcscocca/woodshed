@@ -87,6 +87,7 @@ export const TRACKS = [
     blurb: "Written pieces, easiest first — from the Anna Magdalena notebook to Clementi and Burgmüller — learned a section at a time.",
     stages: [
       { id: "pno-minuet", title: "Minuet in G (Petzold)", type: "song", diff: 2, min: 12, desc: "The Minuet in G from the Anna Magdalena notebook, all 32 bars — a section at a time, hands separately, then with the click." },
+      { id: "pcs-minuet-gmin", title: "Minuet in G minor (Petzold)", type: "song", diff: 2, min: 12, desc: "The Minuet in G minor, the G major Minuet's partner — a minor key, with B flat and E flat in the signature and the F sharp written in." },
     ],
   },
   {
