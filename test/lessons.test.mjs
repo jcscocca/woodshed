@@ -245,7 +245,7 @@ test("hasScore is true for score/chart/sightread lessons, false otherwise", () =
   assert.equal(hasScore(LESSONS["pno-minuet"]), true);
   assert.equal(hasScore(LESSONS["pno-sight"]), true);
   assert.equal(hasScore(LESSONS["pop-four-chords"]), true);
-  assert.equal(hasScore(LESSONS["pno-hanon"]), false);
+  assert.equal(hasScore(LESSONS["pno-ear"]), false);
 });
 
 test("a chart lesson writes out to a two-hand score with its chord symbols", () => {

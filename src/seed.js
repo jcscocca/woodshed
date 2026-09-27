@@ -37,11 +37,7 @@ const LIBRARY = [
   // ---------- PIANO ----------
   { id: "pno-scales",   inst: "piano", title: "Major scales, hands together",        type: "technique", diff: 3, min: 8,  desc: "Run major scales hands together, two octaves, starting in C. Aim for even tone and a steady metronome." },
   { id: "pno-sight",    inst: "piano", title: "Sight-reading",                       type: "sight",     diff: 3, min: 8,  desc: "Read through a piece you've never played, slowly, hands together. Don't stop to fix mistakes — keep the pulse." },
-  { id: "pno-hanon",    inst: "piano", title: "Finger independence (Hanon)",         type: "technique", diff: 3, min: 6,  desc: "One Hanon exercise or 5-finger pattern through all positions, slow and even. Relaxed wrists." },
-  { id: "pno-piece",    inst: "piano", title: "Your current piece",                  type: "song",      diff: 4, min: 12, desc: "Work the hardest section. Hands separate first, then together, slower than feels necessary." },
-  { id: "pno-minuet",   inst: "piano", title: "Minuet in G (Petzold)",               type: "song",      diff: 3, min: 12, desc: "Bars 1–16 of the Minuet in G from the Anna Magdalena notebook — learn it a section at a time, hands separately, then with the click." },
-  { id: "pno-voicings", inst: "piano", title: "Comping from a lead sheet",           type: "technique", diff: 3, min: 10, desc: "Take a pop or jazz lead sheet and comp (accompany) the changes with shell voicings." },
-  { id: "pno-improv",   inst: "piano", title: "Improvise over a progression",        type: "creative",  diff: 4, min: 8,  desc: "Loop a ii–V–I or I–V–vi–IV and improvise a right-hand melody. Leave space." },
+  { id: "pno-improv",   inst: "piano", title: "Improvise over a progression",        type: "creative",  diff: 4, min: 8,  desc: "Loop one of the Pop track's progressions and improvise a right-hand melody over it. Leave space." },
   { id: "pno-ear",      inst: "piano", title: "Transcribe by ear",                   type: "ear",       diff: 3, min: 8,  desc: "Pick a short melody and figure it out by ear — no sheet music." },
 
   // ---------- GUITAR ----------
@@ -87,14 +83,19 @@ export const TRACKS = [
     ],
   },
   {
+    id: "trk-pno-pieces", inst: "piano", name: "Pieces",
+    blurb: "Written pieces, easiest first — from the Anna Magdalena notebook to Clementi and Burgmüller — learned a section at a time.",
+    stages: [
+      { id: "pno-minuet", title: "Minuet in G (Petzold)", type: "song", diff: 2, min: 12, desc: "The Minuet in G from the Anna Magdalena notebook — a section at a time, hands separately, then with the click." },
+    ],
+  },
+  {
     id: "trk-pno-hands", inst: "piano", name: "Two-Hand Coordination",
-    blurb: "Build independence between the hands, from five-finger shapes to arpeggiated accompaniment.",
+    blurb: "Build independence between the hands, from five-finger shapes to full hands-together scales.",
     stages: [
       { id: "trk-pno-1", title: "Five-finger patterns, hands separate", type: "technique", diff: 1, min: 8, desc: "C-position five-finger patterns, each hand on its own. Even tone, relaxed wrist, eyes off the keys when you can.", link: { label: "musictheory.net — basics", url: "https://www.musictheory.net" } },
       { id: "trk-pno-2", title: "Hands together: contrary motion", type: "technique", diff: 2, min: 8, desc: "Start with both thumbs on middle C and move the hands outward and back together. Slow and symmetrical." },
       { id: "trk-pno-3", title: "Major scales, one octave", type: "technique", diff: 2, min: 8, desc: "One-octave major scale hands together, watching the thumb-under. Pick one key and make it smooth before adding another." },
-      { id: "trk-pno-4", title: "Melody over block chords", type: "technique", diff: 3, min: 10, desc: "Right hand plays a simple melody while the left holds block chords on the changes. Keep the melody singing above the chords." },
-      { id: "trk-pno-5", title: "Arpeggiated accompaniment", type: "technique", diff: 4, min: 10, desc: "Break the left-hand chords into rolling arpeggios under the melody. Aim for an even, flowing accompaniment." },
     ],
   },
   {

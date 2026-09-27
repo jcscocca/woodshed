@@ -99,7 +99,7 @@ export function accuracyReady(mine, threshold = 80, k = 2) {
   return recent.reduce((t, s) => t + s.accuracy, 0) / recent.length >= threshold;
 }
 
-export function progressionProposals(items, sessions, acked = {}) {
+export function progressionProposals(items, sessions, acked = {}, { targetClean = {}, isScored = () => false } = {}) {
   const live = withDerivedStats(items, sessions);
   const status = trackStatus(live);
   const isCurrentEdge = new Set();
@@ -108,13 +108,18 @@ export function progressionProposals(items, sessions, acked = {}) {
 
   const out = [];
   for (const it of live) {
-    if (it.hidden || it.mastered || it.times < 2) continue;
+    if (it.hidden || it.mastered || !isCurrentEdge.has(it.id)) continue;
+    // A scored stage is ready once it has run clean over the whole piece at its target tempo.
+    if (isScored(it.id)) {
+      if (targetClean[it.id] && !(it.id in acked && acked[it.id] >= it.times))
+        out.push({ itemId: it.id, inst: it.inst, title: it.title, kind: "advance", trackName: it.trackName,
+          reason: `Clean at the target tempo — ready for the next stage of ${it.trackName}.` });
+      continue;
+    }
+    if (it.times < 2) continue;
     if ((acked[it.id] || 0) >= it.times) continue; // already handled at this level of practice
     const mine = sessions.filter((s) => s.itemId === it.id);
     const easy = trailingCount(mine, "easy");
-
-    // The only suggestion: a track's current stage is ready for the next one.
-    if (!isCurrentEdge.has(it.id)) continue;
     if (((easy >= 2) || (it.times >= 5 && !hasRecent(mine, "hard", 3))) && accuracyReady(mine)) {
       out.push({ itemId: it.id, inst: it.inst, title: it.title, kind: "advance", trackName: it.trackName,
         reason: easy >= 2
@@ -266,7 +271,7 @@ export function minutesInLastDays(sessions, n) {
 }
 
 // ---- fresh install state ----
-export const SCHEMA_VERSION = 7;
+export const SCHEMA_VERSION = 8;
 export function freshData() {
   return {
     version: SCHEMA_VERSION,
@@ -277,5 +282,7 @@ export function freshData() {
     currentSession: null,
     ladder: {},
     sightLevel: {},
+    songs: [],
+    targetClean: {},
   };
 }

@@ -28,7 +28,7 @@ const seed = () => Math.floor(Math.random() * 2 ** 28);
 // A sight-reading lesson (lesson.sightread) plays generated drills instead: always
 // play-along, both hands as written, no sections or ladder; the drill's ABC goes
 // to runStore for the stage.
-export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLadder, onSightLevel, onResult, onRequestLog }) {
+export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLadder, onSightLevel, onResult, onRequestLog, onTargetClean }) {
   const { metro } = usePractice();
   const midi = useMidi();
   const st = useRun();
@@ -150,6 +150,7 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
         onLadder(k, up);
         metroRef.current.setBpm(up);
         setLastClean((c) => ({ ...c, [k]: bpm }));
+        if (k === "all" && bpm >= spec.target) onTargetClean?.();
       }
       setSay(`${bandOf(g)}: notes ${g.notesPct}% · rhythm ${g.rhythmPct}%`);
     };

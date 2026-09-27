@@ -62,29 +62,6 @@ export default {
     watch: ["Reading ahead matters more than every note: eyes on the next beat, not the one you're playing."],
     sightread: { defaultLevel: 1 },
   },
-  "pno-hanon": {
-    summary: "Hanon No. 1 — a finger-independence pattern that climbs the scale, slow and dead even.",
-    shape: { kind: "keyboard",
-      notes: [{ name: "C", octave: 4 }, { name: "E", octave: 4 }, { name: "F", octave: 4 }, { name: "G", octave: 4 }, { name: "A", octave: 4 }, { name: "G", octave: 4 }, { name: "F", octave: 4 }, { name: "E", octave: 4 }],
-      fingers: [1, 2, 3, 4, 5, 4, 3, 2] },
-    bpm: 80,
-    steps: [
-      "Play C-E-F-G-A-G-F-E with fingers 1-2-3-4-5-4-3-2, one note per click, then start one note higher (D-F-G-A-B-A-G-F) and climb the octave.",
-      "The goal is identical tone and timing from every finger — especially the weak 4 and 5.",
-      "Keep the hand quiet but never locked — a frozen hand is where tension starts.",
-    ],
-    watch: ["Relaxed wrist. If your forearm tenses, slow down."],
-  },
-  "pno-piece": {
-    summary: "Work the hardest section of your current piece — hands separate first, slower than feels necessary.",
-    shape: null, prescribe: "Hardest section only · hands separate, then together · slower than comfortable", bpm: null,
-    steps: [
-      "Find the bar that trips you up and loop just that, each hand on its own.",
-      "Join the hands at half speed, then nudge the tempo up only when it's clean.",
-      "End by playing the section in context, from a bar before to a bar after.",
-    ],
-    watch: ["Practicing the whole piece top-to-bottom hides the hard bar. Isolate it."],
-  },
   "pno-minuet": {
     summary: "Bars 1–16 of the Minuet in G major (Christian Petzold, from the Anna Magdalena Bach notebook), with a simplified left hand. Two sections: A (bars 1–8) and B (9–16).",
     steps: [
@@ -99,22 +76,11 @@ export default {
       abc: MINUET_ABC,
     },
   },
-  "pno-voicings": {
-    summary: "Comp (accompany) a lead sheet with shell voicings instead of plain block triads.",
-    shape: null, prescribe: "Lead sheet · shell voicings (root–3rd–7th) · comp the changes in time", bpm: null,
-    steps: [
-      "Take a tune's chord symbols. For each, play just the root, 3rd and 7th — the shell.",
-      "ii–V–I in C: Dm7 D–F–C, G7 G–F–B, Cmaj7 C–E–B — thirds and sevenths hold or move a half step.",
-      "Keep the voicings close; let the top notes move smoothly chord to chord.",
-      "Comp in rhythm against a metronome or backing track.",
-    ],
-    watch: ["You don't need every chord tone — the 3rd and 7th carry the sound."],
-  },
   "pno-improv": {
-    summary: "Improvise a right-hand melody over a looped progression, leaving space.",
-    shape: null, prescribe: "Loop a ii–V–I or I–V–vi–IV · improvise RH melody · leave space", bpm: 90,
+    summary: "Improvise a right-hand melody over one of the Pop track's progressions, leaving space.",
+    shape: null, prescribe: "Loop a Pop-track progression (e.g. I–V–vi–IV in C) · improvise RH melody · leave space", bpm: 90,
     steps: [
-      "Loop the progression with your left hand or a backing track.",
+      "Loop a progression from the Pop from chords track — I–V–vi–IV in C is a good one to start with — with your left hand or a backing track.",
       "Improvise with just the notes of the key, starting with only two or three.",
       "Leave gaps — silence makes the phrases sound intentional.",
     ],
@@ -163,28 +129,6 @@ export default {
     watch: ["The thumb-under is where it gets bumpy — practice just that move."],
     snippet: SCALE_SNIPPET,
   },
-  "trk-pno-4": {
-    summary: "Right-hand melody over left-hand block chords — keep the tune singing above.",
-    shape: null, prescribe: "RH simple melody · LH block chords on the changes · melody stays on top", bpm: null,
-    steps: [
-      "Left hand holds a block chord for each change.",
-      "Right hand plays a simple melody over it.",
-      "Voice it so the melody is a touch louder than the chords underneath.",
-    ],
-    watch: ["Don't let the left-hand chords drown the tune — they're support."],
-  },
-  "trk-pno-5": {
-    summary: "Break the left-hand chords into rolling arpeggios under the melody (C–E–G–C shown).",
-    shape: { kind: "keyboard", play: "block", notes: [{ name: "C", octave: 3 }, { name: "E", octave: 3 }, { name: "G", octave: 3 }, { name: "C", octave: 4 }], fingers: [5, 3, 2, 1] },
-    bpm: 80,
-    steps: [
-      "Instead of a block chord, roll the notes: C-E-G-C, evenly, like a wave.",
-      "Keep the arpeggio quiet and steady so the right-hand melody floats over it.",
-      "Aim for a flowing, even accompaniment with no lumps.",
-    ],
-    watch: ["Even spacing between the rolled notes matters more than speed."],
-  },
-
   "pop-four-chords": {
     summary: "I–V–vi–IV in C — C, G, Am, F — as block chords: the left hand plays each root, the right hand the whole chord.",
     steps: [
