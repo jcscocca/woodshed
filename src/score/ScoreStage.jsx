@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { parseScore, walkTune } from "./scoreModel.js";
+import { keepClefs, parseScore, walkTune } from "./scoreModel.js";
 import { runStore } from "./runStore.js";
 import { useRun } from "./useRun.js";
 import { scoreFor } from "./scoreFor.js";
@@ -60,6 +60,7 @@ export default function ScoreStage({ item, lesson, abc }) {
     const [tune] = abcjs.renderAbc(paper, src.replace(/^K:/m, "%%barnumbers 1\nK:"), {
       oneSvgPerLine: true, add_classes: true, scale: SCALE, staffwidth: w / SCALE - 30, foregroundColor: fg, selectionColor: fg,
       clickListener: (el, _n, _c, an, _d, ev) => pick(el, an, ev),
+      afterParsing: keepClefs,
       ...(!drill && window.innerWidth < 1280 && { wrap: { preferredMeasuresPerLine: 2, minSpacing: 1.8, maxSpacing: 2.7 } }),
     });
 

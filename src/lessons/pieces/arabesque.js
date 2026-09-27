@@ -29,7 +29,7 @@ V:2 clef=bass
 [V:2] [A,DF]4 [A,DF]4 | E,D,C,B,, A,,2z2 | [A,E]8 |]`;
 
 export default {
-  summary: "Burgmüller's \"Arabesque\", the second of his 25 easy studies, Op. 100, all 31 bars. Quick figures of four sixteenths and an eighth pass between the hands: the right hand has them first, over steady left-hand chords; in B the left hand takes them under a right-hand tune; then they come back to the right hand. Four sections: A (bars 1–10, starting with two bars of left-hand chords), B (11–18), A′ (19–26) and Coda (27–31). The original repeats bars 3–10, then bars 11–26, each time with a first ending; here you play each part once and take the second endings.",
+  summary: "Burgmüller's \"Arabesque\", the second of his 25 easy studies, Op. 100, all 31 bars. Quick figures of four sixteenths and an eighth pass between the hands: the right hand has them first, over steady left-hand chords; in B the left hand takes them under a right-hand tune; then they come back to the right hand. Four sections: A (bars 1–10, starting with two bars of left-hand chords), B (11–18), A′ (19–26) and Coda (27–31). The original repeats bars 3–9 and bars 11–25, each with a first ending; here you play each part once and take the second endings (bars 10 and 26).",
   steps: [
     "Right hand alone in A, in wait mode. Every figure has the same shape, four quick notes and a short one — A B C B A, or a run up to the next note — so learn the shape once and you'll meet it all through the piece. Let the hand come off the key after each eighth.",
     "Left hand alone in B. Now it has the sixteenth figures, under a right-hand tune of long and short notes. Each figure fits under five fingers, so move the hand only in the gaps between figures.",

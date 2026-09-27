@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import abcjs from "abcjs";
-const { parseScore, walkTune, inSection, forHands } = await import("../src/score/scoreModel.js");
+const { parseScore, walkTune, keepClefs, inSection, forHands } = await import("../src/score/scoreModel.js");
 const { LESSONS } = await import("../src/lessons/index.js");
 
 let failures = 0;
@@ -127,6 +127,45 @@ test("walkTune: the stage's keys (hand + beat) are parseScore's, after tuplets t
   assert.deepEqual([...keys].sort(), [...new Set(s.notes.map((n) => n.hand + n.beat))].sort());
   assert.deepEqual(s.notes.filter((n) => n.hand === "R").map((n) => n.beat), [0, 0.333, 0.667, 1, 1.333, 1.667, 2, 3, 4]);
   assert.deepEqual(s.notes.filter((n) => n.hand === "L").map((n) => n.beat), [0, 2, 4]);
+});
+
+// The stage draws through renderAbc's afterParsing: keepClefs, as written or wrapped 2 bars a line (below 1280px).
+const layouts = (abc) => {
+  const n = parseScore(abc, abcjs).bars.length, breaks = Array.from({ length: Math.ceil(n / 2) - 1 }, (_, i) => 2 * i + 1);
+  return { "as written": keepClefs(abcjs.parseOnly(abc)[0]), wrapped: keepClefs(abcjs.parseOnly(abc, { lineBreaks: [breaks] })[0]) };
+};
+// "1-14 bass, 15-19 treble, …": the clef each bar's noteheads are drawn under, on staff s
+const clefRuns = (tune, s) => {
+  const runs = [];
+  let bar = 1;
+  for (const line of tune.lines) {
+    if (!line.staff || !line.staff[s]) continue;
+    let shown = line.staff[s].clef.type;
+    for (const el of line.staff[s].voices[0]) {
+      if (el.el_type === "bar") bar++;
+      if (el.el_type === "clef") shown = el.type;
+      if (el.el_type !== "note" || !el.pitches) continue;
+      const last = runs.at(-1);
+      if (last && last.clef === shown && last.to >= bar - 1) last.to = bar; else runs.push({ from: bar, to: bar, clef: shown });
+    }
+  }
+  return runs.map((r) => `${r.from === r.to ? r.from : `${r.from}-${r.to}`} ${r.clef}`).join(", ");
+};
+test("keepClefs: every notehead sits under the clef drawn before it, and no clef change repeats the clef in force", () => {
+  for (const [id, L] of Object.entries(LESSONS)) {
+    if (!L.score) continue;
+    for (const [name, tune] of Object.entries(layouts(L.score.abc))) tune.lines.forEach((line, l) => (line.staff || []).forEach((staff, s) => {
+      let shown = staff.clef;
+      for (const el of staff.voices[0]) {
+        if (el.el_type === "clef") { assert.notEqual(el.verticalPos, shown.verticalPos, `${id}, ${name}, line ${l + 1}: a clef change to the clef in force`); shown = el; }
+        for (const p of (el.el_type === "note" && el.pitches) || []) assert.equal(p.pitch - p.verticalPos, shown.verticalPos, `${id}, ${name}, line ${l + 1}, staff ${s + 1}: a notehead placed for another clef`);
+      }
+    }));
+  }
+});
+test("keepClefs: the left hand keeps the editions' clefs in La Candeur and the Arabesque, as written or wrapped", () => {
+  const want = { "pcs-la-candeur": "1-14 bass, 15-20 treble, 20-22 bass", "pcs-arabesque": "1-15 bass, 16-18 treble, 19-31 bass" };
+  for (const [id, runs] of Object.entries(want)) for (const [name, tune] of Object.entries(layouts(LESSONS[id].score.abc))) assert.equal(clefRuns(tune, 1), runs, `${id}, ${name}`);
 });
 
 const { gradeTimed, ON_MS, WINDOW_MS } = await import("../src/score/timedGrade.js");

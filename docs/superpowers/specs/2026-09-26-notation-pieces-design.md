@@ -283,6 +283,13 @@ these rules.
   takes its hand from the clef.
 - **Layout:** one 4-bar system per source line (the stage draws one SVG per
   line).
+- **Clefs:** a mid-piece clef change is an inline `[K:clef=treble]` or
+  `[K:clef=bass]` in the voice, just before the note it applies from. abcjs
+  starts every source line in the voice's declared clef, so while the change
+  lasts, restate it at the start of each following source line (`[V:2]
+  [K:clef=treble] …`). The stage carries it across wrapped lines: `keepClefs`
+  (renderAbc's `afterParsing`) draws every line in the clef its notes were
+  placed under.
 - **Form:** write repeats out — no `|:`, `:|`, `::` or first/second endings
   (the engine grades the page once, as written).
 - **Bars:** the first bar is full; pad a pickup with rests into a whole bar.

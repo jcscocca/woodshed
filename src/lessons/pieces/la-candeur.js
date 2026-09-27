@@ -25,15 +25,15 @@ V:2 clef=bass
 [V:2] C,4 C,E,F,G,- | [C,G,]8 |]`;
 
 export default {
-  summary: "Burgmüller's \"La Candeur\" (Candour), the first of his 25 easy studies, Op. 100, all 22 bars. The right hand plays a smooth line of eighth notes over held left-hand chords; in bars 9–12 the left hand takes over the eighths as broken chords. Five sections: A1 (bars 1–4), A2 (5–8), B1 (9–12), B2 (13–16) and Coda (17–22). The original repeats bars 1–8, and bars 9–15 with a first ending; here you play each part once and go straight on to the second ending, bar 16.",
+  summary: "Burgmüller's \"La Candeur\" (Candour), the first of his 25 easy studies, Op. 100, all 22 bars. The right hand plays a smooth line of eighth notes over held left-hand chords; in bars 9–12 the left hand has eighths of its own, broken chords, moving with the right hand in bars 9 and 11 and under its held C and E in bars 10 and 12. Five sections: A1 (bars 1–4), A2 (5–8), B1 (9–12), B2 (13–16) and Coda (17–22). The original repeats bars 1–8, and bars 9–15 with a first ending; here you play each part once and go straight on to the second ending, bar 16.",
   steps: [
     "Right hand alone in A1, in wait mode. Most bars are two falling groups of four eighths; play each group as one smooth gesture, every note joined to the next, and lift the hand only as the next group begins.",
-    "Then the left hand alone. In A1 and A2 it holds one chord a bar, so the work is changing chords with no gap. In B1 it takes over the eighths, G–B–C–D, while the right hand answers with a held C and E.",
+    "Then the left hand alone. In A1 and A2 it holds one chord a bar, so the work is changing chords with no gap. In B1 it has eighths of its own, G–B–C–D: in bars 9 and 11 both hands move together, and in bars 10 and 12 the left hand carries on under the right hand's held C and E.",
     "Hands together in wait mode, a section at a time. Bars 16–19 are one two-bar pattern played twice before the closing chords, so once bars 16–17 are secure the Coda follows quickly.",
     "Switch to play-along with the click at 56. Each clean pass nudges the tempo up toward 88.",
   ],
   watch: [
-    "Bar 13 is two lines in one hand: the fifth finger holds G, then F sharp, for two beats while E flat, D and C move underneath. The score writes the long notes as eighths so the hand fits on one line, but keep them held. The E flat holds for the whole bar.",
+    "Bar 13 is two lines in one hand: the fifth finger holds G, then F sharp, for two beats while E flat, D and C move underneath. The score writes the long notes as eighths so the hand fits on one line, but keep them held. The flat lasts the whole bar, so the second E is flat too.",
     "From bar 15 the left hand moves up into the treble clef, and it goes back to the bass clef halfway through bar 20. Read bars 15–20 in the lower staff as treble, and watch for the A flats in bars 17 and 19.",
   ],
   source: { label: "Mutopia Project — Burgmüller, La Candeur, Op. 100 No. 1 (Collection Litolff)", url: "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=202" },
