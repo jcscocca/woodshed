@@ -266,7 +266,7 @@ export function minutesInLastDays(sessions, n) {
 }
 
 // ---- fresh install state ----
-export const SCHEMA_VERSION = 6;
+export const SCHEMA_VERSION = 7;
 export function freshData() {
   return {
     version: SCHEMA_VERSION,
@@ -275,5 +275,7 @@ export function freshData() {
     sessions: [],
     progress: { acked: {} },
     currentSession: null,
+    ladder: {},
+    sightLevel: {},
   };
 }

@@ -183,4 +183,15 @@ test("sightread: melodies move mostly by step", () => {
   }
 });
 
+const { migrate } = await import("../src/storage.js");
+const { freshData, SCHEMA_VERSION } = await import("../src/engine.js");
+test("schema 7: ladder and sightLevel default to {}", () => {
+  assert.equal(SCHEMA_VERSION, 7);
+  const f = freshData(); assert.deepEqual(f.ladder, {}); assert.deepEqual(f.sightLevel, {});
+  const m = migrate({ version: 6, items: [], sessions: [], settings: {} });
+  assert.deepEqual(m.ladder, {}); assert.deepEqual(m.sightLevel, {}); assert.equal(m.version, 7);
+  const kept = migrate({ version: 7, items: [], sessions: [], settings: {}, ladder: { "pno-minuet": { A: 80 } }, sightLevel: { "pno-sight": 3 } });
+  assert.deepEqual(kept.ladder, { "pno-minuet": { A: 80 } }); assert.deepEqual(kept.sightLevel, { "pno-sight": 3 });
+});
+
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });
