@@ -295,3 +295,17 @@ these rules.
 - **A `score`** needs `abc`, `bpm`, `target` (≥ `bpm`) and `sections` (`{
   name, from, to }`, bars within the piece). A scored lesson carries no
   `shape`.
+
+## Known limits (parked after the build)
+
+- The play-along frame loop was only verified with a timer standing in for
+  `requestAnimationFrame` (the preview pane was hidden); first real check is a
+  visible window with the piano.
+- `gradeTimed` runs over the whole section every frame (targets × events) —
+  fine for 16 bars; make it incremental before multi-minute charts.
+- Status colours are hue-only (teal / gold / orange); a pattern for missed
+  notes would help colour-blind players.
+- Hands-separately ignores every pitch the other hand plays anywhere in the
+  section, so a wrong press on one of those pitches goes unmarked.
+- A tempo change landing just after Start can shift the count-in (the panel
+  reads bpm from `timeline()`, and the rail locks tempo during play-along).
