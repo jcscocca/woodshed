@@ -3,6 +3,7 @@ import minuetGMinor from "./minuet-g-minor.js";
 import musette from "./musette.js";
 import schumannMelody from "./schumann-melody.js";
 import soldiersMarch from "./soldiers-march.js";
+import laCandeur from "./la-candeur.js";
 
 export default {
   "pno-minuet": minuet,
@@ -10,4 +11,5 @@ export default {
   "pcs-musette": musette,
   "pcs-schumann-melody": schumannMelody,
   "pcs-soldiers-march": soldiersMarch,
+  "pcs-la-candeur": laCandeur,
 };
