@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { INSTRUMENTS, TYPE_LABEL, FELT, TRACKS } from "./seed.js";
-import { getLesson } from "./lessons/index.js";
+import { getLesson, hasScore } from "./lessons/index.js";
 import LessonSheet, { LessonBody } from "./LessonSheet.jsx";
 import { todayStr, addDays, prettyAgo } from "./dateUtils.js";
 import {
@@ -19,6 +19,7 @@ import { ShortcutBridge } from "./useShortcuts.js";
 import ShortcutHelp from "./ShortcutHelp.jsx";
 import { MidiProvider } from "./midi/MidiProvider.jsx";
 import MidiBand from "./midi/MidiBand.jsx";
+import ScoreStage from "./score/ScoreStage.jsx";
 
 // Resource links are user-entered and ride along in exported/imported backups,
 // so treat them as untrusted. Only http(s) URLs ever reach an href — a
@@ -56,6 +57,7 @@ export default function Woodshed() {
   const [saveError, setSaveError] = useState(false);
   const [tunerOpen, setTunerOpen] = useState(false);
   const [showKeys, setShowKeys] = useState(false);
+  const [showScore, setShowScore] = useState(false);
   const desktop = useIsDesktop();
   const loaded = useRef(false);
 
@@ -202,16 +204,18 @@ export default function Woodshed() {
   };
 
   const streak = streakInfo(data.sessions);
-  const openLesson = (it) => { setTunerOpen(false); setLessonFor(it); };
+  const openLesson = (it) => { setTunerOpen(false); setLessonFor(it); if (hasScore(getLesson(it.id))) setShowScore(true); };
+  const closeLesson = () => { setLessonFor(null); setShowScore(false); };
+  const showView = (v) => { setView(v); setShowScore(false); };
   const onShortcut = (a) => {
-    if (a.type === "view") setView(a.view);
+    if (a.type === "view") showView(a.view);
     else if (a.type === "log") { if (!session.completed && session.items.length) setLogging(true); }
-    else if (a.type === "close") { setLessonFor(null); setTunerOpen(false); }
+    else if (a.type === "close") { closeLesson(); setTunerOpen(false); }
     else if (a.type === "help") setShowKeys(true);
   };
   const requestLog = () => {
     const inSet = !session.completed && session.items.some((x) => x.itemId === lessonFor.id);
-    setLessonFor(null);
+    closeLesson();
     setLogging(inSet ? true : { items: [{ itemId: lessonFor.id, minutes: lessonFor.min }] });
   };
   const lessonProps = lessonFor && {
@@ -220,6 +224,7 @@ export default function Woodshed() {
     onCoachResult: recordCoachResult, onRequestLog: requestLog,
   };
   const selectedId = desktop && lessonFor ? lessonFor.id : null;
+  const isScored = desktop && lessonFor && hasScore(getLesson(lessonFor.id));
 
   const saveErr = saveError && <div className="ws-saveerr">Couldn't save your latest change to this browser — your history may not persist.</div>;
   const views = (
@@ -283,13 +288,13 @@ export default function Woodshed() {
       <MidiProvider enabled={desktop && !!data.settings.enabled.piano}>
         {desktop ? (
           <div className="ws-desk">
-            <Sidebar view={view} onView={setView} onSettings={() => setShowSettings(true)} onHelp={() => setShowKeys(true)}><Streak streak={streak} /></Sidebar>
-            <div className="ws-desk-main">{saveErr}{views}</div>
+            <Sidebar view={view} onView={showView} scoreOpen={showScore && isScored} onScore={isScored ? () => setShowScore(true) : null} onSettings={() => setShowSettings(true)} onHelp={() => setShowKeys(true)}><Streak streak={streak} /></Sidebar>
+            <div className="ws-desk-main">{saveErr}{showScore && isScored ? <ScoreStage key={lessonFor.id} item={lessonFor} lesson={getLesson(lessonFor.id)} /> : views}</div>
             <PracticeRail
               lesson={lessonProps && <LessonBody key={lessonFor.id} {...lessonProps} />}
               tunerOpen={tunerOpen}
-              onOpenTuner={() => { setLessonFor(null); setTunerOpen(true); }}
-              onCloseSlot={() => { setLessonFor(null); setTunerOpen(false); }}
+              onOpenTuner={() => { closeLesson(); setTunerOpen(true); }}
+              onCloseSlot={() => { closeLesson(); setTunerOpen(false); }}
             />
             {showKeys && <ShortcutHelp onClose={() => setShowKeys(false)} />}
             <ShortcutBridge onAction={onShortcut} />

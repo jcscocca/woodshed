@@ -523,3 +523,24 @@ body{
 /* Coach me and Hear it share a row in the rail */
 .ws-rail-slot .ws-coach-open{ margin:0 8px 0 0; }
 .ws-rail-slot .ws-coach-open, .ws-rail-slot .ws-hear{ line-height:18px; }
+
+/* ---------- score stage (desktop main pane) and lesson snippets ---------- */
+.ws-score{ height:100%; max-width:1000px; margin:0 auto; display:flex; flex-direction:column; outline:none; }
+.ws-score-head{ height:36px; flex:none; display:flex; align-items:baseline; gap:12px; white-space:nowrap; overflow:hidden; }
+.ws-score-title{ font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:19px; }
+.ws-score-meta{ font-size:12.5px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; }
+.ws-score-stage{ flex:1; min-height:0; overflow:hidden; }
+.ws-score-slab{ height:200px; margin-bottom:5px; border-radius:var(--r); background:var(--bg2); }
+.ws-score-paper{ display:flex; flex-direction:column; user-select:none; }
+.ws-score-sys{ position:relative; height:var(--slot); display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.ws-score-sys.cur::before{ content:""; position:absolute; left:0; top:14%; bottom:14%; width:2px; border-radius:1px; background:var(--gold-dim); }
+.ws-score-sys .abcjs-note{ cursor:pointer; transition:fill .15s, opacity .2s; }
+.ws-score-sys .abcjs-beam-elem{ transition:opacity .2s; }
+.ws-score-dim{ opacity:.35; }
+.ws-score-on, .ws-score-on *{ fill:#7fc4bc; }
+.ws-score-off, .ws-score-off *{ fill:var(--gold); }
+.ws-score-miss, .ws-score-miss *{ fill:#e8916f; }
+.ws-score-cur, .ws-score-cur *{ fill:var(--gold); }
+.ws-score-cur{ filter:drop-shadow(0 0 3px rgba(227,169,72,.7)); }
+.ws-score-snippet{ margin:0 0 14px; }
+.ws-score-snippet svg{ display:block; }

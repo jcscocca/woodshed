@@ -1,0 +1,192 @@
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { parseScore } from "./scoreModel.js";
+import { runStore } from "./runStore.js";
+import { useRun } from "./useRun.js";
+
+// The open piece in the main pane. abcjs only draws it (one SVG per system) and
+// maps notes to drawn elements; run statuses, the cursor and the section are
+// painted on as classes, so a run never redraws the music.
+const SYSTEM_H = 205, SCALE = 1.25, PAD = 6;
+const RANK = { on: 1, early: 2, late: 2, missed: 3 };
+const PAINT = ["ws-score-on", "ws-score-off", "ws-score-miss", "ws-score-cur"];
+const round = (x) => Math.round(x * 1000) / 1000;
+const keyName = (k) => (k.endsWith("m") ? `${k.slice(0, -1)} minor` : `${k} major`);
+let shownId = null;
+
+export default function ScoreStage({ item, lesson, abc }) {
+  const src = abc || lesson.score?.abc;
+  const st = useRun();
+  const [abcjs, setAbcjs] = useState(null);
+  const [size, setSize] = useState(null);
+  const [drawn, setDrawn] = useState(null);
+  const stageRef = useRef(null), paperRef = useRef(null), base = useRef(0), lastTop = useRef(0), wheel = useRef(0);
+  const score = useMemo(() => (abcjs && src ? parseScore(src, abcjs) : null), [abcjs, src]);
+  const running = st.run.state === "countin" || st.run.state === "running";
+
+  useEffect(() => {
+    if (shownId !== item.id) { shownId = item.id; runStore.set({ section: null, window: 0 }); }
+  }, [item.id]);
+
+  useEffect(() => {
+    if (!src) return;
+    let live = true;
+    import("abcjs").then((mod) => { if (live) setAbcjs(mod.default ?? mod); });
+    return () => { live = false; };
+  }, [src]);
+
+  useLayoutEffect(() => {
+    const el = stageRef.current, measure = () => setSize({ w: el.clientWidth, h: el.clientHeight });
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!score || !size) return;
+    const paper = paperRef.current, lines = {};
+    const pick = (el, an, ev) => {
+      if (el.el_type !== "note" || !lines[an.line] || an.measure == null) return;
+      const r = runStore.get();
+      if (r.run.state === "countin" || r.run.state === "running") return;
+      const bar = lines[an.line].from + an.measure, cur = r.section, from = cur ? cur.from : 1;
+      runStore.set({ section: ev.shiftKey ? { from: Math.min(from, bar), to: Math.max(from, bar) } : { from: bar, to: cur && cur.to >= bar ? cur.to : score.bars.length } });
+    };
+    const fg = getComputedStyle(paper).getPropertyValue("--text").trim();
+    const [tune] = abcjs.renderAbc(paper, src.replace(/^K:/m, "%%barnumbers 1\nK:"), {
+      oneSvgPerLine: true, add_classes: true, scale: SCALE, staffwidth: size.w / SCALE - 30, foregroundColor: fg, selectionColor: fg,
+      clickListener: (el, _n, _c, an, _d, ev) => pick(el, an, ev),
+      ...(window.innerWidth < 1280 && { wrap: { preferredMeasuresPerLine: 2, minSpacing: 1.8, maxSpacing: 2.7 } }),
+    });
+
+    // Crop each system to its music and bake the measured (scaled) box into the SVG.
+    const systems = [];
+    for (const div of paper.children) {
+      const svg = div.querySelector("svg"), g = svg && svg.querySelector(".abcjs-staff-wrapper");
+      div.removeAttribute("style");
+      if (!g) { div.hidden = true; continue; }
+      const b = g.getBBox();
+      svg.setAttribute("viewBox", `0 ${b.y - PAD} ${svg.viewBox.baseVal.width} ${b.height + 2 * PAD}`);
+      svg.setAttribute("height", b.height + 2 * PAD);
+      const r = svg.getBoundingClientRect(), k = Math.min(1, size.w / r.width);
+      svg.removeAttribute("style");
+      svg.setAttribute("width", r.width * k);
+      svg.setAttribute("height", r.height * k);
+      div.className = "ws-score-sys";
+      systems.push({ div, svg, line: +g.getAttribute("class").match(/abcjs-l(\d+)/)[1] });
+    }
+
+    // Walk the drawn voices in time: key each note element by hand and beat, as parseScore does.
+    const first = tune.lines.find((l) => l.staff);
+    const nVoices = first.staff.reduce((n, s) => n + s.voices.length, 0);
+    const handOf = (v) => (nVoices > 1 ? (v ? "L" : "R") : first.staff[0].clef.type === "bass" ? "L" : "R");
+    const bpb = score.beatsPerBar, beats = [], byKey = new Map();
+    tune.lines.forEach((line, l) => {
+      if (!line.staff) return;
+      const sys = systems.findIndex((s) => s.line === l);
+      let v = 0;
+      for (const staff of line.staff) for (const voice of staff.voices) {
+        let beat = beats[v] || 0;
+        if (v === 0) lines[l] = { from: Math.round(beat / bpb) + 1 };
+        for (const el of voice) {
+          if (el.el_type !== "note") continue;
+          if (!el.rest && el.abselem) {
+            const key = handOf(v) + round(beat);
+            const e = byKey.get(key) || byKey.set(key, { els: [], hand: handOf(v), bar: Math.floor(beat / bpb + 1e-9) + 1, sys }).get(key);
+            e.els.push(...el.abselem.elemset);
+          }
+          beat += el.duration * 4;
+        }
+        if (v === 0) lines[l].to = Math.round(beat / bpb);
+        beats[v++] = beat;
+      }
+    });
+    // beams are drawn apart from their notes; they only dim
+    const marks = [...byKey.values()];
+    for (const el of paper.querySelectorAll(".abcjs-beam-elem")) {
+      const [l, m, v] = ["l", "m", "v"].map((x) => +el.getAttribute("class").match(new RegExp(`abcjs-${x}(\\d+)`))[1]);
+      marks.push({ els: [el], hand: handOf(v), bar: lines[l].from + m });
+    }
+    for (const s of systems) {
+      Object.assign(s, lines[s.line]);
+      s.svg.setAttribute("role", "img");
+      s.svg.setAttribute("aria-label", `bars ${s.from}–${s.to}`);
+      const title = s.svg.querySelector("title");
+      if (title) title.textContent = `bars ${s.from}–${s.to}`;
+    }
+    setDrawn({ systems, byKey, marks });
+  }, [score, size && size.w]);
+
+  const S = size ? Math.max(1, Math.floor(size.h / SYSTEM_H)) : 3;
+  const maxTop = drawn ? Math.max(0, drawn.systems.length - S) : 0;
+  const top = Math.min(st.window, maxTop);
+  const { targets, statuses, cursor, flash } = st.run;
+  const curNote = drawn && targets && cursor >= 0 && targets[cursor] ? drawn.byKey.get(targets[cursor].hand + targets[cursor].beat) : null;
+
+  // During a run, the cursor reaching the last visible system refills the ones above it.
+  useEffect(() => {
+    if (!drawn || !running || !curNote) return;
+    const i = curNote.sys;
+    if (i < top || i >= top + S - 1) {
+      const next = Math.min(i, maxTop);
+      if (next !== top) runStore.set({ window: next });
+    }
+  });
+
+  useEffect(() => {
+    if (!drawn || !st.section || running) return;
+    const i = drawn.systems.findIndex((s) => s.to >= st.section.from);
+    if (i >= 0 && (i < top || i >= top + S)) runStore.set({ window: Math.min(i, maxTop) });
+  }, [st.section, drawn]);
+
+  useLayoutEffect(() => {
+    if (!drawn) return;
+    const { section, hands } = st;
+    for (const e of drawn.marks) { e.rank = 0; e.cur = false; }
+    if (targets && statuses) targets.forEach((t, i) => {
+      const e = drawn.byKey.get(t.hand + t.beat);
+      if (!e) return;
+      e.rank = Math.max(e.rank, RANK[statuses[i]] || 0);
+      if (cursor >= 0 && targets[cursor] && t.beat === targets[cursor].beat && statuses[i] === "pending") e.cur = true;
+    });
+    for (const e of drawn.marks) {
+      const dim = (section && (e.bar < section.from || e.bar > section.to)) || (hands !== "both" && e.hand !== hands);
+      const paint = e.cur ? (flash ? "ws-score-miss" : "ws-score-cur") : PAINT[e.rank - 1];
+      for (const g of e.els) {
+        g.classList.toggle("ws-score-dim", !!dim);
+        for (const c of PAINT) g.classList.toggle(c, c === paint);
+      }
+    }
+    // Systems keep their slot (index mod S) during a run, so the current line never moves.
+    if (!running && top !== lastTop.current) base.current = top;
+    lastTop.current = top;
+    const curSys = curNote ? curNote.sys : section ? drawn.systems.findIndex((s) => s.to >= section.from) : top;
+    drawn.systems.forEach((s, i) => {
+      s.div.style.display = i < top || i >= top + S ? "none" : "";
+      s.div.style.order = (((i - base.current) % S) + S) % S;
+      s.div.classList.toggle("cur", i === curSys);
+    });
+  });
+
+  const onWheel = (e) => {
+    if (!drawn || running) return;
+    wheel.current += e.deltaMode ? e.deltaY * 40 : e.deltaY;
+    if (Math.abs(wheel.current) < 50) return;
+    runStore.set({ window: Math.max(0, Math.min(maxTop, top + Math.sign(wheel.current))) });
+    wheel.current = 0;
+  };
+
+  const sec = st.section || (score && { from: 1, to: score.bars.length });
+  return (
+    <div className="ws-score" tabIndex={-1} onWheel={onWheel}>
+      <div className="ws-score-head">
+        <span className="ws-score-title">{item.title}</span>
+        {score && <span className="ws-score-meta mono">{keyName(score.key)} · {score.meter.join("/")} · bars {sec.from}–{sec.to}</span>}
+      </div>
+      <div className="ws-score-stage" ref={stageRef} style={size ? { "--slot": `${Math.floor(size.h / S)}px` } : undefined}>
+        {src && !drawn && <><div className="ws-score-slab" /><div className="ws-score-slab" /><div className="ws-score-slab" /></>}
+        <div className="ws-score-paper" ref={paperRef} />
+      </div>
+    </div>
+  );
+}
