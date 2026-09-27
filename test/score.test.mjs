@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import abcjs from "abcjs";
-const { parseScore, inSection, forHands } = await import("../src/score/scoreModel.js");
+const { parseScore, walkTune, inSection, forHands } = await import("../src/score/scoreModel.js");
+const { LESSONS } = await import("../src/lessons/index.js");
 
 let failures = 0;
 const test = (name, fn) => { try { fn(); console.log(`ok   ${name}`); } catch (e) { failures++; console.error(`FAIL ${name}\n     ${e.message}`); } };
@@ -49,6 +50,60 @@ test("parseScore: bars count trailing rests, not just the last note", () => {
   const s = parseScore("X:1\nM:4/4\nL:1/4\nK:C\nC D E F|z z z z|", abcjs);
   assert.equal(s.bars.length, 2);
   assert.deepEqual(parseScore(MINI, abcjs).bars.map((b) => b.beat), [0, 3, 6, 9]);
+});
+
+// The Minuet as parsed before targets came from the walk (setUpAudio's tracks), a bar per row: hand, midi @ beat + dur.
+const MINUET_TARGETS = [
+  "L43@0+3 R74@0+1 R67@1+0.5 R69@1.5+0.5 R71@2+0.5 R72@2.5+0.5", "L47@3+3 R74@3+1 R67@4+1 R67@5+1",
+  "L48@6+3 R76@6+1 R72@7+0.5 R74@7.5+0.5 R76@8+0.5 R78@8.5+0.5", "L47@9+3 R79@9+1 R67@10+1 R67@11+1",
+  "L45@12+3 R72@12+1 R74@13+0.5 R72@13.5+0.5 R71@14+0.5 R69@14.5+0.5", "L43@15+3 R71@15+1 R72@16+0.5 R71@16.5+0.5 R69@17+0.5 R67@17.5+0.5",
+  "L50@18+3 R66@18+1 R67@19+0.5 R69@19.5+0.5 R71@20+0.5 R67@20.5+0.5", "L50@21+3 R69@21+3",
+  "L43@24+3 R74@24+1 R67@25+0.5 R69@25.5+0.5 R71@26+0.5 R72@26.5+0.5", "L47@27+3 R74@27+1 R67@28+1 R67@29+1",
+  "L48@30+3 R76@30+1 R72@31+0.5 R74@31.5+0.5 R76@32+0.5 R78@32.5+0.5", "L47@33+3 R79@33+1 R67@34+1 R67@35+1",
+  "L45@36+3 R72@36+1 R74@37+0.5 R72@37.5+0.5 R71@38+0.5 R69@38.5+0.5", "L43@39+3 R71@39+1 R72@40+0.5 R71@40.5+0.5 R69@41+0.5 R67@41.5+0.5",
+  "L50@42+3 R69@42+1 R71@43+0.5 R69@43.5+0.5 R67@44+0.5 R66@44.5+0.5", "L43@45+3 R67@45+3",
+];
+test("parseScore: the Minuet's targets are unchanged by the walk", () => {
+  const s = parseScore(LESSONS["pno-minuet"].score.abc, abcjs);
+  assert.deepEqual(s.bars.map((b) => s.notes.filter((n) => n.bar === b.n).map((n) => `${n.hand}${n.midi}@${n.beat}+${n.dur}`).join(" ")), MINUET_TARGETS);
+});
+
+const probe = (body) => parseScore(`X:1\nM:4/4\nL:1/8\nK:C\n${body}`, abcjs);
+const at = (s) => s.notes.map((n) => `${n.midi}@${n.beat}`);
+test("parseScore: a triplet keeps the beats after it exact", () => {
+  const s = probe("(3CDE F2 G2 A2 | c8 |");
+  assert.deepEqual(at(s), ["60@0", "62@0.333", "64@0.667", "65@1", "67@2", "69@3", "72@4"]);
+  assert.equal(s.bars.length, 2);
+});
+test("parseScore: chord symbols and decorations add no targets", () => {
+  const s = probe('"C"C2 E2 "G"G2 E2 | "F"F8 |');
+  assert.deepEqual(at(s), ["60@0", "64@1", "67@2", "64@3", "65@4"]);
+  assert.ok(s.notes.every((n) => n.hand === "R"));
+  assert.deepEqual(at(probe("!trill!C4 D4 | E8 |")), ["60@0", "62@2", "64@4"]);
+});
+test("parseScore: a grace note is no target; its main note keeps its beat and length", () => {
+  assert.deepEqual(probe("{g}c2 d2 e2 f2 | g8 |").notes.slice(0, 2).map((n) => [n.midi, n.beat, n.dur]), [[72, 0, 1], [74, 1, 1]]);
+});
+test("parseScore: a tie across a barline is one target", () => {
+  assert.deepEqual(probe("C2 D2 E2 G2- | G2 A2 B2 c2 |").notes.map((n) => [n.midi, n.beat, n.dur]),
+    [[60, 0, 1], [62, 1, 1], [64, 2, 1], [67, 3, 2], [69, 5, 1], [71, 6, 1], [72, 7, 1]]);
+});
+test("parseScore: a y spacer takes no time", () => {
+  assert.deepEqual(at(probe("C2 y D2 E2 F2 | G8 |")), ["60@0", "62@1", "64@2", "65@3", "67@4"]);
+});
+test("parseScore: repeats are graded as written, once", () => {
+  const s = probe("|: C2 D2 E2 F2 :| G8 |");
+  assert.deepEqual(at(s), ["60@0", "62@1", "64@2", "65@3", "67@4"]);
+  assert.equal(s.bars.length, 2);
+});
+test("walkTune: the stage's keys (hand + beat) are parseScore's, after tuplets too", () => {
+  const abc = "X:1\nM:4/4\nL:1/8\nK:C\n%%staves {1 2}\nV:1 clef=treble\nV:2 clef=bass\n[V:1] (3cde (3fga b2 c'2 | d'8 |\n[V:2] C,4 G,,4 | C,8 |";
+  const keys = new Set();
+  walkTune(abcjs.parseOnly(abc)[0], ({ el, hand, beat }) => { if (!el.rest) keys.add(hand + beat); });
+  const s = parseScore(abc, abcjs);
+  assert.deepEqual([...keys].sort(), [...new Set(s.notes.map((n) => n.hand + n.beat))].sort());
+  assert.deepEqual(s.notes.filter((n) => n.hand === "R").map((n) => n.beat), [0, 0.333, 0.667, 1, 1.333, 1.667, 2, 3, 4]);
+  assert.deepEqual(s.notes.filter((n) => n.hand === "L").map((n) => n.beat), [0, 2, 4]);
 });
 
 const { gradeTimed, ON_MS, WINDOW_MS } = await import("../src/score/timedGrade.js");
@@ -190,10 +245,11 @@ test("sightread: no right-hand quarter or longer sits a semitone from the left h
         assert.ok(![1, 11].includes((((n.midi - b.midi) % 12) + 12) % 12), `level ${l} seed ${seed}: ${n.midi} over ${b.midi} at beat ${n.beat}`);
   }
 });
-test("sightread: no tritone leaps in the right hand", () => {
+test("sightread: no tritone leaps in the melody's hand", () => {
   for (let l = 1; l <= 10; l++) for (const { seed, s } of drills(l, 300)) {
-    const rh = s.notes.filter((n) => n.hand === "R");
-    assert.ok(rh.slice(1).every((n, i) => Math.abs(n.midi - rh[i].midi) !== 6), `level ${l} seed ${seed}`);
+    const mel = s.notes.filter((n) => n.hand === (l === 2 ? "L" : "R"));
+    assert.ok(mel.length, `level ${l} seed ${seed}: melody`);
+    assert.ok(mel.slice(1).every((n, i) => Math.abs(n.midi - mel[i].midi) !== 6), `level ${l} seed ${seed}`);
   }
 });
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { parseScore } from "./scoreModel.js";
+import { parseScore, walkTune } from "./scoreModel.js";
 import { runStore } from "./runStore.js";
 import { useRun } from "./useRun.js";
 
@@ -9,7 +9,6 @@ import { useRun } from "./useRun.js";
 const SYSTEM_H = 205, SCALE = 1.25, PAD = 6;
 const RANK = { on: 1, early: 2, late: 2, missed: 3 };
 const PAINT = ["ws-score-on", "ws-score-off", "ws-score-miss", "ws-score-cur"];
-const round = (x) => Math.round(x * 1000) / 1000;
 const keyName = (k) => (k.endsWith("m") ? `${k.slice(0, -1)} minor` : `${k} major`);
 let shownId = null;
 
@@ -78,36 +77,22 @@ export default function ScoreStage({ item, lesson, abc }) {
       systems.push({ div, svg, line: +g.getAttribute("class").match(/abcjs-l(\d+)/)[1] });
     }
 
-    // Walk the drawn voices in time: key each note element by hand and beat, as parseScore does.
-    const first = tune.lines.find((l) => l.staff);
-    const nVoices = first.staff.reduce((n, s) => n + s.voices.length, 0);
-    const handOf = (v) => (nVoices > 1 ? (v ? "L" : "R") : first.staff[0].clef.type === "bass" ? "L" : "R");
-    const bpb = score.beatsPerBar, beats = [], byKey = new Map();
-    tune.lines.forEach((line, l) => {
-      if (!line.staff) return;
-      const sys = systems.findIndex((s) => s.line === l);
-      let v = 0;
-      for (const staff of line.staff) for (const voice of staff.voices) {
-        let beat = beats[v] || 0;
-        if (v === 0) lines[l] = { from: Math.round(beat / bpb) + 1 };
-        for (const el of voice) {
-          if (el.el_type !== "note") continue;
-          if (!el.rest && el.abselem) {
-            const key = handOf(v) + round(beat);
-            const e = byKey.get(key) || byKey.set(key, { els: [], hand: handOf(v), bar: Math.floor(beat / bpb + 1e-9) + 1, sys }).get(key);
-            e.els.push(...el.abselem.elemset);
-          }
-          beat += el.duration * 4;
-        }
-        if (v === 0) lines[l].to = Math.round(beat / bpb);
-        beats[v++] = beat;
-      }
+    // Key each drawn note by hand and beat with parseScore's own walk, so every target finds its element.
+    const byKey = new Map(), handOf = [];
+    walkTune(tune, ({ line, voice, el, beat, hand, bar }) => {
+      const r = lines[line] || (lines[line] = { from: bar, to: bar });
+      r.to = Math.max(r.to, bar);
+      handOf[voice] = hand;
+      if (el.rest || !el.abselem) return;
+      const key = hand + beat;
+      const e = byKey.get(key) || byKey.set(key, { els: [], hand, bar, sys: systems.findIndex((s) => s.line === line) }).get(key);
+      e.els.push(...el.abselem.elemset);
     });
     // beams are drawn apart from their notes; they only dim
     const marks = [...byKey.values()];
     for (const el of paper.querySelectorAll(".abcjs-beam-elem")) {
       const [l, m, v] = ["l", "m", "v"].map((x) => +el.getAttribute("class").match(new RegExp(`abcjs-${x}(\\d+)`))[1]);
-      marks.push({ els: [el], hand: handOf(v), bar: lines[l].from + m });
+      marks.push({ els: [el], hand: handOf[v], bar: lines[l].from + m });
     }
     for (const s of systems) {
       Object.assign(s, lines[s.line]);
