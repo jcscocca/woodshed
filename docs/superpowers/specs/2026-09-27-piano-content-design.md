@@ -82,7 +82,7 @@ IDs are final. "Keeps its ID" means saved history (sessions, ladder, mastered) c
 | 18 | `trk-pno-2` (keeps its ID) | Hands together, contrary motion |
 | 19 | `trk-pno-3` (keeps its ID and snippet) | Major scales, one octave, hands together — C, G, F |
 | 20 | `tec-hanon-1` | Hanon No. 1, hands together, C |
-| 21 | `tec-cadences` | Primary chords and cadences: I–IV–I–V–I with inversions in C, G, F |
+| 21 | `tec-cadences` | Primary chords and cadences: I–IV–V–I with inversions, one line each in C, G, F |
 | 22 | `tec-arpeggios` | Arpeggios, one octave — C, G, F major; A, E, D minor |
 
 **Library**
@@ -124,7 +124,7 @@ Each pattern defines a right-hand part and a left-hand part per chord span (a wh
 | `voiceled` | 3/4, 4/4 | triad held, closest inversion | root held |
 | `ballad` | 4/4 | triad held, closest inversion | root–fifth–octave–fifth in eighths |
 | `pulse` | 4/4 | closest-inversion triad on 1, 2&, 4 (q, e-rest, dotted q, q); half bar: q, e-rest, e | root held |
-| `arpeggio` | 3/4, 4/4 | closest-inversion triad broken in eighths, up then down | root held |
+| `arpeggio` | 3/4, 4/4 | closest-inversion triad broken in eighths, 1–3–5–3 | root held |
 | `boogie` | 4/4 | 7th-chord shell held | root–fifth–sixth–fifth in straight eighths |
 | `waltz` | 3/4 | closest-inversion triad on 2 and 3 | root on 1; in a lead sheet the left hand also takes the chord on 2 and 3 (close position, around C3) |
 
@@ -134,14 +134,14 @@ Each pattern defines a right-hand part and a left-hand part per chord span (a wh
 - **Voicing.** Root position for `block`; otherwise the inversion whose voices move least (sum of absolute moves) from the previous chord, ties to the lower; the first chord takes the inversion whose lowest note is nearest C4 (MIDI 60).
 - **Qualities.** Triads are three notes. `7`, `maj7`, `m7` play a rootless 3rd–5th–7th in the right hand (the left hand has the root). `sus2`/`sus4`/`dim` spell as named. A slash bass replaces the left-hand root.
 - **Spelling.** Chord tones are spelled from the root's letter (B♭ in F, never A♯). Notes are written against the key signature, and the generator tracks ABC's rule that an accidental holds for that pitch and octave until the bar line — emitting `=` naturals where the key or an earlier accidental would otherwise apply.
-- **Output.** Two voices (`%%staves {1 2}`, `V:1 clef=treble`, `V:2 clef=bass`), one 4-bar system per source line, chord symbols (`"Am"`) above voice 1 for display, meter and key in the header. Output obeys the ABC authoring conventions and passes the content lint.
+- **Output.** Two voices (`%%staves {1 2}`, `V:1 clef=treble`, `V:2 clef=bass`), one 4-bar system per source line, chord symbols (`"Am"`) for display — above voice 1 for patterns, above voice 2 for lead sheets (whose melody is authored text), meter and key in the header. Output obeys the ABC authoring conventions and passes the content lint.
 
 ## 3. Your song
 
 - **Item:** `pno-song` "Your song", a library item (type `song`). Its rail shows a song picker ("New song" + saved songs) above the normal score panel.
 - **Editor fields:** title, key (major and minor keys up to 4 sharps/flats), meter (3/4, 4/4), chord line (`C | G | Am F | G7`), pattern (filtered by metre), bpm. Parse errors show inline ("bar 3: 'Hm' isn't a chord I know"); the stage re-renders on every valid edit (debounced).
 - **Sections:** derived — one per 4-bar line ("1–4", "5–8", …) plus "all".
-- **Data:** `data.songs = [{ id, title, key, meter, chords, pattern, bpm }]`. Deleting a song asks to confirm. Tempo ladder keyed `song:<id>`. Songs never feed the advance rule.
+- **Data:** `data.songs = [{ id, title, key, meter, chords, pattern, bpm }]`. Deleting a song asks to confirm. Tempo-ladder entries live under `pno-song`, keyed `<songId>:<section>`. Songs never feed the advance rule.
 
 ## 4. Architecture
 
