@@ -304,6 +304,7 @@ export default function Woodshed() {
                   onResult={(res) => recordCoachResult(lessonFor.id, res)} onRequestLog={requestLog}
                 />
               ) : <LessonBody key={lessonFor.id} {...lessonProps} />)}
+              scored={isScored}
               tunerOpen={tunerOpen}
               onOpenTuner={() => { closeLesson(); setTunerOpen(true); }}
               onCloseSlot={() => { closeLesson(); setTunerOpen(false); }}
@@ -335,7 +336,7 @@ export default function Woodshed() {
             </nav>
             {practiceOpen && <PracticeSheet onClose={() => setPracticeOpen(false)} onOpenListen={() => { setPracticeOpen(false); setListenOpen(true); }} />}
             {listenOpen && <ListenSheet onClose={() => setListenOpen(false)} />}
-            {lessonProps && <LessonSheet {...lessonProps} onClose={() => setLessonFor(null)} />}
+            {lessonProps && <LessonSheet {...lessonProps} onClose={closeLesson} />}
           </Shell>
         )}
         {dialogs}
@@ -505,7 +506,7 @@ function LogSheet({ session, itemById, lastTempo, coachResults = {}, onCancel, o
                     )}
                   </div>
                   {e.accuracy != null && (
-                    <div className="ws-log-acc mono" title="Measured by the coach">◉ {e.accuracy}% clean{e.missed.length ? ` · revisit ${e.missed.join(", ")}` : ""}</div>
+                    <div className="ws-log-acc mono" title="Measured by the coach">◉ {e.rhythm != null ? `notes ${e.accuracy}% · rhythm ${e.rhythm}%` : `${e.accuracy}% clean`}{e.missed.length ? ` · revisit ${e.missed.join(", ")}` : ""}</div>
                   )}
                 </div>
               )}

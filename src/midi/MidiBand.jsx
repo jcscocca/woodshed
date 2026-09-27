@@ -105,7 +105,7 @@ export default function MidiBand() {
             {midi.status === "denied" && <span className="ws-midi-off">— allow MIDI in the site settings</span>}
           </>
         )}
-        <div className="ws-midi-live" aria-live="polite">{chord}</div>
+        <div className="ws-midi-live" aria-live="polite">{ov.busy ? "" : chord}</div>
       </div>
     </div>
   );

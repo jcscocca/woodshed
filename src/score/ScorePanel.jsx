@@ -32,7 +32,9 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
   const midi = useMidi();
   const st = useRun();
   const [abcjs, setAbcjs] = useState(null);
-  const [say, setSay] = useState("");
+  const [say, setSaid] = useState("");
+  // cleared first, so the same words twice are announced twice
+  const setSay = (text) => { setSaid(""); setTimeout(() => setSaid(text), 50); };
   const [lastClean, setLastClean] = useState({});
   const [streak, setStreak] = useState(0);
   const live = useRef(null), metroRef = useRef(metro), passes = useRef({}), shownKey = useRef(null), toggle = useRef(null), onKey = useRef(null), graded = useRef(false), picked = useRef(false);
@@ -133,7 +135,7 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
     const startedAt = performance.now();
     mt.start({ countIn: bpb });
     const pass = (passes.current[k] = (passes.current[k] || 0) + 1), events = [];
-    let t0 = null, bpm = mt.timeline().bpm, raf = 0, sig = "", head = "";
+    let t0 = null, bpm = mt.timeline().bpm, raf = 0, sig = "", head = "", began = false;
     const off = midi.subscribe((m) => { if (m.type === "on" && !ignore.has(m.note)) events.push(toNoteEvent(m)); });
     const grade = (now) => gradeTimed(targets, events, { t0: t0 + (beat0 * 60000) / bpm, bpm, beatsPerBar: bpb, now });
     const teardown = () => { cancelAnimationFrame(raf); off(); overlay.reset(); metroRef.current.stop(); live.current = null; };
@@ -159,6 +161,7 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
         const ms = 60000 / bpm, g = grade(now), counting = now < t0;
         const s = `${counting}${g.cursor}${g.statuses}`;
         if (s !== sig) { sig = s; setRun({ state: counting ? "countin" : "running", statuses: g.statuses, cursor: g.cursor }); }
+        if (!counting && !began) { began = true; setSay("Running"); }
         const h = counting
           ? Array.from({ length: Math.max(1, Math.min(bpb, Math.floor((now - t0) / ms) + bpb + 1)) }, (_, i) => i + 1).join(" ")
           : `bar ${Math.min(to, from + Math.floor((now - t0) / (ms * bpb)))}`;

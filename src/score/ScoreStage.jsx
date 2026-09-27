@@ -9,7 +9,8 @@ import { useRun } from "./useRun.js";
 const SYSTEM_H = 205, SCALE = 1.25, PAD = 6;
 const RANK = { on: 1, early: 2, late: 2, missed: 3 };
 const PAINT = ["ws-score-on", "ws-score-off", "ws-score-miss", "ws-score-cur"];
-const keyName = (k) => (k.endsWith("m") ? `${k.slice(0, -1)} minor` : `${k} major`);
+const MODES = { m: "minor", Dor: "dorian", Phr: "phrygian", Lyd: "lydian", Mix: "mixolydian", Loc: "locrian" };
+const keyName = (k) => { const m = /(m|Dor|Phr|Lyd|Mix|Loc)$/.exec(k); return m ? `${k.slice(0, m.index)} ${MODES[m[1]]}` : `${k} major`; };
 let shownId = null;
 
 export default function ScoreStage({ item, lesson, abc }) {
@@ -88,9 +89,9 @@ export default function ScoreStage({ item, lesson, abc }) {
       const e = byKey.get(key) || byKey.set(key, { els: [], hand, bar, sys: systems.findIndex((s) => s.line === line) }).get(key);
       e.els.push(...el.abselem.elemset);
     });
-    // beams are drawn apart from their notes; they only dim
+    // beams, rests, ties and slurs are drawn apart from the notes; they only dim
     const marks = [...byKey.values()];
-    for (const el of paper.querySelectorAll(".abcjs-beam-elem")) {
+    for (const el of paper.querySelectorAll(".abcjs-beam-elem, .abcjs-rest, .abcjs-tie, .abcjs-slur")) {
       const [l, m, v] = ["l", "m", "v"].map((x) => +el.getAttribute("class").match(new RegExp(`abcjs-${x}(\\d+)`))[1]);
       marks.push({ els: [el], hand: handOf[v], bar: lines[l].from + m });
     }
@@ -175,7 +176,7 @@ export default function ScoreStage({ item, lesson, abc }) {
 
   const sec = st.section || (score && { from: 1, to: score.bars.length });
   return (
-    <div className="ws-score" tabIndex={-1} onWheel={onWheel}>
+    <div className={`ws-score${drill ? " drill" : ""}`} tabIndex={-1} onWheel={onWheel}>
       <div className="ws-score-head">
         <span className="ws-score-title">{item.title}</span>
         {score && <span className="ws-score-meta mono">{keyName(score.key)} · {score.meter.join("/")} · bars {sec.from}–{sec.to}</span>}

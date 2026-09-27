@@ -535,7 +535,10 @@ body{
 .ws-score-sys{ position:relative; height:var(--slot); display:flex; align-items:center; justify-content:center; overflow:hidden; }
 .ws-score-sys.cur::before{ content:""; position:absolute; left:0; top:14%; bottom:14%; width:2px; border-radius:1px; background:var(--gold-dim); }
 .ws-score-sys .abcjs-note{ cursor:pointer; transition:fill .15s, opacity .2s; }
-.ws-score-sys .abcjs-beam-elem{ transition:opacity .2s; }
+.ws-score-sys .abcjs-beam-elem, .ws-score-sys .abcjs-rest, .ws-score-sys .abcjs-slur{ transition:opacity .2s; }
+/* a drill's system hugs its SVG, so the current-system marker sits at its edge */
+.ws-score.drill .ws-score-sys{ align-self:center; }
+.ws-score.drill .abcjs-note{ cursor:default; }
 .ws-score-dim{ opacity:.35; }
 .ws-score-on, .ws-score-on *{ fill:#7fc4bc; }
 .ws-score-off, .ws-score-off *{ fill:var(--gold); }

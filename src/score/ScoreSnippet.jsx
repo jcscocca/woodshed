@@ -10,7 +10,7 @@ export default function ScoreSnippet({ abc }) {
       const el = ref.current;
       if (!live || !el) return;
       const abcjs = mod.default ?? mod, w = el.clientWidth;
-      abcjs.renderAbc(el, abc, { scale: 0.9, staffwidth: w - 30, foregroundColor: getComputedStyle(el).getPropertyValue("--text").trim() });
+      abcjs.renderAbc(el, abc, { scale: 0.9, staffwidth: w - 30, selectTypes: false, foregroundColor: getComputedStyle(el).getPropertyValue("--text").trim() });
       // bake the measured (scaled) box into the SVG so it lays out at the size it draws
       const svg = el.querySelector("svg"), r = svg.getBoundingClientRect(), k = Math.min(1, w / r.width);
       svg.setAttribute("viewBox", `0 0 ${svg.getAttribute("width")} ${svg.getAttribute("height")}`);
