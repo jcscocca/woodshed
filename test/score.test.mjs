@@ -52,7 +52,25 @@ test("parseScore: bars count trailing rests, not just the last note", () => {
   assert.deepEqual(parseScore(MINI, abcjs).bars.map((b) => b.beat), [0, 3, 6, 9]);
 });
 
-// The Minuet as parsed before targets came from the walk (setUpAudio's tracks), a bar per row: hand, midi @ beat + dur.
+// The 16-bar simplified Minuet the app shipped before the full piece, frozen here, and its
+// targets as parsed before they came from the walk (setUpAudio's tracks), a bar per row: hand, midi @ beat + dur.
+const MINUET_ABC = `X:1
+T:Minuet in G
+C:Christian Petzold (arr. simplified)
+M:3/4
+L:1/8
+K:G
+%%staves {1 2}
+V:1 clef=treble
+V:2 clef=bass
+[V:1] d2 GABc | d2 G2 G2 | e2 cdef | g2 G2 G2 |
+[V:2] G,,6 | B,,6 | C,6 | B,,6 |
+[V:1] c2 dcBA | B2 cBAG | F2 GABG | A6 |
+[V:2] A,,6 | G,,6 | D,6 | D,6 |
+[V:1] d2 GABc | d2 G2 G2 | e2 cdef | g2 G2 G2 |
+[V:2] G,,6 | B,,6 | C,6 | B,,6 |
+[V:1] c2 dcBA | B2 cBAG | A2 BAGF | G6 |
+[V:2] A,,6 | G,,6 | D,6 | G,,6 |`;
 const MINUET_TARGETS = [
   "L43@0+3 R74@0+1 R67@1+0.5 R69@1.5+0.5 R71@2+0.5 R72@2.5+0.5", "L47@3+3 R74@3+1 R67@4+1 R67@5+1",
   "L48@6+3 R76@6+1 R72@7+0.5 R74@7.5+0.5 R76@8+0.5 R78@8.5+0.5", "L47@9+3 R79@9+1 R67@10+1 R67@11+1",
@@ -64,7 +82,7 @@ const MINUET_TARGETS = [
   "L50@42+3 R69@42+1 R71@43+0.5 R69@43.5+0.5 R67@44+0.5 R66@44.5+0.5", "L43@45+3 R67@45+3",
 ];
 test("parseScore: the Minuet's targets are unchanged by the walk", () => {
-  const s = parseScore(LESSONS["pno-minuet"].score.abc, abcjs);
+  const s = parseScore(MINUET_ABC, abcjs);
   assert.deepEqual(s.bars.map((b) => s.notes.filter((n) => n.bar === b.n).map((n) => `${n.hand}${n.midi}@${n.beat}+${n.dur}`).join(" ")), MINUET_TARGETS);
 });
 

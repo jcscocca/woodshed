@@ -1,4 +1,5 @@
 // Piano lessons. keyboard notes are {name, octave}; middle C = octave 4.
+import PIECES from "./pieces/index.js";
 const cMajorScale = { kind: "keyboard",
   notes: [{ name: "C", octave: 4 }, { name: "D", octave: 4 }, { name: "E", octave: 4 }, { name: "F", octave: 4 }, { name: "G", octave: 4 }, { name: "A", octave: 4 }, { name: "B", octave: 4 }, { name: "C", octave: 5 }],
   fingers: [1, 2, 3, 1, 2, 3, 4, 5] };
@@ -12,24 +13,6 @@ const fiveFinger = { kind: "keyboard",
   fingers: [1, 2, 3, 4, 5, 4, 3, 2, 1] };
 
 // ABC source is line-sensitive, so these live at column 0.
-const MINUET_ABC = `X:1
-T:Minuet in G
-C:Christian Petzold (arr. simplified)
-M:3/4
-L:1/8
-K:G
-%%staves {1 2}
-V:1 clef=treble
-V:2 clef=bass
-[V:1] d2 GABc | d2 G2 G2 | e2 cdef | g2 G2 G2 |
-[V:2] G,,6 | B,,6 | C,6 | B,,6 |
-[V:1] c2 dcBA | B2 cBAG | F2 GABG | A6 |
-[V:2] A,,6 | G,,6 | D,6 | D,6 |
-[V:1] d2 GABc | d2 G2 G2 | e2 cdef | g2 G2 G2 |
-[V:2] G,,6 | B,,6 | C,6 | B,,6 |
-[V:1] c2 dcBA | B2 cBAG | A2 BAGF | G6 |
-[V:2] A,,6 | G,,6 | D,6 | G,,6 |`;
-
 const SCALE_SNIPPET = `X:1
 M:4/4
 L:1/8
@@ -41,6 +24,7 @@ V:2 clef=bass
 [V:2] C,D,E,F, G,A,B,C | CB,A,G, F,E,D,C, |`;
 
 export default {
+  ...PIECES,
   "pno-scales": {
     summary: "Major scales hands together, two octaves — the C major scale and its thumb-under move shown here.",
     shape: { ...cMajorTwoOctaves, hands: "together" }, bpm: 80,
@@ -61,20 +45,6 @@ export default {
     ],
     watch: ["Reading ahead matters more than every note: eyes on the next beat, not the one you're playing."],
     sightread: { defaultLevel: 1 },
-  },
-  "pno-minuet": {
-    summary: "Bars 1–16 of the Minuet in G major (Christian Petzold, from the Anna Magdalena Bach notebook), with a simplified left hand. Two sections: A (bars 1–8) and B (9–16).",
-    steps: [
-      "Pick section A. Wait mode, right hand only: find each note before you worry about time.",
-      "Then the left hand alone, then both hands in wait mode.",
-      "Switch to play-along with the click at 72. Each clean pass nudges the tempo up toward 100.",
-    ],
-    watch: ["The F in bars 3 and 7 is F sharp — the key signature says so once, at the start."],
-    score: {
-      bpm: 72, target: 100,
-      sections: [{ name: "A", from: 1, to: 8 }, { name: "B", from: 9, to: 16 }],
-      abc: MINUET_ABC,
-    },
   },
   "pno-improv": {
     summary: "Improvise a right-hand melody over one of the Pop track's progressions, leaving space.",

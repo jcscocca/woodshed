@@ -86,7 +86,7 @@ export const TRACKS = [
     id: "trk-pno-pieces", inst: "piano", name: "Pieces",
     blurb: "Written pieces, easiest first — from the Anna Magdalena notebook to Clementi and Burgmüller — learned a section at a time.",
     stages: [
-      { id: "pno-minuet", title: "Minuet in G (Petzold)", type: "song", diff: 2, min: 12, desc: "The Minuet in G from the Anna Magdalena notebook — a section at a time, hands separately, then with the click." },
+      { id: "pno-minuet", title: "Minuet in G (Petzold)", type: "song", diff: 2, min: 12, desc: "The Minuet in G from the Anna Magdalena notebook, all 32 bars — a section at a time, hands separately, then with the click." },
     ],
   },
   {
