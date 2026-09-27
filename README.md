@@ -97,7 +97,7 @@ four bars to a system, with a **Score** entry in the sidebar (key **5**)
 while it's open.
 
 Work a **section** — the piece's own presets (**A**, **B**, **all**) or click
-a bar number (shift-click sets the far end) — and the rest of the staff dims
+any note in a bar (shift-click sets the far end) — and the rest of the staff dims
 without reflowing. **Hands** narrows to right or left alone, dimming and
 ignoring the other staff. **Wait mode** holds at each note (or chord) until
 you play it, lighting it on the staff and outlining what's next on the band;
@@ -217,13 +217,13 @@ The code is split so the parts you'll want to change are easy to find:
 | `src/score/timedGrade.js` | Grades a play-along run's pitch and timing against the metronome — on / early / late / missed / wrong, notes % and rhythm % (pure). |
 | `src/score/waitGrade.js` | Grades wait mode — an onset (a note or chord) advances only once every note in it has been pressed; wrong presses flash but never advance (pure). |
 | `src/score/sightread.js` | Generates the sight-reading drills — 10 leveled, seeded patterns as ABC, never the same twice (pure). |
-| `src/score/runStore.js` + `src/score/useRun.js` | A small subscribable store for the live score run (section, hands, mode, run state, readout), like `src/midi/overlay.js`; `ScoreStage`, `ScorePanel` and the band all read it via the `useRun()` hook. |
+| `src/score/runStore.js` + `src/score/useRun.js` | A small subscribable store for the live score run (section, hands, mode, run state, the current drill, the visible window), like `src/midi/overlay.js`; `ScoreStage` and `ScorePanel` read it via the `useRun()` hook, and the shortcuts and rail metronome check whether a run is live. |
 | `src/score/ScoreStage.jsx` | The grand staff itself, in the main pane — renders the open piece or drill with lazy-loaded abcjs, colors notes by grading, dims sections, takes bar clicks, scrolls the system window. |
 | `src/score/ScorePanel.jsx` | The rail controls for a scored item — section / hands / mode, Start, the tempo ladder and summary, and the sight-reading level picker. |
 | `src/score/ScoreSnippet.jsx` | A small static staff snippet for the rail (e.g. the C-major-scale lesson) — no cursor, no grading. |
 | `src/styles.css` | All styling and the color palette (CSS variables at the top). |
 | `src/App.jsx` | The views (Today / Tracks / Library / Progress), the dialogs, and the switch between the phone and desktop layouts. |
-| `test/` | The suites `npm test` runs (DSP smoke, lessons schema, coach, ear, engine, desktop, MIDI), plus the real-audio suite in `test/audio/`. |
+| `test/` | The suites `npm test` runs (DSP smoke, lessons schema, coach, ear, engine, desktop, MIDI, score), plus the real-audio suite in `test/audio/`. |
 | `archive/` | Bass and accordion content and the accordion pitch detector, out of the build. See `archive/README.md`. |
 | `docs/DIRECTION.md` | The current product direction. |
 
