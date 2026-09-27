@@ -11,6 +11,35 @@ const fiveFinger = { kind: "keyboard",
     { name: "F", octave: 4 }, { name: "E", octave: 4 }, { name: "D", octave: 4 }, { name: "C", octave: 4 }],
   fingers: [1, 2, 3, 4, 5, 4, 3, 2, 1] };
 
+// ABC source is line-sensitive, so these live at column 0.
+const MINUET_ABC = `X:1
+T:Minuet in G
+C:Christian Petzold (arr. simplified)
+M:3/4
+L:1/8
+K:G
+%%staves {1 2}
+V:1 clef=treble
+V:2 clef=bass
+[V:1] d2 GABc | d2 G2 G2 | e2 cdef | g2 G2 G2 |
+[V:2] G,,6 | B,,6 | C,6 | B,,6 |
+[V:1] c2 dcBA | B2 cBAG | F2 GABG | A6 |
+[V:2] A,,6 | G,,6 | D,6 | D,6 |
+[V:1] d2 GABc | d2 G2 G2 | e2 cdef | g2 G2 G2 |
+[V:2] G,,6 | B,,6 | C,6 | B,,6 |
+[V:1] c2 dcBA | B2 cBAG | A2 BAGF | G6 |
+[V:2] A,,6 | G,,6 | D,6 | G,,6 |`;
+
+const SCALE_SNIPPET = `X:1
+M:4/4
+L:1/8
+K:C
+%%staves {1 2}
+V:1 clef=treble
+V:2 clef=bass
+[V:1] CDEF GABc | cBAG FEDC |
+[V:2] C,D,E,F, G,A,B,C | CB,A,G, F,E,D,C, |`;
+
 export default {
   "pno-scales": {
     summary: "Major scales hands together, two octaves — the C major scale and its thumb-under move shown here.",
@@ -21,16 +50,17 @@ export default {
       "Listen for even tone — no note louder than its neighbors.",
     ],
     watch: ["Keep the wrist level and relaxed; the thumb-under should be silent and smooth."],
+    snippet: SCALE_SNIPPET,
   },
   "pno-sight": {
-    summary: "Read a piece you've never played — slowly, hands together, keeping the pulse no matter what.",
-    shape: null, prescribe: "New piece · slow tempo · hands together · keep going past mistakes", bpm: 60,
+    summary: "Short drills written fresh each time, at your level: read them once, with the click, and play.",
     steps: [
-      "Scan the page first: key signature, time signature, the highest and lowest notes.",
-      "Set a tempo slow enough that you never have to stop. Then start and don't stop.",
-      "When you fumble a note, keep the pulse — sight-reading is about flow, not corrections.",
+      "Look over the drill before the count-in: the key, the time signature, where the hands move.",
+      "Keep going through mistakes — the click doesn't wait, and neither does real reading.",
+      "Three clean drills in a row and the app offers the next level.",
     ],
-    watch: ["Eyes on the page, not your hands. Trust your fingers to find the keys."],
+    watch: ["Reading ahead matters more than every note: eyes on the next beat, not the one you're playing."],
+    sightread: { defaultLevel: 1 },
   },
   "pno-hanon": {
     summary: "Hanon No. 1 — a finger-independence pattern that climbs the scale, slow and dead even.",
@@ -54,6 +84,20 @@ export default {
       "End by playing the section in context, from a bar before to a bar after.",
     ],
     watch: ["Practicing the whole piece top-to-bottom hides the hard bar. Isolate it."],
+  },
+  "pno-minuet": {
+    summary: "Bars 1–16 of the Minuet in G major (Christian Petzold, from the Anna Magdalena Bach notebook), with a simplified left hand. Two sections: A (bars 1–8) and B (9–16).",
+    steps: [
+      "Pick section A. Wait mode, right hand only: find each note before you worry about time.",
+      "Then the left hand alone, then both hands in wait mode.",
+      "Switch to play-along with the click at 72. Each clean pass nudges the tempo up toward 100.",
+    ],
+    watch: ["The F in bars 3 and 7 is F sharp — the key signature says so once, at the start."],
+    score: {
+      bpm: 72, target: 100,
+      sections: [{ name: "A", from: 1, to: 8 }, { name: "B", from: 9, to: 16 }],
+      abc: MINUET_ABC,
+    },
   },
   "pno-voicings": {
     summary: "Comp (accompany) a lead sheet with shell voicings instead of plain block triads.",
@@ -117,6 +161,7 @@ export default {
       "One note per click, even and unhurried.",
     ],
     watch: ["The thumb-under is where it gets bumpy — practice just that move."],
+    snippet: SCALE_SNIPPET,
   },
   "trk-pno-4": {
     summary: "Right-hand melody over left-hand block chords — keep the tune singing above.",
