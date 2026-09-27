@@ -19,7 +19,7 @@ export const KEY_HELP = [
   ["N", "Sight-reading: new drill"],
   ["[ ]", "Score: previous / next section"],
   ["5", "Back to the open score"],
-  ["↑ ↓", "Score: move the page"],
+  ["↑ ↓ PgUp PgDn", "Score: move the page"],
   ["Esc", "Close the lesson or tuner"],
   ["?", "This list"],
 ];
@@ -44,6 +44,16 @@ export function actionFor(e, { typing = false, dialogOpen = false, buttonFocused
   if (k === "n") return { type: "drill" };
   if (k === "[" || k === "]") return { type: "section", delta: k === "[" ? -1 : 1 };
   if (k === "5") return { type: "score" };
-  if (k === "ArrowUp" || k === "ArrowDown") return { type: "scroll", delta: k === "ArrowUp" ? -1 : 1 };
+  if (k === "ArrowUp" || k === "PageUp") return { type: "scroll", delta: -1 };
+  if (k === "ArrowDown" || k === "PageDown") return { type: "scroll", delta: 1 };
   return null;
+}
+
+// A live play-along run owns the metronome: Space and Esc stop the run (a second Esc then
+// closes), the tempo keys do nothing. Wait mode never touches the metronome, so it locks nothing.
+export function routeAction(a, run) {
+  if (!run.play || (run.state !== "countin" && run.state !== "running")) return a;
+  if (a.type === "bpm" || a.type === "tap") return null;
+  if (a.type === "metronome" || a.type === "close") return { type: "coach" };
+  return a;
 }

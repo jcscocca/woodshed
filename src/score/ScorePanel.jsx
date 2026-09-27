@@ -35,7 +35,7 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
   const [say, setSay] = useState("");
   const [lastClean, setLastClean] = useState({});
   const [streak, setStreak] = useState(0);
-  const live = useRef(null), metroRef = useRef(metro), passes = useRef({}), shownKey = useRef(null), toggle = useRef(null), onKey = useRef(null), graded = useRef(false);
+  const live = useRef(null), metroRef = useRef(metro), passes = useRef({}), shownKey = useRef(null), toggle = useRef(null), onKey = useRef(null), graded = useRef(false), picked = useRef(false);
   metroRef.current = metro;
   const sight = !!lesson.sightread, level = sightLevel;
   const spec = lesson.score || {};
@@ -233,7 +233,8 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
         <div className="ws-score-row">
           <span className="ws-lesson-label">Level</span>
           <select className="ws-score-level" aria-label="Level" value={level} disabled={running}
-            onChange={(e) => { setLevel(Number(e.target.value)); e.currentTarget.blur(); }}>
+            onPointerDown={() => { picked.current = true; }} onKeyDown={() => { picked.current = false; }}
+            onChange={(e) => { setLevel(Number(e.target.value)); if (picked.current) e.currentTarget.blur(); }}>
             {LEVELS.map((l, i) => <option key={i} value={i + 1}>{i + 1} · {l.name}</option>)}
           </select>
         </div>

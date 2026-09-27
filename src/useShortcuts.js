@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { actionFor, clampBpm } from "./shortcuts.js";
+import { actionFor, routeAction, clampBpm } from "./shortcuts.js";
 import { toggleWatch } from "./stopwatch.js";
 import { usePractice } from "./PracticeProvider.jsx";
 import { useMidi } from "./midi/MidiProvider.jsx";
@@ -22,13 +22,9 @@ export function ShortcutBridge({ onAction }) {
   const { metro, setWatch } = usePractice();
   const midi = useMidi();
   const run = useRef(null);
-  run.current = (a) => {
-    // a live score run owns the tempo: Space and Esc stop it, the tempo keys do nothing
-    const s = runStore.get().run.state;
-    if (s === "countin" || s === "running") {
-      if (a.type === "bpm" || a.type === "tap") return;
-      if (a.type === "metronome" || a.type === "close") a = { type: "coach" };
-    }
+  run.current = (action) => {
+    const a = routeAction(action, runStore.get().run);
+    if (!a) return;
     if (a.type === "metronome") metro.toggle();
     else if (a.type === "tap") metro.tap();
     else if (a.type === "bpm") metro.setBpm((b) => clampBpm(b + a.delta));

@@ -7,8 +7,8 @@ export default function PracticeTools({ hints = false, compact = false, stopwatc
   const { metro: m, watch, setWatch } = usePractice();
   const [, tick] = useState(0);
   const running = watch.startedAt != null;
-  // a live score run owns the metronome
-  const { state } = useRun().run, locked = state === "countin" || state === "running";
+  // a live play-along run owns the metronome
+  const { state, play } = useRun().run, locked = !!play && (state === "countin" || state === "running");
 
   useEffect(() => {
     if (!running) return;
