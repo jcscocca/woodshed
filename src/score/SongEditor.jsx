@@ -43,7 +43,7 @@ export default function SongEditor({ songs, songId, onSelect, onSongs, disabled 
             <select className="ws-score-level ws-song-pattern" aria-label="Pattern" value={song.pattern} disabled={disabled} onChange={(e) => edit({ pattern: e.target.value })}>
               {fits.map(([k, p]) => <option key={k} value={k}>{p.name}</option>)}
             </select>
-            <input key={`${songId}${song.bpm}`} className="ws-score-num mono" type="number" min={30} max={200} aria-label="Tempo" defaultValue={song.bpm} disabled={disabled}
+            <input key={`${songId}${song.bpm}`} className="ws-score-num mono" type="number" min={30} max={200} aria-label="Start tempo" title="Start tempo" defaultValue={song.bpm} disabled={disabled}
               onBlur={commitBpm} onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }} />
           </div>
           <textarea className="ws-song-chords mono" aria-label="Chords, bars split by |" rows={3} value={song.chords} disabled={disabled}

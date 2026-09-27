@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import abcjs from "abcjs";
 const { parseScore, walkTune, keepClefs, inSection, forHands } = await import("../src/score/scoreModel.js");
 const { LESSONS } = await import("../src/lessons/index.js");
+const { scoreFor } = await import("../src/score/scoreFor.js");
+const { generateDrill, drillBpm, LEVELS } = await import("../src/score/sightread.js");
 
 let failures = 0;
 const test = (name, fn) => { try { fn(); console.log(`ok   ${name}`); } catch (e) { failures++; console.error(`FAIL ${name}\n     ${e.message}`); } };
@@ -151,17 +153,18 @@ const clefRuns = (tune, s) => {
   }
   return runs.map((r) => `${r.from === r.to ? r.from : `${r.from}-${r.to}`} ${r.clef}`).join(", ");
 };
+const checkKeptClefs = (id, abc) => {
+  for (const [name, tune] of Object.entries(layouts(abc))) tune.lines.forEach((line, l) => (line.staff || []).forEach((staff, s) => {
+    let shown = staff.clef;
+    for (const el of staff.voices[0]) {
+      if (el.el_type === "clef") { assert.notEqual(el.verticalPos, shown.verticalPos, `${id}, ${name}, line ${l + 1}: a clef change to the clef in force`); shown = el; }
+      for (const p of (el.el_type === "note" && el.pitches) || []) assert.equal(p.pitch - p.verticalPos, shown.verticalPos, `${id}, ${name}, line ${l + 1}, staff ${s + 1}: a notehead placed for another clef`);
+    }
+  }));
+};
 test("keepClefs: every notehead sits under the clef drawn before it, and no clef change repeats the clef in force", () => {
-  for (const [id, L] of Object.entries(LESSONS)) {
-    if (!L.score) continue;
-    for (const [name, tune] of Object.entries(layouts(L.score.abc))) tune.lines.forEach((line, l) => (line.staff || []).forEach((staff, s) => {
-      let shown = staff.clef;
-      for (const el of staff.voices[0]) {
-        if (el.el_type === "clef") { assert.notEqual(el.verticalPos, shown.verticalPos, `${id}, ${name}, line ${l + 1}: a clef change to the clef in force`); shown = el; }
-        for (const p of (el.el_type === "note" && el.pitches) || []) assert.equal(p.pitch - p.verticalPos, shown.verticalPos, `${id}, ${name}, line ${l + 1}, staff ${s + 1}: a notehead placed for another clef`);
-      }
-    }));
-  }
+  for (const [id, L] of Object.entries(LESSONS)) if (L.score || L.chart) checkKeptClefs(id, scoreFor(L).abc);
+  for (const level of [1, 4, 7, 10]) for (let seed = 0; seed < 3; seed++) checkKeptClefs(`sight-read L${level} seed ${seed}`, generateDrill(level, seed));
 });
 test("keepClefs: the left hand keeps the editions' clefs in La Candeur and the Arabesque, as written or wrapped", () => {
   const want = { "pcs-la-candeur": "1-14 bass, 15-20 treble, 20-22 bass", "pcs-arabesque": "1-15 bass, 16-18 treble, 19-31 bass" };
@@ -248,7 +251,6 @@ test("createWaitRun: a wrong press flashes but never advances", () => {
   assert.deepEqual(run.result(), { found: 2, total: 3, wrong: 2, wrongBars: [1, 2] });
 });
 
-const { generateDrill, drillBpm, LEVELS } = await import("../src/score/sightread.js");
 const SCALE = { C: [0, 2, 4, 5, 7, 9, 11], G: [7, 9, 11, 0, 2, 4, 6], F: [5, 7, 9, 10, 0, 2, 4], D: [2, 4, 6, 7, 9, 11, 1], Bb: [10, 0, 2, 3, 5, 7, 9] };
 const TONIC = { C: 0, G: 7, F: 5, D: 2, Bb: 10 };
 const drillCache = {};
