@@ -73,7 +73,7 @@ test("every lesson conforms to the schema", () => {
     assert.ok(typeof L.summary === "string" && L.summary.length, `${id}: missing summary`);
     assert.ok(Array.isArray(L.steps) && L.steps.length >= 1, `${id}: needs >= 1 step`);
     assert.ok(Array.isArray(L.watch), `${id}: watch must be an array`);
-    assert.ok(L.shape || L.prescribe, `${id}: needs a shape or a prescription`);
+    assert.ok(L.shape || L.prescribe || L.score || L.sightread, `${id}: needs a shape, a prescription, a score or sightread`);
     validateShape(L.shape ?? null);
   }
 });
@@ -150,6 +150,100 @@ test("twins point at a track stage on the same instrument, and a set never holds
 test("lesson copy is plain text — no markdown asterisks", () => {
   for (const [id, L] of Object.entries(LESSONS))
     for (const s of [L.summary, ...L.steps, ...L.watch]) assert.ok(!s.includes("*"), `${id}: "*" renders literally in "${s}"`);
+});
+
+// --- score fields: score, sightread, snippet ---
+
+import abcjs from "abcjs";
+import { parseScore } from "../src/score/scoreModel.js";
+import { hasScore } from "../src/lessons/index.js";
+
+test("the Minuet parses: 16 bars, key G, meter 3/4, sections, RH stays in G major", () => {
+  const { abc, sections } = LESSONS["pno-minuet"].score;
+  const s = parseScore(abc, abcjs);
+  assert.deepEqual(s.meter, [3, 4]);
+  assert.equal(s.key, "G");
+  assert.equal(s.bars.length, 16);
+  const a = sections.find((sec) => sec.name === "A");
+  const b = sections.find((sec) => sec.name === "B");
+  assert.deepEqual([a.from, a.to], [1, 8]);
+  assert.deepEqual([b.from, b.to], [9, 16]);
+  const G_MAJOR = new Set([7, 9, 11, 0, 2, 4, 6]); // G A B C D E F#
+  const rh = s.notes.filter((n) => n.hand === "R");
+  for (const n of rh) assert.ok(G_MAJOR.has(n.midi % 12), `midi ${n.midi} (pc ${n.midi % 12}) not in G major`);
+  const lastInBar = (n) => rh.filter((x) => x.bar === n).at(-1);
+  assert.equal(lastInBar(8).midi, 69); // A4
+  assert.equal(lastInBar(16).midi, 67); // G4
+});
+
+test("the scale snippet parses to 2 bars, RH C4-C5, LH C3-C4", () => {
+  for (const id of ["pno-scales", "trk-pno-3"]) {
+    const s = parseScore(LESSONS[id].snippet, abcjs);
+    assert.equal(s.bars.length, 2, `${id}: expected 2 bars`);
+    const rh = s.notes.filter((n) => n.hand === "R").map((n) => n.midi);
+    const lh = s.notes.filter((n) => n.hand === "L").map((n) => n.midi);
+    assert.deepEqual(rh, [60, 62, 64, 65, 67, 69, 71, 72, 72, 71, 69, 67, 65, 64, 62, 60], `${id}: RH`);
+    assert.deepEqual(lh, [48, 50, 52, 53, 55, 57, 59, 60, 60, 59, 57, 55, 53, 52, 50, 48], `${id}: LH`);
+  }
+});
+
+test("every lesson with score/snippet parses without throwing", () => {
+  for (const [id, L] of Object.entries(LESSONS)) {
+    if (L.score) assert.doesNotThrow(() => parseScore(L.score.abc, abcjs), `${id}: score.abc failed to parse`);
+    if (L.snippet) assert.doesNotThrow(() => parseScore(L.snippet, abcjs), `${id}: snippet failed to parse`);
+  }
+});
+
+// What the engine can grade (the spec's ABC authoring conventions): at most two voices, one per
+// staff; a full first bar; repeats written out; no inline metre change; 2/4, 3/4 or 4/4.
+const ungradable = (abc) => {
+  const [tune] = abcjs.parseOnly(abc), { num, den } = tune.getMeterFraction(), metre = JSON.stringify(tune.getMeter()), out = [];
+  if (den !== 4 || ![2, 3, 4].includes(num)) out.push(`metre ${num}/${den}`);
+  if (tune.getPickupLength()) out.push("pickup");
+  for (const line of tune.lines.filter((l) => l.staff)) {
+    if (line.staff.length > 2 || line.staff.some((s) => s.voices.length !== 1)) out.push("voices");
+    // a body M: line lands on the staff, not in the voice
+    if (line.staff.some((s) => s.meter && JSON.stringify(s.meter) !== metre)) out.push("metre change");
+    for (const el of line.staff.flatMap((s) => s.voices.flat())) {
+      if (el.el_type === "bar" && (/repeat/.test(el.type) || el.startEnding)) out.push("repeat");
+      if (el.el_type === "meter") out.push("metre change");
+    }
+  }
+  return [...new Set(out)];
+};
+
+test("the score lint catches repeats, endings, overlays, extra voices, metre changes, pickups and odd metres", () => {
+  const H = "X:1\nM:4/4\nL:1/8\nK:C\n";
+  const bad = [["|: C8 :| D8 |]", "repeat"], ["C8 :: D8 :|", "repeat"], ["C8 [1 D8 :| [2 E8 |]", "repeat"], ["C8 |1 D8 :|2 E8 |]", "repeat"],
+    ["C8 & E8 | D8 |]", "voices"], ["C8 | [M:3/4] D6 |]", "metre change"], ["C2 | D8 |]", "pickup"],
+    ["%%staves {1 2 3}\nV:1\nV:2\nV:3\n[V:1] C8 |]\n[V:2] E8 |]\n[V:3] G8 |]", "voices"]];
+  for (const [body, why] of bad) assert.ok(ungradable(H + body).includes(why), `${why}: ${body}`);
+  assert.deepEqual(ungradable("X:1\nM:6/8\nL:1/8\nK:C\nC6 | D6 |]"), ["metre 6/8"]);
+  assert.deepEqual(ungradable(`${H}C8 | D8 |\nM:3/4\nE6 | F6 |]`), ["metre change"]);
+  assert.deepEqual(ungradable(`${H}"C"(3CDE {g}F2 G2- G2 y | c8 |]`), []);
+});
+
+test("every score and snippet is one the engine can grade", () => {
+  for (const [id, L] of Object.entries(LESSONS))
+    for (const abc of [L.score && L.score.abc, L.snippet].filter(Boolean)) assert.deepEqual(ungradable(abc), [], id);
+});
+
+test("a score has bpm, target >= bpm and sections inside the piece; scored lessons carry no shape", () => {
+  for (const [id, L] of Object.entries(LESSONS)) {
+    if (L.score || L.sightread) assert.ok(!L.shape, `${id}: a scored lesson has no shape`);
+    if (!L.score) continue;
+    const { abc, bpm, target, sections } = L.score, n = parseScore(abc, abcjs).bars.length;
+    assert.ok(Number.isInteger(bpm) && bpm > 0, `${id}: bpm`);
+    assert.ok(target >= bpm, `${id}: target ${target} below bpm ${bpm}`);
+    assert.ok(Array.isArray(sections) && sections.length, `${id}: sections`);
+    for (const s of sections) assert.ok(s.from >= 1 && s.from <= s.to && s.to <= n, `${id}: section ${s.name} ${s.from}–${s.to} of ${n} bars`);
+  }
+});
+
+test("hasScore is true for score/sightread lessons, false otherwise", () => {
+  assert.equal(hasScore(LESSONS["pno-minuet"]), true);
+  assert.equal(hasScore(LESSONS["pno-sight"]), true);
+  assert.equal(hasScore(LESSONS["pno-hanon"]), false);
 });
 
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });

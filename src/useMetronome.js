@@ -18,6 +18,8 @@ export function useMetronome(initialBpm = 90, initialBeats = 4) {
   const queue = useRef([]); // {beat, time} waiting to be shown
   const bpmRef = useRef(bpm);
   const beatsRef = useRef(beatsPer);
+  const firstClick = useRef(0); // AudioContext time of the first click of this start()
+  const countIn = useRef(0);
 
   useEffect(() => { bpmRef.current = bpm; }, [bpm]);
   useEffect(() => { beatsRef.current = beatsPer; }, [beatsPer]);
@@ -58,15 +60,31 @@ export function useMetronome(initialBpm = 90, initialBeats = 4) {
     raf.current = requestAnimationFrame(draw);
   };
 
-  const start = useCallback(() => {
+  const start = useCallback(({ countIn: c = 0 } = {}) => {
     if (!ac.current) ac.current = new (window.AudioContext || window.webkitAudioContext)();
     if (ac.current.state === "suspended") ac.current.resume();
     counter.current = 0;
     queue.current = [];
     nextNote.current = ac.current.currentTime + 0.06;
+    firstClick.current = nextNote.current;
+    countIn.current = c;
     tickInterval.current = setInterval(schedule, 25);
     raf.current = requestAnimationFrame(draw);
     setPlaying(true);
+  }, []);
+
+  // The run's first beat (after the count-in) on the performance.now() clock,
+  // so it lines up with MIDI event timestamps (MIDIMessageEvent.timeStamp).
+  const timeline = useCallback(() => {
+    const ctx = ac.current;
+    if (!ctx || !tickInterval.current) return null;
+    const audioT = firstClick.current + (countIn.current * 60) / bpmRef.current;
+    // the output timestamp is {0, 0} on a new context and frozen while it is suspended; trust it only when live
+    const now = performance.now(), ts = ctx.getOutputTimestamp ? ctx.getOutputTimestamp() : null;
+    const t0 = ts && ts.performanceTime > 0 && now - ts.performanceTime < 100
+      ? ts.performanceTime + (audioT - ts.contextTime) * 1000
+      : now + (audioT - ctx.currentTime + (ctx.outputLatency || 0)) * 1000;
+    return { t0, bpm: bpmRef.current, beatsPer: beatsRef.current };
   }, []);
 
   const stop = useCallback(() => {
@@ -103,5 +121,5 @@ export function useMetronome(initialBpm = 90, initialBeats = 4) {
     if (ac.current && ac.current.state !== "closed") ac.current.close();
   }, []);
 
-  return { bpm, setBpm, beatsPer, setBeatsPer, playing, beat, start, stop, toggle, tap };
+  return { bpm, setBpm, beatsPer, setBeatsPer, playing, beat, start, stop, toggle, tap, timeline };
 }

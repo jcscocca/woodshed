@@ -3,7 +3,7 @@ import PracticeTools from "./PracticeTools.jsx";
 import { ListenPanel } from "./PracticeSheet.jsx";
 import { usePractice } from "./PracticeProvider.jsx";
 
-export default function PracticeRail({ lesson, tunerOpen, onOpenTuner, onCloseSlot }) {
+export default function PracticeRail({ lesson, scored, tunerOpen, onOpenTuner, onCloseSlot }) {
   const { metro } = usePractice();
   return (
     <aside className="ws-rail" aria-label="Practice">
@@ -18,7 +18,7 @@ export default function PracticeRail({ lesson, tunerOpen, onOpenTuner, onCloseSl
         {lesson || tunerOpen ? (
           <>
             <div className="ws-rail-slot-head">
-              <span className="ws-rail-label">{lesson ? "Lesson" : "Tuner"}</span>
+              <span className="ws-rail-label">{lesson ? (scored ? "Score" : "Lesson") : "Tuner"}</span>
               <button className="ws-x" onClick={onCloseSlot} aria-label={lesson ? "Close lesson" : "Close tuner"}>✕</button>
             </div>
             {lesson || <ListenPanel />}

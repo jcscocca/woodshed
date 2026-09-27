@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDialog } from "./useDialog.js";
-import { getLesson } from "./lessons/index.js";
+import { getLesson, hasScore } from "./lessons/index.js";
 import { shapeToVoices, shapeToTargets } from "./audio/notes.js";
 import { playChords, playSequence, playClick, stop } from "./lessonAudio.js";
 import { ChordDiagram, Keyboard, FretboardPattern } from "./diagrams.jsx";
@@ -11,6 +11,7 @@ import { isCoachable } from "./audio/notes.js";
 import { COACH_ENABLED } from "./features.js";
 import { overlay } from "./midi/overlay.js";
 import { useMidi } from "./midi/MidiProvider.jsx";
+import ScoreSnippet from "./score/ScoreSnippet.jsx";
 
 function ShapeView({ shape }) {
   if (!shape) return null;
@@ -69,6 +70,7 @@ export function LessonBody({ item, href, sessions = [], onCoachResult, onRequest
       </div>
       <h2 className="ws-sheet-title">{item.title}</h2>
       <p className="ws-lesson-summary">{lesson.summary}</p>
+      {lesson.snippet && <ScoreSnippet abc={lesson.snippet} />}
 
       {!(pianoShape && midi && midi.status === "connected" && midi.bandOpen) && <ShapeView shape={lesson.shape} />}
 
@@ -129,6 +131,7 @@ export default function LessonSheet({ onClose, ...lessonProps }) {
       <div className="ws-sheet ws-lesson" onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label="Lesson" tabIndex={-1}>
         <div className="ws-sheet-grip" />
         <LessonBody {...lessonProps} />
+        {hasScore(getLesson(lessonProps.item.id)) && <p className="ws-midi-connect-note">Open on the desktop to read the score.</p>}
         <div className="ws-sheet-actions">
           <button className="ws-btn ghost" onClick={onClose}>Close</button>
         </div>

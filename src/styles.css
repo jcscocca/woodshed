@@ -518,8 +518,56 @@ body{
 .ws-midi-off{ font-size:12.5px; color:var(--muted2); white-space:nowrap; }
 .ws-midi-band.collapsed .ws-btn{ padding:3px 10px; font-size:12px; }
 .ws-midi-band.collapsed .ws-x{ padding:4px 6px; font-size:12px; }
-.ws-midi-live{ position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+.ws-midi-live, .ws-score-live{ position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
 .ws-midi-connect-note{ font-size:13px; color:var(--muted); margin:0 0 10px; }
 /* Coach me and Hear it share a row in the rail */
 .ws-rail-slot .ws-coach-open{ margin:0 8px 0 0; }
 .ws-rail-slot .ws-coach-open, .ws-rail-slot .ws-hear{ line-height:18px; }
+
+/* ---------- score stage (desktop main pane) and lesson snippets ---------- */
+.ws-score{ height:100%; max-width:1000px; margin:0 auto; display:flex; flex-direction:column; outline:none; }
+.ws-score-head{ height:36px; flex:none; display:flex; align-items:baseline; gap:12px; white-space:nowrap; overflow:hidden; }
+.ws-score-title{ font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:19px; }
+.ws-score-meta{ font-size:12.5px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; }
+.ws-score-stage{ flex:1; min-height:0; overflow:hidden; }
+.ws-score-slab{ height:200px; margin-bottom:5px; border-radius:var(--r); background:var(--bg2); }
+.ws-score-paper{ display:flex; flex-direction:column; user-select:none; }
+.ws-score-sys{ position:relative; height:var(--slot); display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.ws-score-sys.cur::before{ content:""; position:absolute; left:0; top:14%; bottom:14%; width:2px; border-radius:1px; background:var(--gold-dim); }
+.ws-score-sys .abcjs-note{ cursor:pointer; transition:fill .15s, opacity .2s; }
+.ws-score-sys .abcjs-beam-elem, .ws-score-sys .abcjs-rest, .ws-score-sys .abcjs-slur{ transition:opacity .2s; }
+/* a drill's system hugs its SVG, so the current-system marker sits at its edge */
+.ws-score.drill .ws-score-sys{ align-self:center; }
+.ws-score.drill .abcjs-note{ cursor:default; }
+.ws-score-dim{ opacity:.35; }
+.ws-score-on, .ws-score-on *{ fill:#7fc4bc; }
+.ws-score-off, .ws-score-off *{ fill:var(--gold); }
+.ws-score-miss, .ws-score-miss *{ fill:#e8916f; }
+.ws-score-cur, .ws-score-cur *{ fill:var(--gold); }
+.ws-score-cur{ filter:drop-shadow(0 0 3px rgba(227,169,72,.7)); }
+.ws-score-revisit{ filter:drop-shadow(0 0 1.5px #e8916f); }
+.ws-score-snippet{ margin:0 0 14px; }
+.ws-score-snippet svg{ display:block; }
+/* score panel (rail) */
+.ws-score-panel .ws-sheet-title{ margin-bottom:12px; }
+.ws-score-row{ display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.ws-score-row > .ws-lesson-label{ width:58px; flex:none; margin:0; }
+.ws-score-range{ display:flex; align-items:center; gap:4px; margin-left:auto; color:var(--muted2); }
+.ws-score-num{ width:40px; background:var(--bg); border:1px solid var(--line2); border-radius:7px; color:var(--text); font-size:12px; padding:6px 2px; text-align:center; -moz-appearance:textfield; }
+.ws-score-num::-webkit-inner-spin-button, .ws-score-num::-webkit-outer-spin-button{ -webkit-appearance:none; margin:0; }
+.ws-score-num:focus{ outline:none; border-color:var(--gold-dim); }
+.ws-score-panel .ws-sig-btn:disabled, .ws-score-panel .ws-btn.ghost:disabled, .ws-score-num:disabled{ opacity:.45; cursor:not-allowed; }
+.ws-score-tempo{ font-size:13px; }
+.ws-score-panel > .ws-btn.full{ margin-top:4px; }
+.ws-score-note{ margin-top:8px; }
+.ws-score-pct{ font-size:14px; color:var(--muted); margin:4px 0 6px; }
+.ws-score-pct b{ font-size:22px; color:var(--text); }
+.ws-score-bar{ font-size:12px; color:inherit; background:none; border:1px solid currentColor; border-radius:6px; padding:1px 7px; margin-left:5px; cursor:pointer; }
+.ws-score-level{ flex:1; min-width:0; font-family:inherit; font-size:12.5px; background:var(--bg); border:1px solid var(--line2); border-radius:7px; color:var(--text); padding:6px 8px; }
+.ws-score-level:focus{ outline:none; border-color:var(--gold-dim); }
+.ws-score-level:disabled{ opacity:.45; cursor:not-allowed; }
+.ws-score-go{ display:flex; gap:8px; margin-top:4px; }
+.ws-score-go .ws-btn.full{ flex:1; width:auto; margin-top:0; }
+.ws-score-panel .ws-btn.full.ws-score-up{ margin:0 0 8px; }
+/* the rail metronome while a score run owns it */
+.ws-metro button:disabled, .ws-bpm-range:disabled{ opacity:.45; cursor:not-allowed; }

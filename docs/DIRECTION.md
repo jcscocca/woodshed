@@ -79,4 +79,10 @@ cross-device sync. Specs stay in `docs/` for reference.
 3. Desktop layout — spec → plan → build.
 4. Piano over MIDI — spec → plan → build (piano-only; the coach rethink for
    piano happens here). **Done.**
-5. Content — deepen piano and guitar tracks and lessons.
+5. Content — deepen piano and guitar tracks and lessons. Split into two
+   projects: the notation engine — grand-staff pieces, wait mode and
+   play-along grading, the tempo ladder, sight-reading drills (its own spec,
+   `docs/superpowers/specs/2026-09-26-notation-pieces-design.md`) — is
+   **done**; piano content (more pieces, deeper tracks) is next, its own
+   spec. Parked until the metronome and the lesson synth share one
+   AudioContext: "Hear this section" and the app playing the other hand.

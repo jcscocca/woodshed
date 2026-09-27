@@ -54,6 +54,8 @@ export function migrate(state) {
   // v3 -> v4: session entries gained optional coach fields (accuracy, coached,
   // missed). They're additive and read with safe defaults, so old sessions need
   // no backfill — only the stamped version changes.
+  // v6 -> v7: the score engine remembers tempo-ladder bpm per section and the sight-reading level.
+  for (const k of ["ladder", "sightLevel"]) if (!s[k] || typeof s[k] !== "object" || Array.isArray(s[k])) s[k] = {};
   s.version = SCHEMA_VERSION;
   return s;
 }

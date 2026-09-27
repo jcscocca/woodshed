@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { INSTRUMENTS, TYPE_LABEL, FELT, TRACKS } from "./seed.js";
-import { getLesson } from "./lessons/index.js";
+import { getLesson, hasScore } from "./lessons/index.js";
 import LessonSheet, { LessonBody } from "./LessonSheet.jsx";
 import { todayStr, addDays, prettyAgo } from "./dateUtils.js";
 import {
@@ -19,6 +19,8 @@ import { ShortcutBridge } from "./useShortcuts.js";
 import ShortcutHelp from "./ShortcutHelp.jsx";
 import { MidiProvider } from "./midi/MidiProvider.jsx";
 import MidiBand from "./midi/MidiBand.jsx";
+import ScoreStage from "./score/ScoreStage.jsx";
+import ScorePanel from "./score/ScorePanel.jsx";
 
 // Resource links are user-entered and ride along in exported/imported backups,
 // so treat them as untrusted. Only http(s) URLs ever reach an href — a
@@ -56,6 +58,7 @@ export default function Woodshed() {
   const [saveError, setSaveError] = useState(false);
   const [tunerOpen, setTunerOpen] = useState(false);
   const [showKeys, setShowKeys] = useState(false);
+  const [showScore, setShowScore] = useState(false);
   const desktop = useIsDesktop();
   const loaded = useRef(false);
 
@@ -120,6 +123,7 @@ export default function Woodshed() {
           date: today, itemId: e.itemId, inst: it ? it.inst : "piano",
           minutes: e.minutes, rating: e.rating, bpm: e.bpm ?? null, note: note || "",
           accuracy: e.accuracy ?? null, coached: e.accuracy != null, missed: e.missed ?? [],
+          rhythm: e.rhythm ?? null, section: e.section ?? null,
         });
       }
       return { ...d, sessions, currentSession: logging === true ? { ...d.currentSession, completed: true } : d.currentSession };
@@ -133,6 +137,8 @@ export default function Woodshed() {
   };
 
   const recordCoachResult = (itemId, res) => setCoachResults((m) => ({ ...m, [itemId]: res }));
+  const saveLadder = (itemId, key, bpm) => setData((d) => ({ ...d, ladder: { ...d.ladder, [itemId]: { ...d.ladder[itemId], [key]: bpm } } }));
+  const saveSightLevel = (itemId, level) => setData((d) => ({ ...d, sightLevel: { ...d.sightLevel, [itemId]: level } }));
 
   // session length and instruments shape today's set, so rebuild it unless it's already been logged
   const rebuildIfOpen = (d) => (d.currentSession.completed ? d : { ...d, currentSession: gen(d) });
@@ -202,16 +208,19 @@ export default function Woodshed() {
   };
 
   const streak = streakInfo(data.sessions);
-  const openLesson = (it) => { setTunerOpen(false); setLessonFor(it); };
+  const openLesson = (it) => { setTunerOpen(false); setLessonFor(it); if (hasScore(getLesson(it.id))) setShowScore(true); };
+  const closeLesson = () => { setLessonFor(null); setShowScore(false); };
+  const showView = (v) => { setView(v); setShowScore(false); };
   const onShortcut = (a) => {
-    if (a.type === "view") setView(a.view);
+    if (a.type === "view") showView(a.view);
     else if (a.type === "log") { if (!session.completed && session.items.length) setLogging(true); }
-    else if (a.type === "close") { setLessonFor(null); setTunerOpen(false); }
+    else if (a.type === "close") { closeLesson(); setTunerOpen(false); }
     else if (a.type === "help") setShowKeys(true);
+    else if (a.type === "score") { if (isScored) setShowScore(true); }
   };
   const requestLog = () => {
     const inSet = !session.completed && session.items.some((x) => x.itemId === lessonFor.id);
-    setLessonFor(null);
+    closeLesson();
     setLogging(inSet ? true : { items: [{ itemId: lessonFor.id, minutes: lessonFor.min }] });
   };
   const lessonProps = lessonFor && {
@@ -220,6 +229,7 @@ export default function Woodshed() {
     onCoachResult: recordCoachResult, onRequestLog: requestLog,
   };
   const selectedId = desktop && lessonFor ? lessonFor.id : null;
+  const isScored = desktop && lessonFor && hasScore(getLesson(lessonFor.id));
 
   const saveErr = saveError && <div className="ws-saveerr">Couldn't save your latest change to this browser — your history may not persist.</div>;
   const views = (
@@ -283,13 +293,21 @@ export default function Woodshed() {
       <MidiProvider enabled={desktop && !!data.settings.enabled.piano}>
         {desktop ? (
           <div className="ws-desk">
-            <Sidebar view={view} onView={setView} onSettings={() => setShowSettings(true)} onHelp={() => setShowKeys(true)}><Streak streak={streak} /></Sidebar>
-            <div className="ws-desk-main">{saveErr}{views}</div>
+            <Sidebar view={view} onView={showView} scoreOpen={showScore && isScored} onScore={isScored ? () => setShowScore(true) : null} onSettings={() => setShowSettings(true)} onHelp={() => setShowKeys(true)}><Streak streak={streak} /></Sidebar>
+            <div className="ws-desk-main">{saveErr}{showScore && isScored ? <ScoreStage key={lessonFor.id} item={lessonFor} lesson={getLesson(lessonFor.id)} /> : views}</div>
             <PracticeRail
-              lesson={lessonProps && <LessonBody key={lessonFor.id} {...lessonProps} />}
+              lesson={lessonProps && (isScored ? (
+                <ScorePanel
+                  key={lessonFor.id} item={lessonFor} lesson={getLesson(lessonFor.id)} ladder={data.ladder[lessonFor.id]}
+                  sightLevel={data.sightLevel[lessonFor.id] ?? getLesson(lessonFor.id).sightread?.defaultLevel}
+                  onLadder={(key, bpm) => saveLadder(lessonFor.id, key, bpm)} onSightLevel={(level) => saveSightLevel(lessonFor.id, level)}
+                  onResult={(res) => recordCoachResult(lessonFor.id, res)} onRequestLog={requestLog}
+                />
+              ) : <LessonBody key={lessonFor.id} {...lessonProps} />)}
+              scored={isScored}
               tunerOpen={tunerOpen}
-              onOpenTuner={() => { setLessonFor(null); setTunerOpen(true); }}
-              onCloseSlot={() => { setLessonFor(null); setTunerOpen(false); }}
+              onOpenTuner={() => { closeLesson(); setTunerOpen(true); }}
+              onCloseSlot={() => { closeLesson(); setTunerOpen(false); }}
             />
             {showKeys && <ShortcutHelp onClose={() => setShowKeys(false)} />}
             <ShortcutBridge onAction={onShortcut} />
@@ -318,7 +336,7 @@ export default function Woodshed() {
             </nav>
             {practiceOpen && <PracticeSheet onClose={() => setPracticeOpen(false)} onOpenListen={() => { setPracticeOpen(false); setListenOpen(true); }} />}
             {listenOpen && <ListenSheet onClose={() => setListenOpen(false)} />}
-            {lessonProps && <LessonSheet {...lessonProps} onClose={() => setLessonFor(null)} />}
+            {lessonProps && <LessonSheet {...lessonProps} onClose={closeLesson} />}
           </Shell>
         )}
         {dialogs}
@@ -437,7 +455,7 @@ function LogSheet({ session, itemById, lastTempo, coachResults = {}, onCancel, o
   const init = session.items.filter((x) => itemById(x.itemId)).map((x) => {
     const it = itemById(x.itemId);
     const c = coachResults[x.itemId];
-    return { itemId: x.itemId, title: it?.title || "", inst: it?.inst || "piano", done: true, minutes: x.minutes, rating: "good", bpm: it?.lastBpm ?? null, accuracy: c?.accuracy ?? null, missed: c?.missed ?? [] };
+    return { itemId: x.itemId, title: it?.title || "", inst: it?.inst || "piano", done: true, minutes: x.minutes, rating: "good", bpm: c?.bpm ?? it?.lastBpm ?? null, accuracy: c?.accuracy ?? null, missed: c?.missed ?? [], rhythm: c?.rhythm ?? null, section: c?.section ?? null };
   });
   const [entries, setEntries] = useState(init);
   const [note, setNote] = useState("");
@@ -488,7 +506,7 @@ function LogSheet({ session, itemById, lastTempo, coachResults = {}, onCancel, o
                     )}
                   </div>
                   {e.accuracy != null && (
-                    <div className="ws-log-acc mono" title="Measured by the coach">◉ {e.accuracy}% clean{e.missed.length ? ` · revisit ${e.missed.join(", ")}` : ""}</div>
+                    <div className="ws-log-acc mono" title="Measured by the coach">◉ {e.rhythm != null ? `notes ${e.accuracy}% · rhythm ${e.rhythm}%` : `${e.accuracy}% clean`}{e.missed.length ? ` · revisit ${e.missed.join(", ")}` : ""}</div>
                   )}
                 </div>
               )}

@@ -1,8 +1,11 @@
 import { useEffect, useRef } from "react";
-import { actionFor, clampBpm } from "./shortcuts.js";
+import { actionFor, routeAction, clampBpm } from "./shortcuts.js";
 import { toggleWatch } from "./stopwatch.js";
 import { usePractice } from "./PracticeProvider.jsx";
 import { useMidi } from "./midi/MidiProvider.jsx";
+import { runStore } from "./score/runStore.js";
+
+const SCORE_KEYS = ["mode", "hands", "drill", "section", "scroll"];
 
 function contextOf(target, viaPointer) {
   const tag = target && target.tagName;
@@ -19,7 +22,9 @@ export function ShortcutBridge({ onAction }) {
   const { metro, setWatch } = usePractice();
   const midi = useMidi();
   const run = useRef(null);
-  run.current = (a) => {
+  run.current = (action) => {
+    const a = routeAction(action, runStore.get().run);
+    if (!a) return;
     if (a.type === "metronome") metro.toggle();
     else if (a.type === "tap") metro.tap();
     else if (a.type === "bpm") metro.setBpm((b) => clampBpm(b + a.delta));
@@ -27,6 +32,8 @@ export function ShortcutBridge({ onAction }) {
     else if (a.type === "band") { if (midi && midi.status === "connected") midi.setBandOpen((o) => !o); }
     else if (a.type === "playback") { if (midi && midi.status === "connected") midi.playLastTake(); }
     else if (a.type === "coach") { if (midi && midi.status === "connected") window.dispatchEvent(new CustomEvent("woodshed:coach")); }
+    // false when no open score took it, so ↑/↓ still scroll the page
+    else if (SCORE_KEYS.includes(a.type)) return !window.dispatchEvent(new CustomEvent("woodshed:score", { detail: a, cancelable: true }));
     else onAction(a);
   };
   useEffect(() => {
@@ -36,9 +43,7 @@ export function ShortcutBridge({ onAction }) {
     const onKey = (e) => {
       if (e.key === "Tab") viaPointer = false;
       const a = actionFor(e, contextOf(e.target, viaPointer));
-      if (!a) return;
-      e.preventDefault();
-      run.current(a);
+      if (a && run.current(a) !== false) e.preventDefault();
     };
     window.addEventListener("pointerdown", onPointer, true);
     window.addEventListener("keydown", onKey);

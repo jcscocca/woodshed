@@ -14,6 +14,12 @@ export const KEY_HELP = [
   ["K", "Keyboard band: show / hide"],
   ["P", "Play back what you just played"],
   ["C", "Start / stop coaching the open lesson"],
+  ["W", "Score: wait mode / play-along"],
+  ["H", "Score: hands — both / right / left"],
+  ["N", "Sight-reading: new drill"],
+  ["[ ]", "Score: previous / next section"],
+  ["5", "Back to the open score"],
+  ["↑ ↓ PgUp PgDn", "Score: move the page"],
   ["Esc", "Close the lesson or tuner"],
   ["?", "This list"],
 ];
@@ -33,5 +39,23 @@ export function actionFor(e, { typing = false, dialogOpen = false, buttonFocused
   if (k === "c") return { type: "coach" };
   if (k === "Escape") return { type: "close" };
   if (k === "?") return { type: "help" };
+  if (k === "w") return { type: "mode" };
+  if (k === "h") return { type: "hands" };
+  if (k === "n") return { type: "drill" };
+  if (k === "[" || k === "]") return { type: "section", delta: k === "[" ? -1 : 1 };
+  if (k === "5") return { type: "score" };
+  if (k === "ArrowUp" || k === "PageUp") return { type: "scroll", delta: -1 };
+  if (k === "ArrowDown" || k === "PageDown") return { type: "scroll", delta: 1 };
   return null;
+}
+
+// Esc stops a live run first (a second Esc closes). A play-along run also owns the metronome:
+// Space stops the run and the tempo keys do nothing; wait mode never touches the metronome.
+export function routeAction(a, run) {
+  if (run.state !== "countin" && run.state !== "running") return a;
+  if (a.type === "close") return { type: "coach" };
+  if (!run.play) return a;
+  if (a.type === "bpm" || a.type === "tap") return null;
+  if (a.type === "metronome") return { type: "coach" };
+  return a;
 }

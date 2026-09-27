@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-const { actionFor, clampBpm, KEY_HELP } = await import("../src/shortcuts.js");
+const { actionFor, routeAction, clampBpm, KEY_HELP } = await import("../src/shortcuts.js");
 const { toggleWatch, elapsedSec, RESET_WATCH } = await import("../src/stopwatch.js");
 
 let failures = 0;
@@ -55,7 +55,54 @@ test("clampBpm keeps 40-240", () => {
   assert.equal(clampBpm(250), 240);
   assert.equal(clampBpm(92), 92);
 });
-test("KEY_HELP lists every shortcut", () => assert.equal(KEY_HELP.length, 11));
+test("KEY_HELP lists every shortcut", () => assert.equal(KEY_HELP.length, 17));
+test("score keys: W mode, H hands, N drill, [ ] section, 5 score, ↑ ↓ scroll", () => {
+  assert.deepEqual(actionFor(key("w")), { type: "mode" });
+  assert.deepEqual(actionFor(key("W", { shiftKey: true })), { type: "mode" });
+  assert.deepEqual(actionFor(key("h")), { type: "hands" });
+  assert.deepEqual(actionFor(key("n")), { type: "drill" });
+  assert.deepEqual(actionFor(key("[")), { type: "section", delta: -1 });
+  assert.deepEqual(actionFor(key("]")), { type: "section", delta: 1 });
+  assert.deepEqual(actionFor(key("5")), { type: "score" });
+  assert.deepEqual(actionFor(key("ArrowUp")), { type: "scroll", delta: -1 });
+  assert.deepEqual(actionFor(key("ArrowDown")), { type: "scroll", delta: 1 });
+  assert.deepEqual(actionFor(key("PageUp")), { type: "scroll", delta: -1 });
+  assert.deepEqual(actionFor(key("PageDown")), { type: "scroll", delta: 1 });
+});
+test("score keys keep the guards", () => {
+  for (const k of ["w", "h", "n", "[", "]", "5", "ArrowUp", "ArrowDown", "PageUp", "PageDown"]) {
+    assert.equal(actionFor(key(k), { typing: true }), null, `${k} typing`);
+    assert.equal(actionFor(key(k), { dialogOpen: true }), null, `${k} dialog`);
+    assert.equal(actionFor(key(k, { ctrlKey: true })), null, `${k} ctrl`);
+    assert.equal(actionFor(key(k, { metaKey: true })), null, `${k} meta`);
+    assert.equal(actionFor(key(k, { altKey: true })), null, `${k} alt`);
+    assert.equal(actionFor(key(k, { repeat: true })), null, `${k} repeat`);
+  }
+});
+test("a live play-along run owns the tempo: Space and Esc stop it, ←/→ and T do nothing, C passes", () => {
+  const space = actionFor(key(" ")), esc = actionFor(key("Escape")), right = actionFor(key("ArrowRight")), t = actionFor(key("t")), c = actionFor(key("c"));
+  for (const state of ["countin", "running"]) {
+    const run = { state, play: true };
+    assert.deepEqual(routeAction(space, run), { type: "coach" }, state);
+    assert.deepEqual(routeAction(esc, run), { type: "coach" }, state);
+    assert.equal(routeAction(right, run), null, state);
+    assert.equal(routeAction(actionFor(key("ArrowLeft", { shiftKey: true })), run), null, state);
+    assert.equal(routeAction(t, run), null, state);
+    assert.deepEqual(routeAction(c, run), c, state);
+  }
+});
+test("a wait-mode run leaves the metronome keys alone; Esc stops it first", () => {
+  const keys = [" ", "ArrowLeft", "ArrowRight", "t", "c"].map((k) => actionFor(key(k)));
+  for (const run of [{ state: "running" }, { state: "running", play: false }]) {
+    for (const a of keys) assert.deepEqual(routeAction(a, run), a, `${JSON.stringify(run)} ${a.type}`);
+    assert.deepEqual(routeAction(actionFor(key("Escape")), run), { type: "coach" }, JSON.stringify(run));
+  }
+});
+test("idle and finished runs leave the keys alone", () => {
+  const keys = [" ", "Escape", "ArrowLeft", "ArrowRight", "t", "c"].map((k) => actionFor(key(k)));
+  for (const run of [{ state: "idle" }, { state: "done" }, { state: "done", play: true }])
+    for (const a of keys) assert.deepEqual(routeAction(a, run), a, `${JSON.stringify(run)} ${a.type}`);
+});
 test("K toggles the band, P plays back", () => {
   assert.deepEqual(actionFor(key("k")), { type: "band" });
   assert.deepEqual(actionFor(key("P", { shiftKey: true })), { type: "playback" });
