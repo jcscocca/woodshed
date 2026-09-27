@@ -40,6 +40,17 @@ V:2 clef=bass
 [V:1] CDEF GABc | cBAG FEDC |
 [V:2] C,D,E,F, G,A,B,C | CB,A,G, F,E,D,C, |`;
 
+// Lead-sheet melodies (public domain), voice 1, L:1/8 — one line per 4 bars of the chart.
+const ODE_MELODY = `E2E2F2G2 | G2F2E2D2 | C2C2D2E2 | E3D D4 |
+E2E2F2G2 | G2F2E2D2 | C2C2D2E2 | D3C C4 |
+D2D2E2C2 | D2EF E2C2 | D2EF E2D2 | C2D2 G,4 |
+E2E2F2G2 | G2F2E2D2 | C2C2D2E2 | D3C C4 |]`;
+
+const GRACE_MELODY = `z4D2 | G4BG | B4A2 | G4E2 |
+D4D2 | G4BG | B4A2 | d6- |
+d4B2 | d4BG | B4A2 | G4E2 |
+D4D2 | G4BG | B4A2 | G6 |]`;
+
 export default {
   "pno-scales": {
     summary: "Major scales hands together, two octaves — the C major scale and its thumb-under move shown here.",
@@ -227,6 +238,36 @@ export default {
       key: "C", meter: "4/4", chords: "C7 | C7 | C7 | C7 | F7 | F7 | C7 | C7 | G7 | F7 | C7 | G7", pattern: "boogie",
       bpm: 60, target: 96,
       sections: [{ name: "1–4", from: 1, to: 4 }, { name: "5–8", from: 5, to: 8 }, { name: "9–12", from: 9, to: 12 }],
+    },
+  },
+  "pop-ode-to-joy": {
+    summary: "The main theme of Beethoven's \"Ode to Joy\" (1824), public domain, as a lead sheet: the melody in the right hand over a written-out left hand. Three sections: A (1–8), B (9–12), A' (13–16).",
+    steps: [
+      "Right hand alone, wait mode, section A: find the melody's shape before worrying about time.",
+      "Left hand alone: the chart's chords in a ballad pattern underneath.",
+      "Hands together in wait mode, then play-along with the click once it's secure.",
+      "Section B leans on the dominant before A' repeats the opening — work it the same way, section by section.",
+    ],
+    watch: ["This is a lead sheet: the melody is written out for you, and the chord symbols above the staff are just the harmony underneath it."],
+    chart: {
+      key: "C", meter: "4/4", chords: "C | G | C | G | C | G | C | G C | G | C | G | C G | C | G | C | G C", pattern: "ballad",
+      melody: ODE_MELODY, bpm: 60, target: 92,
+      sections: [{ name: "A", from: 1, to: 8 }, { name: "B", from: 9, to: 12 }, { name: "A'", from: 13, to: 16 }],
+    },
+  },
+  "pop-amazing-grace": {
+    summary: "The tune known as \"New Britain\" (1829), sung to \"Amazing Grace\", public domain, as a lead sheet in 3/4: the melody in the right hand over a written-out waltz left hand. Two sections: A (1–8), B (9–16).",
+    steps: [
+      "Right hand alone, wait mode: the pickup note is written into a full first bar, so count the rest before it rather than starting free.",
+      "Left hand alone: bar 1 is a one-bar intro before the melody enters, then a waltz pattern under each chord.",
+      "Hands together in wait mode, then play-along with the click.",
+      "The tie across bars 8–9 holds the note through the barline — don't replay it.",
+    ],
+    watch: ["The pickup is written into a full bar and the left hand's first bar is an intro — both hands start together even though the melody waits."],
+    chart: {
+      key: "G", meter: "3/4", chords: "G | G | G | C | G | G | G | D | G | G | G | C | G | G | D | G", pattern: "waltz",
+      melody: GRACE_MELODY, bpm: 60, target: 90,
+      sections: [{ name: "A", from: 1, to: 8 }, { name: "B", from: 9, to: 16 }],
     },
   },
 };

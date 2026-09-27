@@ -109,6 +109,8 @@ export const TRACKS = [
       { id: "pop-pulse", title: "Pulse the right hand", type: "song", diff: 3, min: 10, desc: "A right-hand rhythm pattern — hits on 1, the & of 2, and 4 — over a four-chord loop in G." },
       { id: "pop-fifties", title: "The '50s progression", type: "song", diff: 2, min: 10, desc: "I–vi–IV–V in G with a right-hand arpeggio — the doo-wop progression." },
       { id: "pop-blues", title: "12-bar blues", type: "song", diff: 3, min: 10, desc: "The 12-bar blues form in C with a boogie-woogie left hand." },
+      { id: "pop-ode-to-joy", title: "Lead sheet: Ode to Joy", type: "song", diff: 3, min: 12, desc: "Beethoven's Ode to Joy melody over a written-out left hand, learned a hand at a time." },
+      { id: "pop-amazing-grace", title: "Lead sheet: Amazing Grace", type: "song", diff: 3, min: 12, desc: "The \"New Britain\" melody in 3/4 over a written-out left hand, learned a hand at a time." },
     ],
   },
 ];

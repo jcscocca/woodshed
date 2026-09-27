@@ -264,4 +264,12 @@ test("the Pop track runs in order and every stage is a chart", () => {
   for (const id of pop.slice(0, 6)) assert.ok(LESSONS[id].chart, id);
 });
 
+test("lead sheets: the melody is the right hand, over a generated left hand", () => {
+  const ode = parseScore(scoreFor(LESSONS["pop-ode-to-joy"]).abc, abcjs), grace = parseScore(scoreFor(LESSONS["pop-amazing-grace"]).abc, abcjs);
+  assert.equal(ode.bars.length, 16); assert.equal(grace.bars.length, 16);
+  assert.deepEqual(ode.notes.filter((n) => n.hand === "R").slice(0, 8).map((n) => n.midi), [64, 64, 65, 67, 67, 65, 64, 62]);
+  assert.deepEqual(grace.notes.filter((n) => n.hand === "R").slice(0, 5).map((n) => n.midi), [62, 67, 71, 67, 71]);
+  assert.deepEqual(grace.meter, [3, 4]);
+});
+
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });
