@@ -259,8 +259,8 @@ export default {
   "pop-voice-leading": {
     summary: "The same I–V–vi–IV progression, voice-led: each chord holds the notes it shares with the last and moves only what has to change.",
     steps: [
-      "Play C, then find G without jumping — C and E are common tones, only the top note moves down a step to B.",
-      "Am and F work the same way: hold every common tone, move the rest by the shortest step you can find.",
+      "Play C, then find G without jumping — G is the common tone, held on top; C and E each step down, to B and D.",
+      "G to Am shares no common tone — all three voices simply step up together. Am to F holds C and A; only the middle voice steps up, to F.",
       "Hands together in wait mode, then with the click. Watch the right hand — in a close voicing, it barely travels between chords.",
       "Compare it to the block-chord version: same chords, far less hand motion.",
     ],
