@@ -182,6 +182,20 @@ test("sightread: melodies move mostly by step", () => {
     assert.ok(top.length < 3 || steps / (top.length - 1) >= 0.6, `level ${l} stepwise`);
   }
 });
+test("sightread: no right-hand quarter or longer sits a semitone from the left hand under it", () => {
+  for (let l = 4; l <= 10; l++) for (const { seed, s } of drills(l, 300)) {
+    const lh = s.notes.filter((n) => n.hand === "L");
+    for (const n of s.notes.filter((x) => x.hand === "R" && x.dur >= 1))
+      for (const b of lh.filter((b) => b.beat <= n.beat && n.beat < b.beat + b.dur))
+        assert.ok(![1, 11].includes((((n.midi - b.midi) % 12) + 12) % 12), `level ${l} seed ${seed}: ${n.midi} over ${b.midi} at beat ${n.beat}`);
+  }
+});
+test("sightread: no tritone leaps in the right hand", () => {
+  for (let l = 1; l <= 10; l++) for (const { seed, s } of drills(l, 300)) {
+    const rh = s.notes.filter((n) => n.hand === "R");
+    assert.ok(rh.slice(1).every((n, i) => Math.abs(n.midi - rh[i].midi) !== 6), `level ${l} seed ${seed}`);
+  }
+});
 
 const { migrate } = await import("../src/storage.js");
 const { freshData, SCHEMA_VERSION } = await import("../src/engine.js");
