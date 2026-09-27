@@ -88,6 +88,7 @@ export const TRACKS = [
     stages: [
       { id: "pno-minuet", title: "Minuet in G (Petzold)", type: "song", diff: 2, min: 12, desc: "The Minuet in G from the Anna Magdalena notebook, all 32 bars — a section at a time, hands separately, then with the click." },
       { id: "pcs-minuet-gmin", title: "Minuet in G minor (Petzold)", type: "song", diff: 2, min: 12, desc: "The Minuet in G minor, the G major Minuet's partner — a minor key, with B flat and E flat in the signature and the F sharp written in." },
+      { id: "pcs-musette", title: "Musette in D", type: "song", diff: 2, min: 12, desc: "The Musette in D from the Anna Magdalena notebook — left-hand octave leaps under a dancing tune, with the da capo written out." },
     ],
   },
   {
