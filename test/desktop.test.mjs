@@ -55,7 +55,28 @@ test("clampBpm keeps 40-240", () => {
   assert.equal(clampBpm(250), 240);
   assert.equal(clampBpm(92), 92);
 });
-test("KEY_HELP lists every shortcut", () => assert.equal(KEY_HELP.length, 11));
+test("KEY_HELP lists every shortcut", () => assert.equal(KEY_HELP.length, 17));
+test("score keys: W mode, H hands, N drill, [ ] section, 5 score, ↑ ↓ scroll", () => {
+  assert.deepEqual(actionFor(key("w")), { type: "mode" });
+  assert.deepEqual(actionFor(key("W", { shiftKey: true })), { type: "mode" });
+  assert.deepEqual(actionFor(key("h")), { type: "hands" });
+  assert.deepEqual(actionFor(key("n")), { type: "drill" });
+  assert.deepEqual(actionFor(key("[")), { type: "section", delta: -1 });
+  assert.deepEqual(actionFor(key("]")), { type: "section", delta: 1 });
+  assert.deepEqual(actionFor(key("5")), { type: "score" });
+  assert.deepEqual(actionFor(key("ArrowUp")), { type: "scroll", delta: -1 });
+  assert.deepEqual(actionFor(key("ArrowDown")), { type: "scroll", delta: 1 });
+});
+test("score keys keep the guards", () => {
+  for (const k of ["w", "h", "n", "[", "]", "5", "ArrowUp", "ArrowDown"]) {
+    assert.equal(actionFor(key(k), { typing: true }), null, `${k} typing`);
+    assert.equal(actionFor(key(k), { dialogOpen: true }), null, `${k} dialog`);
+    assert.equal(actionFor(key(k, { ctrlKey: true })), null, `${k} ctrl`);
+    assert.equal(actionFor(key(k, { metaKey: true })), null, `${k} meta`);
+    assert.equal(actionFor(key(k, { altKey: true })), null, `${k} alt`);
+    assert.equal(actionFor(key(k, { repeat: true })), null, `${k} repeat`);
+  }
+});
 test("K toggles the band, P plays back", () => {
   assert.deepEqual(actionFor(key("k")), { type: "band" });
   assert.deepEqual(actionFor(key("P", { shiftKey: true })), { type: "playback" });

@@ -138,6 +138,7 @@ export default function Woodshed() {
 
   const recordCoachResult = (itemId, res) => setCoachResults((m) => ({ ...m, [itemId]: res }));
   const saveLadder = (itemId, key, bpm) => setData((d) => ({ ...d, ladder: { ...d.ladder, [itemId]: { ...d.ladder[itemId], [key]: bpm } } }));
+  const saveSightLevel = (itemId, level) => setData((d) => ({ ...d, sightLevel: { ...d.sightLevel, [itemId]: level } }));
 
   // session length and instruments shape today's set, so rebuild it unless it's already been logged
   const rebuildIfOpen = (d) => (d.currentSession.completed ? d : { ...d, currentSession: gen(d) });
@@ -215,6 +216,7 @@ export default function Woodshed() {
     else if (a.type === "log") { if (!session.completed && session.items.length) setLogging(true); }
     else if (a.type === "close") { closeLesson(); setTunerOpen(false); }
     else if (a.type === "help") setShowKeys(true);
+    else if (a.type === "score") { if (isScored) setShowScore(true); }
   };
   const requestLog = () => {
     const inSet = !session.completed && session.items.some((x) => x.itemId === lessonFor.id);
@@ -294,10 +296,12 @@ export default function Woodshed() {
             <Sidebar view={view} onView={showView} scoreOpen={showScore && isScored} onScore={isScored ? () => setShowScore(true) : null} onSettings={() => setShowSettings(true)} onHelp={() => setShowKeys(true)}><Streak streak={streak} /></Sidebar>
             <div className="ws-desk-main">{saveErr}{showScore && isScored ? <ScoreStage key={lessonFor.id} item={lessonFor} lesson={getLesson(lessonFor.id)} /> : views}</div>
             <PracticeRail
-              lesson={lessonProps && (getLesson(lessonFor.id)?.score ? (
+              lesson={lessonProps && (isScored ? (
                 <ScorePanel
                   key={lessonFor.id} item={lessonFor} lesson={getLesson(lessonFor.id)} ladder={data.ladder[lessonFor.id]}
-                  onLadder={(key, bpm) => saveLadder(lessonFor.id, key, bpm)} onResult={(res) => recordCoachResult(lessonFor.id, res)} onRequestLog={requestLog}
+                  sightLevel={data.sightLevel[lessonFor.id] ?? getLesson(lessonFor.id).sightread?.defaultLevel}
+                  onLadder={(key, bpm) => saveLadder(lessonFor.id, key, bpm)} onSightLevel={(level) => saveSightLevel(lessonFor.id, level)}
+                  onResult={(res) => recordCoachResult(lessonFor.id, res)} onRequestLog={requestLog}
                 />
               ) : <LessonBody key={lessonFor.id} {...lessonProps} />)}
               tunerOpen={tunerOpen}

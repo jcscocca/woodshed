@@ -14,6 +14,12 @@ export const KEY_HELP = [
   ["K", "Keyboard band: show / hide"],
   ["P", "Play back what you just played"],
   ["C", "Start / stop coaching the open lesson"],
+  ["W", "Score: wait mode / play-along"],
+  ["H", "Score: hands — both / right / left"],
+  ["N", "Sight-reading: new drill"],
+  ["[ ]", "Score: previous / next section"],
+  ["5", "Back to the open score"],
+  ["↑ ↓", "Score: move the page"],
   ["Esc", "Close the lesson or tuner"],
   ["?", "This list"],
 ];
@@ -33,5 +39,11 @@ export function actionFor(e, { typing = false, dialogOpen = false, buttonFocused
   if (k === "c") return { type: "coach" };
   if (k === "Escape") return { type: "close" };
   if (k === "?") return { type: "help" };
+  if (k === "w") return { type: "mode" };
+  if (k === "h") return { type: "hands" };
+  if (k === "n") return { type: "drill" };
+  if (k === "[" || k === "]") return { type: "section", delta: k === "[" ? -1 : 1 };
+  if (k === "5") return { type: "score" };
+  if (k === "ArrowUp" || k === "ArrowDown") return { type: "scroll", delta: k === "ArrowUp" ? -1 : 1 };
   return null;
 }

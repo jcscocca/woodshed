@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { parseScore, inSection, forHands } from "./scoreModel.js";
 import { gradeTimed } from "./timedGrade.js";
 import { createWaitRun } from "./waitGrade.js";
+import { generateDrill, drillBpm, LEVELS } from "./sightread.js";
 import { runStore } from "./runStore.js";
 import { useRun } from "./useRun.js";
 import { usePractice } from "../PracticeProvider.jsx";
@@ -21,23 +22,31 @@ const noteNames = (notes) => notes.map((n) => { const x = midiToNote(n.midi); re
 const barList = (bars) => `bar${bars.length > 1 ? "s" : ""} ${bars.join(", ")}`;
 const waitLine = (r) => `found ${r.found} of ${r.total} · ${r.wrong} wrong press${r.wrong === 1 ? "" : "es"}${r.wrongBars.length ? ` (${barList(r.wrongBars)})` : ""}`;
 const bandOf = (r) => (r.clean ? "Clean run" : r.notesPct >= 60 ? "Solid run — a couple to clean up" : "Keep at it — this one needs reps");
+const seed = () => Math.floor(Math.random() * 2 ** 28);
 
-export default function ScorePanel({ item, lesson, ladder = {}, onLadder, onResult, onRequestLog }) {
+// A sight-reading lesson (lesson.sightread) plays generated drills instead: always
+// play-along, both hands as written, no sections or ladder; the drill's ABC goes
+// to runStore for the stage.
+export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLadder, onSightLevel, onResult, onRequestLog }) {
   const { metro } = usePractice();
   const midi = useMidi();
   const st = useRun();
   const [abcjs, setAbcjs] = useState(null);
   const [say, setSay] = useState("");
   const [lastClean, setLastClean] = useState({});
-  const live = useRef(null), metroRef = useRef(metro), passes = useRef({}), shownKey = useRef(null), toggle = useRef(null);
+  const [streak, setStreak] = useState(0);
+  const live = useRef(null), metroRef = useRef(metro), passes = useRef({}), shownKey = useRef(null), toggle = useRef(null), onKey = useRef(null), graded = useRef(false);
   metroRef.current = metro;
-  const spec = lesson.score;
-  const score = useMemo(() => (abcjs ? parseScore(spec.abc, abcjs) : null), [abcjs, spec.abc]);
+  const sight = !!lesson.sightread, level = sightLevel;
+  const spec = lesson.score || {};
+  const src = sight ? st.drill : spec.abc;
+  const score = useMemo(() => (abcjs && src ? parseScore(src, abcjs) : null), [abcjs, src]);
   const n = score ? score.bars.length : 0;
-  const sec = st.section || { from: 1, to: n };
-  const preset = spec.sections.find((s) => s.from === sec.from && s.to === sec.to);
-  const key = preset ? preset.name : sec.from === 1 && sec.to === n ? "all" : `${sec.from}-${sec.to}`;
-  const targets = useMemo(() => (score ? forHands(inSection(score.notes, sec.from, sec.to), st.hands) : []), [score, sec.from, sec.to, st.hands]);
+  const sec = (!sight && st.section) || { from: 1, to: n };
+  const hands = sight ? "both" : st.hands, mode = sight ? "play" : st.mode;
+  const preset = !sight && spec.sections.find((s) => s.from === sec.from && s.to === sec.to);
+  const key = sight ? `level ${level}` : preset ? preset.name : sec.from === 1 && sec.to === n ? "all" : `${sec.from}-${sec.to}`;
+  const targets = useMemo(() => (score ? forHands(inSection(score.notes, sec.from, sec.to), hands) : []), [score, sec.from, sec.to, hands]);
   const connected = !!midi && midi.status === "connected";
   const running = st.run.state === "countin" || st.run.state === "running";
 
@@ -46,13 +55,37 @@ export default function ScorePanel({ item, lesson, ladder = {}, onLadder, onResu
     let on = true;
     import("abcjs").then((mod) => { if (on) setAbcjs(mod.default ?? mod); });
     const onCoach = () => toggle.current();
+    const onScore = (e) => onKey.current(e.detail);
     window.addEventListener("woodshed:coach", onCoach);
-    return () => { on = false; window.removeEventListener("woodshed:coach", onCoach); if (live.current) live.current.cancel(); };
+    window.addEventListener("woodshed:score", onScore);
+    return () => {
+      on = false;
+      window.removeEventListener("woodshed:coach", onCoach);
+      window.removeEventListener("woodshed:score", onScore);
+      if (live.current) live.current.cancel();
+      if (sight) runStore.set({ drill: null });
+    };
   }, []);
+
+  // A new drill (fresh seed, never the one showing) starts from a clean stage.
+  const newDrill = () => {
+    if (live.current) return;
+    let abc;
+    do abc = generateDrill(level, seed()); while (abc === runStore.get().drill);
+    graded.current = false;
+    runStore.set({ drill: abc, run: IDLE });
+  };
+  useEffect(() => {
+    if (!sight) return;
+    metro.setBpm(drillBpm(level));
+    newDrill();
+  }, [level]);
+  const setLevel = (l) => { setStreak(0); onSightLevel(l); };
 
   // Opening a section restores the tempo its ladder reached (else the piece's start tempo).
   useEffect(() => {
     if (!score) return;
+    if (sight) { metro.setBeatsPer(score.beatsPerBar); return; }
     if (shownKey.current == null) metro.setBeatsPer(score.beatsPerBar);
     else setSay(sec.from === sec.to ? `Bar ${sec.from}` : `${preset ? `Section ${preset.name}, bars` : "Bars"} ${sec.from}–${sec.to}`);
     shownKey.current = key;
@@ -62,8 +95,8 @@ export default function ScorePanel({ item, lesson, ladder = {}, onLadder, onResu
   useEffect(() => { if (!connected && live.current) { live.current.stop(); setSay("Keyboard disconnected."); } }, [connected]);
 
   // hands separately: keys only the other hand plays in this section are ignored
-  const ignored = () => new Set(st.hands === "both" ? [] : inSection(score.notes, sec.from, sec.to)
-    .filter((x) => x.hand !== st.hands && !targets.some((t) => t.midi === x.midi)).map((x) => x.midi));
+  const ignored = () => new Set(hands === "both" ? [] : inSection(score.notes, sec.from, sec.to)
+    .filter((x) => x.hand !== hands && !targets.some((t) => t.midi === x.midi)).map((x) => x.midi));
 
   function startWait(ignore) {
     const run = createWaitRun(targets);
@@ -107,7 +140,9 @@ export default function ScorePanel({ item, lesson, ladder = {}, onLadder, onResu
     const finish = (g, complete) => {
       teardown();
       setRun({ state: "done", statuses: g.statuses, cursor: -1, result: { ...g, bpm, section: k } });
-      if (complete && g.clean) {
+      // a drill counts toward the level-up streak once, on its first graded pass
+      if (sight) { if (!graded.current) setStreak((s) => (complete && g.clean ? s + 1 : 0)); graded.current = true; }
+      else if (complete && g.clean) {
         const up = Math.max(bpm, Math.min(spec.target, bpm + 4));
         onLadder(k, up);
         metroRef.current.setBpm(up);
@@ -143,11 +178,24 @@ export default function ScorePanel({ item, lesson, ladder = {}, onLadder, onResu
 
   const start = () => {
     if (live.current || !connected || !targets.length) return;
-    (st.mode === "wait" ? startWait : startPlay)(ignored());
+    (mode === "wait" ? startWait : startPlay)(ignored());
   };
   toggle.current = () => (live.current ? live.current.stop() : start());
 
   const setSection = (s) => runStore.set({ section: s });
+  const sections = [...(spec.sections || []), null];
+  // W / H / N / [ ] from the shortcut bridge; the controls they mirror are locked mid-run
+  onKey.current = (a) => {
+    if (running) return;
+    if (sight) { if (a.type === "drill") newDrill(); return; }
+    if (a.type === "mode") runStore.set({ mode: st.mode === "wait" ? "play" : "wait" });
+    else if (a.type === "hands") runStore.set({ hands: HANDS[(HANDS.findIndex(([v]) => v === st.hands) + 1) % HANDS.length][0] });
+    else if (a.type === "section" && score) {
+      const i = sections.findIndex((s) => (s ? s.name : "all") === key);
+      const p = sections[i < 0 ? (a.delta > 0 ? 0 : sections.length - 1) : (i + a.delta + sections.length) % sections.length];
+      setSection(p ? { from: p.from, to: p.to } : null);
+    }
+  };
   const commit = (e, end) => {
     const cur = end ? sec.to : sec.from, b = Math.max(1, Math.min(n, Math.round(Number(e.target.value)) || cur));
     e.target.value = b;
@@ -171,28 +219,49 @@ export default function ScorePanel({ item, lesson, ladder = {}, onLadder, onResu
     onRequestLog();
   };
 
+  const go = (
+    <button className={`ws-btn ${running ? "ghost" : "primary"} sm full`} disabled={!running && (!connected || !targets.length)} onClick={() => toggle.current()}>
+      {running ? "■ Stop" : "● Start"}<kbd className="ws-kbd" aria-hidden="true">C</kbd>
+    </button>
+  );
+
   return (
     <div className="ws-score-panel">
       <h2 className="ws-sheet-title">{item.title}</h2>
-      <div className="ws-score-row">
-        <span className="ws-lesson-label">Section</span>
-        <div className="ws-sig">
-          {seg(key, [...spec.sections.map((s) => [s.name, s.name]), ["all", "all"]], (v) => {
-            const p = spec.sections.find((s) => s.name === v);
-            setSection(p ? { from: p.from, to: p.to } : null);
-          })}
+      {sight ? (
+        <div className="ws-score-row">
+          <span className="ws-lesson-label">Level</span>
+          <select className="ws-score-level" aria-label="Level" value={level} disabled={running}
+            onChange={(e) => { setLevel(Number(e.target.value)); e.currentTarget.blur(); }}>
+            {LEVELS.map((l, i) => <option key={i} value={i + 1}>{i + 1} · {l.name}</option>)}
+          </select>
         </div>
-        <span className="ws-score-range">{num(false)}–{num(true)}</span>
-      </div>
-      <div className="ws-score-row"><span className="ws-lesson-label">Hands</span><div className="ws-sig">{seg(st.hands, HANDS, (hands) => runStore.set({ hands }))}</div></div>
-      <div className="ws-score-row"><span className="ws-lesson-label">Mode</span><div className="ws-sig">{seg(st.mode, MODES, (mode) => runStore.set({ mode }))}</div></div>
+      ) : (
+        <>
+          <div className="ws-score-row">
+            <span className="ws-lesson-label">Section</span>
+            <div className="ws-sig">
+              {seg(key, [...spec.sections.map((s) => [s.name, s.name]), ["all", "all"]], (v) => {
+                const p = spec.sections.find((s) => s.name === v);
+                setSection(p ? { from: p.from, to: p.to } : null);
+              })}
+            </div>
+            <span className="ws-score-range">{num(false)}–{num(true)}</span>
+          </div>
+          <div className="ws-score-row"><span className="ws-lesson-label">Hands</span><div className="ws-sig">{seg(st.hands, HANDS, (hands) => runStore.set({ hands }))}</div></div>
+          <div className="ws-score-row"><span className="ws-lesson-label">Mode</span><div className="ws-sig">{seg(st.mode, MODES, (mode) => runStore.set({ mode }))}</div></div>
+        </>
+      )}
       <div className="ws-score-row">
         <span className="ws-lesson-label">Tempo</span>
-        <span className="ws-score-tempo mono">{metro.bpm} → {spec.target}{lastClean[key] ? ` · last clean ${lastClean[key]}` : ""}</span>
+        <span className="ws-score-tempo mono">{sight ? `${metro.bpm} bpm` : `${metro.bpm} → ${spec.target}${lastClean[key] ? ` · last clean ${lastClean[key]}` : ""}`}</span>
       </div>
-      <button className={`ws-btn ${running ? "ghost" : "primary"} sm full`} disabled={!running && (!connected || !targets.length)} onClick={() => toggle.current()}>
-        {running ? "■ Stop" : "● Start"}<kbd className="ws-kbd" aria-hidden="true">C</kbd>
-      </button>
+      {sight ? (
+        <div className="ws-score-go">
+          {go}
+          <button className="ws-btn ghost sm" disabled={running} onClick={newDrill}>New drill<kbd className="ws-kbd" aria-hidden="true">N</kbd></button>
+        </div>
+      ) : go}
       {note && <p className="ws-midi-connect-note ws-score-note">{note}</p>}
 
       {r && (
@@ -202,16 +271,19 @@ export default function ScorePanel({ item, lesson, ladder = {}, onLadder, onResu
               <div className="ws-coach-band">{bandOf(r)}</div>
               <div className="ws-score-pct mono">notes <b>{r.notesPct}%</b> · rhythm <b>{r.rhythmPct}%</b></div>
               {r.extras.length > 0 && <div className="ws-coach-timing mono">{r.extras.length} extra note{r.extras.length === 1 ? "" : "s"}</div>}
-              {r.revisitBars.length > 0 && (
+              {!sight && r.revisitBars.length > 0 && (
                 <div className="ws-coach-missed">to revisit: bar{r.revisitBars.length > 1 ? "s" : ""}
                   {r.revisitBars.map((b) => <button key={b} className="ws-score-bar mono" aria-label={`Practise bar ${b}`} onClick={() => setSection({ from: b, to: b })}>{b}</button>)}
                 </div>
               )}
             </>
           )}
+          {sight && streak >= 3 && level < LEVELS.length && (
+            <button className="ws-btn primary sm full ws-score-up" onClick={() => setLevel(level + 1)}>Level up →</button>
+          )}
           <div className="ws-coach-actions">
             <button className="ws-btn ghost sm" onClick={start} disabled={!connected}>↻ again</button>
-            {!r.wait && next > metro.bpm && (
+            {!sight && !r.wait && next > metro.bpm && (
               <button className="ws-btn ghost sm" disabled={!connected} onClick={() => { metro.setBpm(next); requestAnimationFrame(() => toggle.current()); }}>↑ {next}</button>
             )}
             <button className="ws-btn primary sm" onClick={logIt}>Log it →</button>

@@ -14,12 +14,12 @@ const keyName = (k) => (k.endsWith("m") ? `${k.slice(0, -1)} minor` : `${k} majo
 let shownId = null;
 
 export default function ScoreStage({ item, lesson, abc }) {
-  const src = abc || lesson.score?.abc;
   const st = useRun();
+  const drill = !!lesson.sightread, src = abc || (drill ? st.drill : lesson.score?.abc);
   const [abcjs, setAbcjs] = useState(null);
   const [size, setSize] = useState(null);
   const [drawn, setDrawn] = useState(null);
-  const stageRef = useRef(null), paperRef = useRef(null), base = useRef(0), lastTop = useRef(0), wheel = useRef(0);
+  const stageRef = useRef(null), paperRef = useRef(null), base = useRef(0), lastTop = useRef(0), wheel = useRef(0), scroll = useRef(null);
   const score = useMemo(() => (abcjs && src ? parseScore(src, abcjs) : null), [abcjs, src]);
   const running = st.run.state === "countin" || st.run.state === "running";
 
@@ -46,17 +46,19 @@ export default function ScoreStage({ item, lesson, abc }) {
     if (!score || !size) return;
     const paper = paperRef.current, lines = {};
     const pick = (el, an, ev) => {
-      if (el.el_type !== "note" || !lines[an.line] || an.measure == null) return;
+      if (drill || el.el_type !== "note" || !lines[an.line] || an.measure == null) return;
       const r = runStore.get();
       if (r.run.state === "countin" || r.run.state === "running") return;
       const bar = lines[an.line].from + an.measure, cur = r.section, from = cur ? cur.from : 1;
       runStore.set({ section: ev.shiftKey ? { from: Math.min(from, bar), to: Math.max(from, bar) } : { from: bar, to: cur && cur.to >= bar ? cur.to : score.bars.length } });
     };
     const fg = getComputedStyle(paper).getPropertyValue("--text").trim();
+    // a drill is one system; 2-bar drills take half the width
+    const w = drill && score.bars.length <= 2 ? size.w / 2 : size.w;
     const [tune] = abcjs.renderAbc(paper, src.replace(/^K:/m, "%%barnumbers 1\nK:"), {
-      oneSvgPerLine: true, add_classes: true, scale: SCALE, staffwidth: size.w / SCALE - 30, foregroundColor: fg, selectionColor: fg,
+      oneSvgPerLine: true, add_classes: true, scale: SCALE, staffwidth: w / SCALE - 30, foregroundColor: fg, selectionColor: fg,
       clickListener: (el, _n, _c, an, _d, ev) => pick(el, an, ev),
-      ...(window.innerWidth < 1280 && { wrap: { preferredMeasuresPerLine: 2, minSpacing: 1.8, maxSpacing: 2.7 } }),
+      ...(!drill && window.innerWidth < 1280 && { wrap: { preferredMeasuresPerLine: 2, minSpacing: 1.8, maxSpacing: 2.7 } }),
     });
 
     // Crop each system to its music and bake the measured (scaled) box into the SVG.
@@ -141,7 +143,7 @@ export default function ScoreStage({ item, lesson, abc }) {
 
   useLayoutEffect(() => {
     if (!drawn) return;
-    const { section, hands } = st;
+    const { section } = st, hands = drill ? "both" : st.hands;
     for (const e of drawn.marks) { e.rank = 0; e.cur = false; }
     if (targets && statuses) targets.forEach((t, i) => {
       const e = drawn.byKey.get(t.hand + t.beat);
@@ -168,13 +170,21 @@ export default function ScoreStage({ item, lesson, abc }) {
     });
   });
 
+  const move = (d) => runStore.set({ window: Math.max(0, Math.min(maxTop, top + d)) });
   const onWheel = (e) => {
     if (!drawn || running) return;
     wheel.current += e.deltaMode ? e.deltaY * 40 : e.deltaY;
     if (Math.abs(wheel.current) < 50) return;
-    runStore.set({ window: Math.max(0, Math.min(maxTop, top + Math.sign(wheel.current))) });
+    move(Math.sign(wheel.current));
     wheel.current = 0;
   };
+  // ↑/↓ from the shortcut bridge
+  scroll.current = (d) => { if (drawn && !running) move(d); };
+  useEffect(() => {
+    const onKey = (e) => { if (e.detail.type === "scroll") { e.preventDefault(); scroll.current(e.detail.delta); } };
+    window.addEventListener("woodshed:score", onKey);
+    return () => window.removeEventListener("woodshed:score", onKey);
+  }, []);
 
   const sec = st.section || (score && { from: 1, to: score.bars.length });
   return (
