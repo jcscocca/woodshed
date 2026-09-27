@@ -91,10 +91,9 @@ back.
 
 ### Reading music
 
-Open the Minuet in G (Petzold) — Woodshed's first piece — or the
-sight-reading drill, and it takes over the middle pane as a **grand staff**,
-four bars to a system, with a **Score** entry in the sidebar (key **5**)
-while it's open.
+Open a piece, a pop stage, or the sight-reading drill, and it takes over the
+middle pane as a **grand staff**, four bars to a system, with a **Score**
+entry in the sidebar (key **5**) while it's open.
 
 Work a **section** — the piece's own presets (**A**, **B**, **all**) or click
 any note in a bar (shift-click sets the far end) — and the rest of the staff dims
@@ -108,6 +107,35 @@ summary: notes % and rhythm % (a clean pass is 90%+ notes, 80%+ rhythm), any
 extra notes, and which bars to revisit. A clean pass climbs that section's
 own tempo ladder by 4 bpm toward the piece's target, remembered per section;
 **Log it** records minutes plus accuracy, rhythm, section and tempo.
+
+Three **piano tracks** (the **Tracks** tab) carry this. **Pieces** (8
+stages, easiest first) is written classical repertoire — two Petzold
+minuets and a musette from the Anna Magdalena notebook, two Schumann pieces
+from the Album for the Young, two Burgmüller studies, and the first
+movement of a Clementi sonatina — each a section at a time, hands
+separately then together then with the click. Six pieces are transcribed
+from Mutopia Project public-domain editions; the two Schumann pieces take
+their pitches and rhythms from Mutopia's CC BY-SA 2.5 editions (the
+compositions themselves are public domain), and every piece cites its
+source in its lesson. **Pop from chords** (8 stages) teaches pop piano from
+chord charts instead of copyrighted melodies — block chords, voice leading,
+a ballad left hand, a syncopated pulse, a doo-wop arpeggio and a 12-bar
+blues, then two public-domain lead sheets ("Ode to Joy", "Amazing Grace")
+with the melody in the right hand over a written-out left hand. **Two-Hand
+Coordination** (6 stages) is scored technique — five-finger patterns,
+contrary motion, one-octave scales, Hanon No. 1, cadences and arpeggios —
+graded the same way as any piece.
+
+A **chord chart** (a lesson with `chart` instead of `score`) writes a key,
+meter, a line of chords and a named accompaniment pattern — block,
+voice-led, ballad, pulse, arpeggio, boogie or waltz — out as a two-voice
+score with chord symbols, and grades exactly like a piece, note for note.
+**Your song**, in the Library, is the same machinery for any song you know
+the chords to: type a chord line (`C | G | Am | F`; a line break is also a
+bar line), pick a key, meter and pattern, and it plays and grades like any
+chart. Chord symbols it knows: `C`, `Cm`, `C7`, `Cmaj7`, `Cm7`, `Csus2`,
+`Csus4`, `Cdim`, and a slash bass like `C/E`. Save as many songs as you
+like — each remembers its own tempo.
 
 **Sight-reading** drills are generated fresh each time — never the same
 twice — across **10 levels**, from one hand in C major up to both hands
@@ -191,6 +219,7 @@ The code is split so the parts you'll want to change are easy to find:
 |------|--------------|
 | `src/seed.js` | Instruments, their colors, the exercise library (`LIBRARY`), and the **skill tracks** (`TRACKS`). **Add exercises or track stages here.** (Or use the in-app **+ Add** button, which saves to your browser.) |
 | `src/lessons/` | Hand-authored lesson content (`piano.js`, `guitar.js`), keyed by exercise id. `src/diagrams.jsx` draws the shapes; `src/lessonAudio.js` + `src/audio/notes.js` play them; `src/LessonSheet.jsx` is the sheet. |
+| `src/lessons/pieces/` | One module per piece — its ABC, lesson text and public-domain `source` — collected by `index.js` and spread into `piano.js`'s lesson map. |
 | `src/engine.js` | The session-building algorithm, the "ready for the next stage" suggestion, the **track** lock/unlock logic, and the stats. All pure functions. Practice stats (last played, count, latest rating, last tempo) are *derived* from the session log, so editing or deleting a session keeps everything consistent. |
 | `src/storage.js` | The only file that knows where data is saved. Swap for a backend here. Includes a `migrate()` step so old saved data upgrades cleanly when the shape changes. |
 | `src/features.js` | Feature flags. `COACH_ENABLED` switches the **mic**-based pitch coach and guitar Echo on or off (off for now — see *Direction*). Piano coaching and Echo run over MIDI regardless, in `src/midi/`. |
@@ -221,13 +250,16 @@ The code is split so the parts you'll want to change are easy to find:
 | `src/score/patterns.js` | The accompaniment patterns (block, voice-led, ballad, pulse, arpeggio, boogie, waltz) as per-chord figures, plus the close-voicing helpers that pick each chord's inversion (pure). |
 | `src/score/chartToAbc.js` | Writes a chord chart (key, metre, chords, pattern, optional melody) out as two-voice ABC with chord symbols, so a chart plays and grades like any piece (pure). |
 | `src/score/scoreFor.js` | What a scored lesson plays — its ABC, bpm, target and sections, from `score` or a chart written out once; drills and Your song take their ABC from the panel instead. |
+| `src/score/songs.js` | Your song's model — `newSong`, `songError`, `lineSections`, `songScore` (a typed chord line to a played, graded score, via `chartToAbc`) (pure). |
 | `src/score/runStore.js` + `src/score/useRun.js` | A small subscribable store for the live score run (section, hands, mode, run state, the current drill, the visible window), like `src/midi/overlay.js`; `ScoreStage` and `ScorePanel` read it via the `useRun()` hook, and the shortcuts and rail metronome check whether a run is live. |
 | `src/score/ScoreStage.jsx` | The grand staff itself, in the main pane — renders the open piece or drill with lazy-loaded abcjs, colors notes by grading, dims sections, takes bar clicks, scrolls the system window. |
 | `src/score/ScorePanel.jsx` | The rail controls for a scored item — section / hands / mode, Start, the tempo ladder and summary, and the sight-reading level picker. |
+| `src/score/SongEditor.jsx` | The Your song editor — title, key, meter, chord line and pattern picker, and tempo — rendered by `ScorePanel` for `pno-song`. |
 | `src/score/ScoreSnippet.jsx` | A small static staff snippet for the rail (e.g. the C-major-scale lesson) — no cursor, no grading. |
 | `src/styles.css` | All styling and the color palette (CSS variables at the top). |
 | `src/App.jsx` | The views (Today / Tracks / Library / Progress), the dialogs, and the switch between the phone and desktop layouts. |
-| `test/` | The suites `npm test` runs (DSP smoke, lessons schema, coach, ear, engine, desktop, MIDI, score), plus the real-audio suite in `test/audio/`. |
+| `test/` | The suites `npm test` runs (DSP smoke, lessons schema, coach, ear, engine, desktop, MIDI, score, charts, pieces), plus the real-audio suite in `test/audio/`. |
+| `scripts/midi-fixture.mjs` | Reads a reference MIDI file and writes a piece's expected onsets to `test/fixtures/pieces/<id>.json` — the authoring tool that checks each transcribed piece against its source recording; not part of the shipped app. |
 | `archive/` | Bass and accordion content and the accordion pitch detector, out of the build. See `archive/README.md`. |
 | `docs/DIRECTION.md` | The current product direction. |
 
