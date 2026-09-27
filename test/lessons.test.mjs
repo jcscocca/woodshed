@@ -25,7 +25,7 @@ test("shapeToVoices: keyboard yields one voice per note", () => {
 // --- schema section appended in Task 2 ---
 
 import { LESSONS } from "../src/lessons/index.js";
-import { SEED, ECHO_SEED, trackItems } from "../src/seed.js";
+import { SEED, ECHO_SEED, trackItems, TRACKS } from "../src/seed.js";
 
 const validIds = new Set([...SEED.map((s) => s.id), ...ECHO_SEED.map((s) => s.id), ...trackItems().map((s) => s.id)]);
 const STRINGS = { guitar: 6 };
@@ -254,6 +254,14 @@ test("a chart lesson writes out to a two-hand score with its chord symbols", () 
   assert.ok(S.abc.includes('"Am"'));
   assert.ok(s.notes.some((n) => n.hand === "L") && s.notes.some((n) => n.hand === "R"));
   assert.equal(scoreFor(LESSONS["pop-four-chords"]), S);
+});
+
+// --- pop track stages ---
+
+test("the Pop track runs in order and every stage is a chart", () => {
+  const pop = TRACKS.find((t) => t.id === "trk-pno-pop").stages.map((s) => s.id);
+  assert.deepEqual(pop.slice(0, 6), ["pop-four-chords", "pop-voice-leading", "pop-ballad", "pop-pulse", "pop-fifties", "pop-blues"]);
+  for (const id of pop.slice(0, 6)) assert.ok(LESSONS[id].chart, id);
 });
 
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });

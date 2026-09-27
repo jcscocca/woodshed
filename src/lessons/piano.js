@@ -154,4 +154,79 @@ export default {
       sections: [{ name: "A", from: 1, to: 4 }, { name: "B", from: 5, to: 8 }],
     },
   },
+  "pop-voice-leading": {
+    summary: "The same I–V–vi–IV progression, voice-led: each chord holds the notes it shares with the last and moves only what has to change.",
+    steps: [
+      "Play C, then find G without jumping — C and E are common tones, only the top note moves down a step to B.",
+      "Am and F work the same way: hold every common tone, move the rest by the shortest step you can find.",
+      "Hands together in wait mode, then with the click. Watch the right hand — in a close voicing, it barely travels between chords.",
+      "Compare it to the block-chord version: same chords, far less hand motion.",
+    ],
+    watch: ["A close voicing sounds smoother than root-position jumps — resist the urge to reach far for a familiar shape."],
+    chart: {
+      key: "C", meter: "4/4", chords: "C | G | Am | F | C | G | Am | F", pattern: "voiceled",
+      bpm: 56, target: 88,
+      sections: [{ name: "A", from: 1, to: 4 }, { name: "B", from: 5, to: 8 }],
+    },
+  },
+  "pop-ballad": {
+    summary: "A pop-ballad left hand: root, fifth, octave, fifth in even eighth notes, under the same chords played two ways — I–V–vi–IV, then its vi–IV–I–V twin.",
+    steps: [
+      "Left hand alone: root-fifth-octave-fifth, even eighth notes, one pattern per chord.",
+      "Right hand alone: the block chords from the four-chords stage.",
+      "Hands together, wait mode, then with the click.",
+      "The second half swaps the order to vi–IV–I–V — the progression under \"Zombie\" and the verse of \"Despacito\".",
+    ],
+    watch: ["Keep the eighths perfectly even — a ballad pattern that rushes or drags stands out immediately."],
+    chart: {
+      key: "C", meter: "4/4", chords: "C | G | Am | F | Am | F | C | G", pattern: "ballad",
+      bpm: 52, target: 76,
+      sections: [{ name: "I–V–vi–IV", from: 1, to: 4 }, { name: "vi–IV–I–V", from: 5, to: 8 }],
+    },
+  },
+  "pop-pulse": {
+    summary: "A rhythmic right-hand pulse under the same four-chord shapes, now in G: hits land on 1, the \"and\" of 2, and 4.",
+    steps: [
+      "Right hand alone: three hits a bar — beat 1, the & of 2, and beat 4 — with rests in between.",
+      "Count \"1 2 & 3 4\" aloud as you play; the hits land on the words \"1\", \"&\", and \"4\".",
+      "Left hand holds the root for the whole bar underneath.",
+      "Hands together, wait mode, then with the click.",
+    ],
+    watch: ["The rests are part of the pattern — don't fill them in."],
+    chart: {
+      key: "G", meter: "4/4", chords: "G | D | Em | C | G | D | Em | C", pattern: "pulse",
+      bpm: 60, target: 88,
+      sections: [{ name: "A", from: 1, to: 4 }, { name: "B", from: 5, to: 8 }],
+    },
+  },
+  "pop-fifties": {
+    summary: "The '50s progression — I–vi–IV–V — played as a right-hand arpeggio: 1-3-5-3 through each chord.",
+    steps: [
+      "Right hand alone: the chord's root, third, fifth, then back down to the third — 1-3-5-3, one pattern per bar.",
+      "Left hand holds the root underneath.",
+      "Hands together, wait mode, then with the click.",
+      "This is the loop under \"Stand By Me\" and the verse of \"Every Breath You Take\".",
+    ],
+    watch: ["Keep the arpeggio's four notes evenly spaced — don't rush the turnaround back down to the third."],
+    chart: {
+      key: "G", meter: "4/4", chords: "G | Em | C | D | G | Em | C | D", pattern: "arpeggio",
+      bpm: 52, target: 80,
+      sections: [{ name: "A", from: 1, to: 4 }, { name: "B", from: 5, to: 8 }],
+    },
+  },
+  "pop-blues": {
+    summary: "The 12-bar blues in C: four bars of I, two of IV, two of I, then V–IV–I–V, under a boogie-woogie left hand.",
+    steps: [
+      "Learn the form first, away from the keyboard: 4 bars of C7, 2 of F7, 2 of C7, then G7-F7-C7-G7.",
+      "Left hand: root-fifth-sixth-fifth in even eighths under each chord — the boogie pattern.",
+      "Right hand alone: the 7th-chord shapes, then hands together in wait mode.",
+      "Straight eighths for now — the shuffle swing feel comes later.",
+    ],
+    watch: ["This form is under \"Johnny B. Goode\" and \"Hound Dog\" — recognizing it by ear is half the job."],
+    chart: {
+      key: "C", meter: "4/4", chords: "C7 | C7 | C7 | C7 | F7 | F7 | C7 | C7 | G7 | F7 | C7 | G7", pattern: "boogie",
+      bpm: 60, target: 96,
+      sections: [{ name: "1–4", from: 1, to: 4 }, { name: "5–8", from: 5, to: 8 }, { name: "9–12", from: 9, to: 12 }],
+    },
+  },
 };

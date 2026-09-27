@@ -104,6 +104,11 @@ export const TRACKS = [
     blurb: "Play songs from chord charts: the four chords everyone uses, then accompaniment patterns, then real melodies over your own left hand.",
     stages: [
       { id: "pop-four-chords", title: "The four chords", type: "song", diff: 2, min: 10, desc: "I–V–vi–IV in C as block chords — the progression under a huge share of pop songs." },
+      { id: "pop-voice-leading", title: "Voice leading", type: "song", diff: 3, min: 10, desc: "The same four chords, voiced so each change moves as little as possible." },
+      { id: "pop-ballad", title: "Pop-ballad left hand", type: "song", diff: 2, min: 10, desc: "A root-fifth-octave-fifth left-hand pattern in even eighths, under I–V–vi–IV and its vi–IV–I–V twin." },
+      { id: "pop-pulse", title: "Pulse the right hand", type: "song", diff: 3, min: 10, desc: "A right-hand rhythm pattern — hits on 1, the & of 2, and 4 — over a four-chord loop in G." },
+      { id: "pop-fifties", title: "The '50s progression", type: "song", diff: 2, min: 10, desc: "I–vi–IV–V in G with a right-hand arpeggio — the doo-wop progression." },
+      { id: "pop-blues", title: "12-bar blues", type: "song", diff: 3, min: 10, desc: "The 12-bar blues form in C with a boogie-woogie left hand." },
     ],
   },
 ];
