@@ -28,8 +28,16 @@ export function gradeTimed(targets, events, { t0, bpm, beatsPerBar = 4, now = In
     offsets[i] = x;
     statuses[i] = Math.abs(x) <= ON_MS ? "on" : x < 0 ? "early" : "late";
   }
+  // a unison written in both hands is one key: its press answers both
+  const twin = new Map([...usedT].map((i) => [`${targets[i].beat}:${targets[i].midi}`, i]));
+  targets.forEach((t, i) => {
+    const j = twin.get(`${t.beat}:${t.midi}`);
+    if (statuses[i] === "pending" && j !== undefined) { statuses[i] = statuses[j]; offsets[i] = offsets[j]; }
+  });
   for (const i of order) if (statuses[i] === "pending" && now > expected[i] + WINDOW_MS) statuses[i] = "missed";
-  const barAt = (t) => Math.floor(((t - t0) / ms + start) / beatsPerBar + 1e-9) + 1;
+  // a press in the count-in or after the last note counts in the section's first or last bar
+  const bars = targets.map((t) => t.bar), lo = Math.min(...bars), hi = Math.max(...bars);
+  const barAt = (t) => Math.max(lo, Math.min(hi, Math.floor(((t - t0) / ms + start) / beatsPerBar + 1e-9) + 1));
   const extras = events.filter((_, j) => !usedE.has(j)).map((e) => ({ midi: e.midi, bar: barAt(e.tStart) }));
   const hits = statuses.filter((s) => s === "on" || s === "early" || s === "late").length;
   const on = statuses.filter((s) => s === "on").length;

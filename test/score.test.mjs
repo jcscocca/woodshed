@@ -160,6 +160,19 @@ test("gradeTimed: overlapping windows match globally nearest-first, not per-targ
   const r2 = gradeTimed(targets, [E(60, 10005), E(60, 10160)], opts());
   assert.deepEqual(r2.statuses, ["on", "on"]);
 });
+test("gradeTimed: extras before or after the section count in its first or last bar", () => {
+  const targets = [T(60, 0, 1), T(62, 1, 1), T(64, 4, 2)];
+  const r = gradeTimed(targets, [E(67, 8000), E(60, 10000), E(62, 11000), E(64, 14000), E(65, 18500)], opts());
+  assert.deepEqual(r.extras, [{ midi: 67, bar: 1 }, { midi: 65, bar: 2 }]);
+  assert.deepEqual(r.revisitBars, [1, 2]);
+});
+test("gradeTimed: one press answers a unison written in both hands", () => {
+  const targets = [{ ...T(55, 0), hand: "R" }, { ...T(55, 0), hand: "L" }, { ...T(71, 0), hand: "R" }, T(62, 1)];
+  const r = gradeTimed(targets, [E(71, 10000), E(55, 10020), E(62, 11100)], opts());
+  assert.deepEqual(r.statuses, ["on", "on", "on", "late"]);
+  assert.deepEqual(r.offsets.slice(0, 2), [20, 20]);
+  assert.equal(r.notesPct, 100); assert.deepEqual(r.extras, []); assert.equal(r.cursor, -1);
+});
 test("createWaitRun: a chord advances only when all its notes are pressed, rolled is fine", () => {
   const run = createWaitRun([T(60, 0), T(64, 0), T(67, 0), T(62, 1)]);
   assert.equal(run.press(64), "held"); assert.equal(run.press(60), "held"); assert.equal(run.cursor, 0);

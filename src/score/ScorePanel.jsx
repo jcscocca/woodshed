@@ -140,8 +140,8 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
     const finish = (g, complete) => {
       teardown();
       setRun({ state: "done", statuses: g.statuses, cursor: -1, result: { ...g, bpm, section: k } });
-      // a drill counts toward the level-up streak once, on its first graded pass
-      if (sight) { if (!graded.current) setStreak((s) => (complete && g.clean ? s + 1 : 0)); graded.current = true; }
+      // a drill counts toward the level-up streak once, on its first graded pass; any pass that isn't clean resets it
+      if (sight) { if (!complete || !g.clean) setStreak(0); else if (!graded.current) setStreak((s) => s + 1); graded.current = true; }
       else if (complete && g.clean) {
         const up = Math.max(bpm, Math.min(spec.target, bpm + 4));
         onLadder(k, up);
@@ -211,7 +211,8 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
   );
 
   const r = st.run.state === "done" && st.run.result;
-  const next = Math.min(spec.target, metro.bpm + 4);
+  const next = r && Math.min(spec.target, r.bpm + 4);
+  const revisit = r && !r.wait ? r.revisitBars.filter((b) => b >= sec.from && b <= sec.to) : [];
   const note = !connected && (midi && midi.status === "unsupported" ? "MIDI needs Chrome or Edge."
     : `${midi && midi.status === "disconnected" ? "Keyboard disconnected. Plug it back in" : "Connect your keyboard"} to practise this.`);
   const logIt = () => {
@@ -271,14 +272,14 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
               <div className="ws-coach-band">{bandOf(r)}</div>
               <div className="ws-score-pct mono">notes <b>{r.notesPct}%</b> · rhythm <b>{r.rhythmPct}%</b></div>
               {r.extras.length > 0 && <div className="ws-coach-timing mono">{r.extras.length} extra note{r.extras.length === 1 ? "" : "s"}</div>}
-              {!sight && r.revisitBars.length > 0 && (
-                <div className="ws-coach-missed">to revisit: bar{r.revisitBars.length > 1 ? "s" : ""}
-                  {r.revisitBars.map((b) => <button key={b} className="ws-score-bar mono" aria-label={`Practise bar ${b}`} onClick={() => setSection({ from: b, to: b })}>{b}</button>)}
+              {!sight && revisit.length > 0 && (
+                <div className="ws-coach-missed">to revisit: bar{revisit.length > 1 ? "s" : ""}
+                  {revisit.map((b) => <button key={b} className="ws-score-bar mono" aria-label={`Practise bar ${b}`} onClick={() => setSection({ from: b, to: b })}>{b}</button>)}
                 </div>
               )}
             </>
           )}
-          {sight && streak >= 3 && level < LEVELS.length && (
+          {sight && streak >= 3 && r.clean && level < LEVELS.length && (
             <button className="ws-btn primary sm full ws-score-up" onClick={() => setLevel(level + 1)}>Level up →</button>
           )}
           <div className="ws-coach-actions">

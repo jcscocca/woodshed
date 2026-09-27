@@ -542,6 +542,7 @@ body{
 .ws-score-miss, .ws-score-miss *{ fill:#e8916f; }
 .ws-score-cur, .ws-score-cur *{ fill:var(--gold); }
 .ws-score-cur{ filter:drop-shadow(0 0 3px rgba(227,169,72,.7)); }
+.ws-score-revisit{ filter:drop-shadow(0 0 1.5px #e8916f); }
 .ws-score-snippet{ margin:0 0 14px; }
 .ws-score-snippet svg{ display:block; }
 /* score panel (rail) */

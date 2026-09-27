@@ -129,6 +129,7 @@ export default function ScoreStage({ item, lesson, abc }) {
   useLayoutEffect(() => {
     if (!drawn) return;
     const { section } = st, hands = drill ? "both" : st.hands;
+    const revisit = (st.run.state === "done" && st.run.result && st.run.result.revisitBars) || [];
     for (const e of drawn.marks) { e.rank = 0; e.cur = false; }
     if (targets && statuses) targets.forEach((t, i) => {
       const e = drawn.byKey.get(t.hand + t.beat);
@@ -141,6 +142,7 @@ export default function ScoreStage({ item, lesson, abc }) {
       const paint = e.cur ? (flash ? "ws-score-miss" : "ws-score-cur") : PAINT[e.rank - 1];
       for (const g of e.els) {
         g.classList.toggle("ws-score-dim", !!dim);
+        g.classList.toggle("ws-score-revisit", !dim && revisit.includes(e.bar));
         for (const c of PAINT) g.classList.toggle(c, c === paint);
       }
     }
