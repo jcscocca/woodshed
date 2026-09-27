@@ -159,22 +159,14 @@ import { parseScore } from "../src/score/scoreModel.js";
 import { hasScore } from "../src/lessons/index.js";
 const { scoreFor } = await import("../src/score/scoreFor.js");
 
-test("the Minuet parses: 16 bars, key G, meter 3/4, sections, RH stays in G major", () => {
+// Every note is checked against the reference in test/pieces.test.mjs.
+test("the Minuet parses: 32 bars, key G, meter 3/4, sections A1 1–8, A2 9–16, B1 17–24, B2 25–32", () => {
   const { abc, sections } = LESSONS["pno-minuet"].score;
   const s = parseScore(abc, abcjs);
   assert.deepEqual(s.meter, [3, 4]);
   assert.equal(s.key, "G");
-  assert.equal(s.bars.length, 16);
-  const a = sections.find((sec) => sec.name === "A");
-  const b = sections.find((sec) => sec.name === "B");
-  assert.deepEqual([a.from, a.to], [1, 8]);
-  assert.deepEqual([b.from, b.to], [9, 16]);
-  const G_MAJOR = new Set([7, 9, 11, 0, 2, 4, 6]); // G A B C D E F#
-  const rh = s.notes.filter((n) => n.hand === "R");
-  for (const n of rh) assert.ok(G_MAJOR.has(n.midi % 12), `midi ${n.midi} (pc ${n.midi % 12}) not in G major`);
-  const lastInBar = (n) => rh.filter((x) => x.bar === n).at(-1);
-  assert.equal(lastInBar(8).midi, 69); // A4
-  assert.equal(lastInBar(16).midi, 67); // G4
+  assert.equal(s.bars.length, 32);
+  assert.deepEqual(sections.map((sec) => [sec.name, sec.from, sec.to]), [["A1", 1, 8], ["A2", 9, 16], ["B1", 17, 24], ["B2", 25, 32]]);
 });
 
 test("the scale snippet parses to 2 bars, RH C4-C5, LH C3-C4", () => {

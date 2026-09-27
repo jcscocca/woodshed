@@ -87,7 +87,14 @@ export const TRACKS = [
     id: "trk-pno-pieces", inst: "piano", name: "Pieces",
     blurb: "Written pieces, easiest first — from the Anna Magdalena notebook to Clementi and Burgmüller — learned a section at a time.",
     stages: [
-      { id: "pno-minuet", title: "Minuet in G (Petzold)", type: "song", diff: 2, min: 12, desc: "The Minuet in G from the Anna Magdalena notebook — a section at a time, hands separately, then with the click." },
+      { id: "pno-minuet", title: "Minuet in G (Petzold)", type: "song", diff: 2, min: 12, desc: "The Minuet in G from the Anna Magdalena notebook, all 32 bars — a section at a time, hands separately, then with the click." },
+      { id: "pcs-minuet-gmin", title: "Minuet in G minor (Petzold)", type: "song", diff: 2, min: 12, desc: "The Minuet in G minor, the G major Minuet's partner — a minor key, with B flat and E flat in the signature and the F sharp written in." },
+      { id: "pcs-musette", title: "Musette in D", type: "song", diff: 2, min: 12, desc: "The Musette in D from the Anna Magdalena notebook — left-hand octave leaps under a dancing tune, with the da capo written out." },
+      { id: "pcs-schumann-melody", title: "Melody (Schumann)", type: "song", diff: 2, min: 12, desc: "Schumann's Melody from the Album for the Young — a singing right-hand line over flowing left-hand eighths, both hands in the treble clef." },
+      { id: "pcs-soldiers-march", title: "Soldier's March (Schumann)", type: "song", diff: 3, min: 12, desc: "Schumann's Soldier's March from the Album for the Young — a dotted march rhythm, with short, crisp chords in both hands." },
+      { id: "pcs-la-candeur", title: "La Candeur (Burgmüller)", type: "song", diff: 3, min: 12, desc: "Burgmüller's La Candeur, the first of his Op. 100 studies — a smooth legato line over held chords, then over left-hand broken chords." },
+      { id: "pcs-clementi-36-1", title: "Sonatina in C, first movement (Clementi)", type: "song", diff: 3, min: 12, desc: "The first movement of Clementi's Sonatina Op. 36 No. 1 — scale runs, an Alberti bass and a sonata form in miniature." },
+      { id: "pcs-arabesque", title: "Arabesque (Burgmüller)", type: "song", diff: 3, min: 12, desc: "Burgmüller's Arabesque, Op. 100 No. 2 — quick sixteenth-note figures in A minor, passed from the right hand to the left and back." },
     ],
   },
   {
