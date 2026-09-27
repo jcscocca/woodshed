@@ -20,6 +20,7 @@ import ShortcutHelp from "./ShortcutHelp.jsx";
 import { MidiProvider } from "./midi/MidiProvider.jsx";
 import MidiBand from "./midi/MidiBand.jsx";
 import ScoreStage from "./score/ScoreStage.jsx";
+import ScorePanel from "./score/ScorePanel.jsx";
 
 // Resource links are user-entered and ride along in exported/imported backups,
 // so treat them as untrusted. Only http(s) URLs ever reach an href — a
@@ -122,6 +123,7 @@ export default function Woodshed() {
           date: today, itemId: e.itemId, inst: it ? it.inst : "piano",
           minutes: e.minutes, rating: e.rating, bpm: e.bpm ?? null, note: note || "",
           accuracy: e.accuracy ?? null, coached: e.accuracy != null, missed: e.missed ?? [],
+          rhythm: e.rhythm ?? null, section: e.section ?? null,
         });
       }
       return { ...d, sessions, currentSession: logging === true ? { ...d.currentSession, completed: true } : d.currentSession };
@@ -135,6 +137,7 @@ export default function Woodshed() {
   };
 
   const recordCoachResult = (itemId, res) => setCoachResults((m) => ({ ...m, [itemId]: res }));
+  const saveLadder = (itemId, key, bpm) => setData((d) => ({ ...d, ladder: { ...d.ladder, [itemId]: { ...d.ladder[itemId], [key]: bpm } } }));
 
   // session length and instruments shape today's set, so rebuild it unless it's already been logged
   const rebuildIfOpen = (d) => (d.currentSession.completed ? d : { ...d, currentSession: gen(d) });
@@ -291,7 +294,12 @@ export default function Woodshed() {
             <Sidebar view={view} onView={showView} scoreOpen={showScore && isScored} onScore={isScored ? () => setShowScore(true) : null} onSettings={() => setShowSettings(true)} onHelp={() => setShowKeys(true)}><Streak streak={streak} /></Sidebar>
             <div className="ws-desk-main">{saveErr}{showScore && isScored ? <ScoreStage key={lessonFor.id} item={lessonFor} lesson={getLesson(lessonFor.id)} /> : views}</div>
             <PracticeRail
-              lesson={lessonProps && <LessonBody key={lessonFor.id} {...lessonProps} />}
+              lesson={lessonProps && (getLesson(lessonFor.id)?.score ? (
+                <ScorePanel
+                  key={lessonFor.id} item={lessonFor} lesson={getLesson(lessonFor.id)} ladder={data.ladder[lessonFor.id]}
+                  onLadder={(key, bpm) => saveLadder(lessonFor.id, key, bpm)} onResult={(res) => recordCoachResult(lessonFor.id, res)} onRequestLog={requestLog}
+                />
+              ) : <LessonBody key={lessonFor.id} {...lessonProps} />)}
               tunerOpen={tunerOpen}
               onOpenTuner={() => { closeLesson(); setTunerOpen(true); }}
               onCloseSlot={() => { closeLesson(); setTunerOpen(false); }}
@@ -442,7 +450,7 @@ function LogSheet({ session, itemById, lastTempo, coachResults = {}, onCancel, o
   const init = session.items.filter((x) => itemById(x.itemId)).map((x) => {
     const it = itemById(x.itemId);
     const c = coachResults[x.itemId];
-    return { itemId: x.itemId, title: it?.title || "", inst: it?.inst || "piano", done: true, minutes: x.minutes, rating: "good", bpm: it?.lastBpm ?? null, accuracy: c?.accuracy ?? null, missed: c?.missed ?? [] };
+    return { itemId: x.itemId, title: it?.title || "", inst: it?.inst || "piano", done: true, minutes: x.minutes, rating: "good", bpm: c?.bpm ?? it?.lastBpm ?? null, accuracy: c?.accuracy ?? null, missed: c?.missed ?? [], rhythm: c?.rhythm ?? null, section: c?.section ?? null };
   });
   const [entries, setEntries] = useState(init);
   const [note, setNote] = useState("");
