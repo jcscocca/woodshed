@@ -45,6 +45,11 @@ test("inSection and forHands filter notes", () => {
   assert.ok(forHands(s.notes, "L").every((n) => n.hand === "L"));
   assert.equal(forHands(s.notes, "both").length, s.notes.length);
 });
+test("parseScore: bars count trailing rests, not just the last note", () => {
+  const s = parseScore("X:1\nM:4/4\nL:1/4\nK:C\nC D E F|z z z z|", abcjs);
+  assert.equal(s.bars.length, 2);
+  assert.deepEqual(parseScore(MINI, abcjs).bars.map((b) => b.beat), [0, 3, 6, 9]);
+});
 
 const { gradeTimed, ON_MS, WINDOW_MS } = await import("../src/score/timedGrade.js");
 const { createWaitRun } = await import("../src/score/waitGrade.js");
@@ -92,6 +97,13 @@ test("gradeTimed: cursor is the first pending target in time", () => {
   const targets = [T(60, 0), T(62, 1), T(64, 2)];
   assert.equal(gradeTimed(targets, [E(60, 10000)], opts(10500)).cursor, 1);
   assert.equal(gradeTimed(targets, targets.map((t) => E(t.midi, 10000 + t.beat * 1000)), opts()).cursor, -1);
+});
+test("gradeTimed: overlapping windows match globally nearest-first, not per-target greedy", () => {
+  const targets = [T(60, 0), T(60, 0.15)];
+  const r = gradeTimed(targets, [E(60, 10130)], opts());
+  assert.deepEqual(r.statuses, ["missed", "on"]);
+  const r2 = gradeTimed(targets, [E(60, 10005), E(60, 10160)], opts());
+  assert.deepEqual(r2.statuses, ["on", "on"]);
 });
 test("createWaitRun: a chord advances only when all its notes are pressed, rolled is fine", () => {
   const run = createWaitRun([T(60, 0), T(64, 0), T(67, 0), T(62, 1)]);
