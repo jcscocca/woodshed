@@ -93,6 +93,7 @@ export const TRACKS = [
       { id: "pcs-soldiers-march", title: "Soldier's March (Schumann)", type: "song", diff: 3, min: 12, desc: "Schumann's Soldier's March from the Album for the Young — a dotted march rhythm, with short, crisp chords in both hands." },
       { id: "pcs-la-candeur", title: "La Candeur (Burgmüller)", type: "song", diff: 3, min: 12, desc: "Burgmüller's La Candeur, the first of his Op. 100 studies — a smooth legato line over held chords, then over left-hand broken chords." },
       { id: "pcs-clementi-36-1", title: "Sonatina in C, first movement (Clementi)", type: "song", diff: 3, min: 12, desc: "The first movement of Clementi's Sonatina Op. 36 No. 1 — scale runs, an Alberti bass and a sonata form in miniature." },
+      { id: "pcs-arabesque", title: "Arabesque (Burgmüller)", type: "song", diff: 3, min: 12, desc: "Burgmüller's Arabesque, Op. 100 No. 2 — quick sixteenth-note figures in A minor, passed from the right hand to the left and back." },
     ],
   },
   {
