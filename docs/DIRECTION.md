@@ -86,7 +86,7 @@ cross-device sync. Specs stay in `docs/` for reference.
    **done**. Piano content — its own spec,
    `docs/superpowers/specs/2026-09-27-piano-content-design.md` — is **done**
    too: 22 scored stages across three tracks (**Pieces**, **Pop from
-   chords**, **Two-hand technique**), plus "Your song" for typing in any
+   chords**, **Two-Hand Coordination**), plus "Your song" for typing in any
    song's chords. **Next: guitar content**, its own spec. Parked: any-voicing
    chord grading, swing/shuffle feel, compound metres (6/8, 3/8), and "Hear
    this section"/the app playing the other hand — the last two until the

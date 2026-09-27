@@ -259,7 +259,7 @@ The code is split so the parts you'll want to change are easy to find:
 | `src/styles.css` | All styling and the color palette (CSS variables at the top). |
 | `src/App.jsx` | The views (Today / Tracks / Library / Progress), the dialogs, and the switch between the phone and desktop layouts. |
 | `test/` | The suites `npm test` runs (DSP smoke, lessons schema, coach, ear, engine, desktop, MIDI, score, charts, pieces), plus the real-audio suite in `test/audio/`. |
-| `scripts/midi-fixture.mjs` | Reads a reference MIDI file and writes a piece's expected onsets to `test/fixtures/pieces/<id>.json` — the authoring tool that checks each transcribed piece against its source recording; not part of the shipped app. |
+| `scripts/midi-fixture.mjs` | Reads a reference MIDI file and writes a piece's expected onsets to `test/fixtures/pieces/<id>.json` — the authoring tool that checks each transcribed piece against a reference MIDI; not part of the shipped app. |
 | `archive/` | Bass and accordion content and the accordion pitch detector, out of the build. See `archive/README.md`. |
 | `docs/DIRECTION.md` | The current product direction. |
 
