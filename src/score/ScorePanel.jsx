@@ -46,7 +46,7 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, song
   const songMode = !!lesson.song;
   const [songId, setSongId] = useState(songs[0]?.id ?? null);
   const song = songMode ? songs.find((s) => s.id === songId) : null;
-  const songSpec = useMemo(() => (song ? songScore(song) : null), [song?.key, song?.meter, song?.chords, song?.pattern, song?.bpm, song?.title]);
+  const songSpec = useMemo(() => (song ? songScore(song) : null), [song?.key, song?.meter, song?.chords, song?.pattern, song?.bpm]);
   // Your song with no chart that parses shows only its editor and a disabled Start
   const bare = songMode && !songSpec;
   const spec = songMode ? songSpec || { abc: null, bpm: null, target: null, sections: [] } : scoreFor(lesson);
@@ -81,9 +81,14 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, song
   }, []);
 
   // The song's chart goes to the stage once typing pauses; one that doesn't parse leaves the stage's last drawing.
+  // A section that now runs past the last bar goes back to all.
   useEffect(() => {
     if (!songMode) return;
-    const t = setTimeout(() => { if (!live.current) runStore.set({ abc: songSpec ? songSpec.abc : null, run: IDLE }); }, 250);
+    const t = setTimeout(() => {
+      if (live.current) return;
+      const cur = runStore.get().section, last = songSpec ? songSpec.sections[songSpec.sections.length - 1].to : 0;
+      runStore.set({ abc: songSpec ? songSpec.abc : null, run: IDLE, ...(songSpec && cur && cur.to > last && { section: null }) });
+    }, 250);
     return () => clearTimeout(t);
   }, [songSpec?.abc]);
   const pickSong = (id) => { setSongId(id); runStore.set({ section: null, window: 0 }); };

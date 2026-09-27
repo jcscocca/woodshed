@@ -111,6 +111,12 @@ test("a song becomes a score: sections per 4-bar line, errors named by bar", () 
   assert.equal(songScore({ ...s, chords: "C | Hm" }), null);
   assert.deepEqual(lineSections(4).map((x) => x.name), ["1–4"]);
   assert.ok(SONG_KEYS.includes("Bb") && SONG_KEYS.includes("F#m"));
+  // a line break is a bar line; the title stays out of the ABC
+  assert.equal(parseScore(songScore({ ...s, chords: "C | G | Am | F\nC | G | F | C" }).abc, abcjs).bars.length, 8);
+  assert.equal(parseScore(songScore({ ...s, chords: "| C | G |\r\n\n| Am F |\n" }).abc, abcjs).bars.length, 3);
+  assert.equal(songError({ ...s, chords: "Am F\nC" }), null);
+  assert.equal(songError({ ...s, chords: "C | G\nAm | Hm" }).message, "bar 4: 'Hm' isn't a chord I know");
+  assert.equal(songScore({ ...s, title: "Another" }).abc, S.abc);
 });
 
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });
