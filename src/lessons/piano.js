@@ -96,6 +96,16 @@ export default {
     ],
     watch: ["Sing the next note before you search for it; your ear leads, the hand follows."],
   },
+  "pno-song": {
+    summary: "Any song you know the chords to, written out in the pattern you pick.",
+    song: true,
+    steps: [
+      "Type the chords bar by bar, split by | — two chords in a 4/4 bar split it in half.",
+      "Pick a pattern from the Pop track you've already learned.",
+      "Wait mode first, then play-along; the tempo climbs as you play it clean.",
+    ],
+    watch: ["Chord symbols it knows: C, Cm, C7, Cmaj7, Cm7, Csus2, Csus4, Cdim, and a slash bass like C/E."],
+  },
 
   "trk-pno-1": {
     summary: "Five-finger patterns in C position, each hand on its own.",

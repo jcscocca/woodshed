@@ -39,6 +39,7 @@ const LIBRARY = [
   { id: "pno-sight",    inst: "piano", title: "Sight-reading",                       type: "sight",     diff: 3, min: 8,  desc: "Read through a piece you've never played, slowly, hands together. Don't stop to fix mistakes — keep the pulse." },
   { id: "pno-improv",   inst: "piano", title: "Improvise over a progression",        type: "creative",  diff: 4, min: 8,  desc: "Loop one of the Pop track's progressions and improvise a right-hand melody over it. Leave space." },
   { id: "pno-ear",      inst: "piano", title: "Transcribe by ear",                   type: "ear",       diff: 3, min: 8,  desc: "Pick a short melody and figure it out by ear — no sheet music." },
+  { id: "pno-song",     inst: "piano", title: "Your song",                           type: "song",      diff: 3, min: 10, desc: "Type the chords of a song you love, pick a pattern, and play it written out — graded like any piece." },
 
   // ---------- GUITAR ----------
   { id: "gtr-open",    inst: "guitar", title: "Open chords",              type: "technique", diff: 1, min: 6,  desc: "Cycle E, A, D, G, C. Press just behind the fret; check every string rings clean." },

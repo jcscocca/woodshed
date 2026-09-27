@@ -6,6 +6,8 @@ import { generateDrill, drillBpm, LEVELS } from "./sightread.js";
 import { runStore } from "./runStore.js";
 import { useRun } from "./useRun.js";
 import { scoreFor } from "./scoreFor.js";
+import { songScore } from "./songs.js";
+import SongEditor from "./SongEditor.jsx";
 import { usePractice } from "../PracticeProvider.jsx";
 import { useMidi } from "../midi/MidiProvider.jsx";
 import { overlay } from "../midi/overlay.js";
@@ -28,7 +30,7 @@ const seed = () => Math.floor(Math.random() * 2 ** 28);
 // A sight-reading lesson (lesson.sightread) plays generated drills instead: always
 // play-along, both hands as written, no sections or ladder; the drill's ABC goes
 // to runStore for the stage.
-export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLadder, onSightLevel, onResult, onRequestLog, onTargetClean }) {
+export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, songs = [], onLadder, onSightLevel, onSongs, onResult, onRequestLog, onTargetClean }) {
   const { metro } = usePractice();
   const midi = useMidi();
   const st = useRun();
@@ -41,14 +43,22 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
   const live = useRef(null), metroRef = useRef(metro), passes = useRef({}), shownKey = useRef(null), toggle = useRef(null), onKey = useRef(null), graded = useRef(false), picked = useRef(false);
   metroRef.current = metro;
   const sight = !!lesson.sightread, level = sightLevel;
-  const spec = scoreFor(lesson);
-  const src = sight ? st.abc : spec.abc;
+  const songMode = !!lesson.song;
+  const [songId, setSongId] = useState(songs[0]?.id ?? null);
+  const song = songMode ? songs.find((s) => s.id === songId) : null;
+  const songSpec = useMemo(() => (song ? songScore(song) : null), [song?.key, song?.meter, song?.chords, song?.pattern, song?.bpm, song?.title]);
+  // Your song with no chart that parses shows only its editor and a disabled Start
+  const bare = songMode && !songSpec;
+  const spec = songMode ? songSpec || { abc: null, bpm: null, target: null, sections: [] } : scoreFor(lesson);
+  const src = sight ? st.abc : songMode ? songSpec && st.abc : spec.abc;
   const score = useMemo(() => (abcjs && src ? parseScore(src, abcjs) : null), [abcjs, src]);
   const n = score ? score.bars.length : 0;
   const sec = (!sight && st.section) || { from: 1, to: n };
   const hands = sight ? "both" : st.hands, mode = sight ? "play" : st.mode;
   const preset = !sight && spec.sections.find((s) => s.from === sec.from && s.to === sec.to);
   const key = sight ? `level ${level}` : preset ? preset.name : sec.from === 1 && sec.to === n ? "all" : `${sec.from}-${sec.to}`;
+  // a song's ladder lives under its own id
+  const lk = songMode ? `${songId}:${key}` : key;
   const targets = useMemo(() => (score ? forHands(inSection(score.notes, sec.from, sec.to), hands) : []), [score, sec.from, sec.to, hands]);
   const connected = !!midi && midi.status === "connected";
   const running = st.run.state === "countin" || st.run.state === "running";
@@ -66,9 +76,17 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
       window.removeEventListener("woodshed:coach", onCoach);
       window.removeEventListener("woodshed:score", onScore);
       if (live.current) live.current.cancel();
-      if (sight) runStore.set({ abc: null });
+      if (sight || songMode) runStore.set({ abc: null });
     };
   }, []);
+
+  // The song's chart goes to the stage once typing pauses; one that doesn't parse leaves the stage's last drawing.
+  useEffect(() => {
+    if (!songMode) return;
+    const t = setTimeout(() => { if (!live.current) runStore.set({ abc: songSpec ? songSpec.abc : null, run: IDLE }); }, 250);
+    return () => clearTimeout(t);
+  }, [songSpec?.abc]);
+  const pickSong = (id) => { setSongId(id); runStore.set({ section: null, window: 0 }); };
 
   // A new drill (fresh seed, never the one showing) starts from a clean stage.
   const newDrill = () => {
@@ -89,11 +107,11 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
   useEffect(() => {
     if (!score) return;
     if (sight) { metro.setBeatsPer(score.beatsPerBar); return; }
-    if (shownKey.current == null) metro.setBeatsPer(score.beatsPerBar);
-    else setSay(sec.from === sec.to ? `Bar ${sec.from}` : `${preset ? `Section ${preset.name}, bars` : "Bars"} ${sec.from}–${sec.to}`);
+    if (shownKey.current == null || songMode) metro.setBeatsPer(score.beatsPerBar);
+    if (shownKey.current != null) setSay(sec.from === sec.to ? `Bar ${sec.from}` : `${preset ? `Section ${preset.name}, bars` : "Bars"} ${sec.from}–${sec.to}`);
     shownKey.current = key;
-    metro.setBpm(ladder[key] ?? spec.bpm);
-  }, [score, key]);
+    metro.setBpm(ladder[lk] ?? spec.bpm);
+  }, [score, key, songId, spec.bpm]);
 
   useEffect(() => { if (!connected && live.current) { live.current.stop(); setSay("Keyboard disconnected."); } }, [connected]);
 
@@ -130,7 +148,7 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
   }
 
   function startPlay(ignore) {
-    const mt = metroRef.current, bpb = score.beatsPerBar, { from, to } = sec, k = key;
+    const mt = metroRef.current, bpb = score.beatsPerBar, { from, to } = sec, k = key, l = lk;
     const beat0 = targets[0].beat - score.bars[from - 1].beat;
     if (mt.playing) mt.stop();
     const startedAt = performance.now();
@@ -147,10 +165,10 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
       if (sight) { if (!complete || !g.clean) setStreak(0); else if (!graded.current) setStreak((s) => s + 1); graded.current = true; }
       else if (complete && g.clean) {
         const up = Math.max(bpm, Math.min(spec.target, bpm + 4));
-        onLadder(k, up);
+        onLadder(l, up);
         metroRef.current.setBpm(up);
-        setLastClean((c) => ({ ...c, [k]: bpm }));
-        if (k === "all" && bpm >= spec.target) onTargetClean?.();
+        setLastClean((c) => ({ ...c, [l]: bpm }));
+        if (!songMode && k === "all" && bpm >= spec.target) onTargetClean?.();
       }
       setSay(`${bandOf(g)}: notes ${g.notesPct}% · rhythm ${g.rhythmPct}%`);
     };
@@ -234,7 +252,8 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
   return (
     <div className="ws-score-panel">
       <h2 className="ws-sheet-title">{item.title}</h2>
-      {sight ? (
+      {songMode && <SongEditor songs={songs} songId={songId} onSelect={pickSong} onSongs={onSongs} disabled={running} />}
+      {bare ? null : sight ? (
         <div className="ws-score-row">
           <span className="ws-lesson-label">Level</span>
           <select className="ws-score-level" aria-label="Level" value={level} disabled={running}
@@ -259,10 +278,12 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, onLa
           <div className="ws-score-row"><span className="ws-lesson-label">Mode</span><div className="ws-sig">{seg(st.mode, MODES, (mode) => runStore.set({ mode }))}</div></div>
         </>
       )}
-      <div className="ws-score-row">
-        <span className="ws-lesson-label">Tempo</span>
-        <span className="ws-score-tempo mono">{sight ? `${metro.bpm} bpm` : `${metro.bpm} → ${spec.target}${lastClean[key] ? ` · last clean ${lastClean[key]}` : ""}`}</span>
-      </div>
+      {!bare && (
+        <div className="ws-score-row">
+          <span className="ws-lesson-label">Tempo</span>
+          <span className="ws-score-tempo mono">{sight ? `${metro.bpm} bpm` : `${metro.bpm} → ${spec.target}${lastClean[lk] ? ` · last clean ${lastClean[lk]}` : ""}`}</span>
+        </div>
+      )}
       {sight ? (
         <div className="ws-score-go">
           {go}

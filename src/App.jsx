@@ -301,6 +301,7 @@ export default function Woodshed() {
                 <ScorePanel
                   key={lessonFor.id} item={lessonFor} lesson={getLesson(lessonFor.id)} ladder={data.ladder[lessonFor.id]}
                   sightLevel={data.sightLevel[lessonFor.id] ?? getLesson(lessonFor.id).sightread?.defaultLevel}
+                  songs={data.songs} onSongs={(songs) => setData((d) => ({ ...d, songs }))}
                   onLadder={(key, bpm) => saveLadder(lessonFor.id, key, bpm)} onSightLevel={(level) => saveSightLevel(lessonFor.id, level)}
                   onResult={(res) => recordCoachResult(lessonFor.id, res)} onRequestLog={requestLog}
                   onTargetClean={() => saveTargetClean(lessonFor.id)}

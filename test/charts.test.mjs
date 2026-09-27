@@ -98,4 +98,19 @@ test("patterns refuse a metre they don't fit", () => {
   assert.throws(() => chartToAbc({ key: "C", chords: "C | Hm", pattern: "block" }), /'Hm' isn't a chord I know/);
 });
 
+const { newSong, songError, songScore, lineSections, SONG_KEYS } = await import("../src/score/songs.js");
+
+test("a song becomes a score: sections per 4-bar line, errors named by bar", () => {
+  const s = { ...newSong("s1"), chords: "C | G | Am | F | C | G | F C | G | C" };
+  assert.equal(songError(s), null);
+  const S = songScore(s);
+  assert.equal(parseScore(S.abc, abcjs).bars.length, 9);
+  assert.deepEqual(S.sections.map((x) => [x.name, x.from, x.to]), [["1–4", 1, 4], ["5–8", 5, 8], ["9", 9, 9]]);
+  assert.equal(S.bpm, 70); assert.equal(S.target, 120);
+  assert.equal(songError({ ...s, chords: "C | Hm" }).message, "bar 2: 'Hm' isn't a chord I know");
+  assert.equal(songScore({ ...s, chords: "C | Hm" }), null);
+  assert.deepEqual(lineSections(4).map((x) => x.name), ["1–4"]);
+  assert.ok(SONG_KEYS.includes("Bb") && SONG_KEYS.includes("F#m"));
+});
+
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exit(1); } else console.log("\nall green"); });
