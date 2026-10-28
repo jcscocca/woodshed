@@ -1,9 +1,10 @@
 # Woodshed
 
 A guided piano program with separate **Guided Practice**, **Chords**, **Scales**,
-**Catalogue**, and **Progress** sections. Five self-contained units in **C, G, F,
-A minor and D major** work without a MIDI keyboard, building steady rhythm,
-hand coordination and musical reading alongside scales and accompaniment.
+**Catalogue**, and **Progress** sections. Eight self-contained units work without
+a MIDI keyboard: **C, G, F, A minor, D, A, E**, then **musicianship across keys**.
+They build rhythm, hand coordination and reading alongside scales,
+accompaniment and returning musical projects.
 
 Built with React + Vite. No account, no server — your history lives in your
 browser.
@@ -18,7 +19,8 @@ first unfinished block; practice from Chords or Scales also satisfies a matching
 block in that key's current guided session. Later review blocks remain in the plan.
 Use **Piano unit** to move between keys in Guided Practice, Chords, Scales or
 Catalogue. The selection and each key's progress survive reload and backup/import.
-The units form a C → G → F → A minor → D sequence, with all lessons available for preview.
+The units form a C → G → F → A minor → D → A → E → consolidation sequence,
+with all lessons available for preview.
 
 - **C major:** steady pulse, ledger-note landmarks, held and broken bass,
   one-octave scale fingering, primary chords and simple original studies.
@@ -32,8 +34,18 @@ The units form a C → G → F → A minor → D sequence, with all lessons avai
 - **D major:** two sharps, D/G/A7/Bm/F#m and an inspected Canon ground bass;
   five Music visits build a clearly labeled original piano realization of that
   bass. Separate 6/8 preparation and two different first-reading examples.
+- **A major:** three sharps, A/D/E7/F#m, sixths/sevenths and 6/8 refinement;
+  three student versions preserve the inspected first-strain melody of
+  Mozart K.331. A complete original AB piece reverses the melody's hand.
+- **E major:** four sharps, E/A/B7/C#m, the inspected first four bars of
+  Grieg's Morning Mood in a disclosed piano arrangement, plus a complete
+  original twelve-bar blues with its own preparation and returning goals.
+- **Musicianship:** tetrachords, motion, double notes, six-key inversions,
+  signature/ledger retrieval, phrase answers, repeat endings, common time,
+  fermata, expression and optional pedal. Complete original AB and ABA pieces
+  return across the same five Music sessions.
 
-There are **133 self-contained exercises** and **50 guided sessions / 1,000 planned minutes** across the five units.
+There are **193 self-contained exercises** and **80 guided sessions / 1,600 planned minutes** across the eight units.
 The weekly target stays five days × two visits, or **200 minutes**; days are a
 rolling practice sequence, rather than calendar deadlines. Progress shows both
 the course total and the individual unit totals. Existing C-major saves retain
@@ -55,6 +67,13 @@ Save failures leave the lesson open with an error. Progress, session resume and
 placement survive reload and JSON export/import; older practice history is retained.
 The weekly target is five days × two 20-minute visits, or 200 minutes.
 
+**Check your understanding** appears within relevant lessons. It provides
+46 authored written/listening questions, staff examples, interval/chord audio
+and explanations. Checked answers travel with the practice log, independently
+of the learner's practical assessment. They do not grade piano performance or
+lock later lessons. A lesson also shows your previous visit and next-step note
+so a returning musical project can continue from a concrete repair.
+
 The Catalogue separates optional outside material from the self-contained core.
 Curated built-in alternatives can replace a matching guided goal. The original
 repertoire tracks and exercise library remain accessible there, including their
@@ -68,13 +87,18 @@ before closing or saving/advancing if you want to keep the audio. Practice logs
 save your report and notes, not the recording. Denied/unsupported microphone
 access does not prevent any lesson or logging.
 
-The C/G/F bank is primarily short original foundation practice. A minor and D
-add returning, source-grounded musical projects. This is a developed foundation
-course, **not a validated complete adult-method replacement**: A/E major and
-broader forms, repertoire and technique remain beyond its current coverage.
-Synthesized audio models notes/time rather than a pianist's phrasing. Read the
+The course covers the broad Piano Basics Level 2 lesson topics used as the
+user's benchmark, including correlated Theory/Technic topics. That benchmark
+does **not** determine Woodshed's order, pieces, styles, sections or progress
+model. The [topic-to-lesson checklist](docs/piano-topic-coverage.md) identifies
+29 coverage areas and their concrete practical tasks. Tests prevent a topic
+from losing its assigned instruction or conceptual check.
+
+This establishes content coverage, not an exam grade or validated learning
+outcome. Synthesized audio models notes/time rather than a pianist's phrasing;
+physical comfort and pacing still need the learner's own checks. Read the
 [material review and exact source decisions](docs/piano-curriculum-evidence.md)
-for what was examined, arranged, rejected or deferred.
+for inspected editions, arrangement choices and deferred optional repertoire.
 
 Run `npm test` for the existing suites plus curriculum, shared-progress,
 storage-round-trip and playback checks. `npm run test:program` runs only the new

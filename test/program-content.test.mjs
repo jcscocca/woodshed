@@ -20,6 +20,9 @@ test("every key unit has ten ordered, twenty-minute sessions", () => {
     ["f-major-foundations-3", "F major", 3],
     ["a-minor-foundations-4", "A minor", 4],
     ["d-major-foundations-5", "D major", 5],
+    ["a-major-foundations-6", "A major", 6],
+    ["e-major-foundations-7", "E major", 7],
+    ["musicianship-capstone-8", "Across keys", 8],
   ]);
   assert.equal(COURSE.id, UNITS[0].id, "the legacy COURSE metadata continues to identify C major");
   assert.equal(SESSIONS.length, UNITS.length * 10);

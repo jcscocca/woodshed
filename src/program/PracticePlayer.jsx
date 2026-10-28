@@ -3,12 +3,14 @@ import { usePractice } from "../PracticeProvider.jsx";
 import { keepClefs, parseScore, walkTune } from "../score/scoreModel.js";
 import { createLessonPlayback, planPlayback } from "./playback.js";
 import PracticeRecorder from "./PracticeRecorder.jsx";
+import KnowledgeChecks from "./KnowledgeChecks.jsx";
+import { knowledgeForExercise } from "./knowledge.js";
 import "./player.css";
 
 const HANDS = [["R", "Right hand"], ["L", "Left hand"], ["both", "Both hands"]];
 const initialMinutes = (exercise, minutes) => minutes ?? exercise.minutes ?? 5;
 
-export default function PracticePlayer({ exercise, onLog, onClose, defaultMinutes, defaultRange, goal }) {
+export default function PracticePlayer({ exercise, onLog, onClose, defaultMinutes, defaultRange, goal, previousAttempt }) {
   const id = useId();
   const practice = usePractice(), setCoursePlaying = practice?.setCoursePlaying;
   const [parsed, setParsed] = useState(null), [scoreError, setScoreError] = useState(null);
@@ -21,6 +23,7 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
   const [width, setWidth] = useState(600), [drawing, setDrawing] = useState(null);
   const [range, setRange] = useState(defaultRange || { from: 1, to: Infinity });
   const [recordingActive, setRecordingActive] = useState(false);
+  const [knowledgeResults, setKnowledgeResults] = useState([]);
   const lessonRef = useRef(null), paperRef = useRef(null), playerRef = useRef(null), playRevision = useRef(0), mounted = useRef(true);
 
   useEffect(() => {
@@ -61,7 +64,7 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
   useEffect(() => {
     stop(); setParsed(null); setDrawing(null); setScoreError(null); setAudioError(null);
     setBpm(exercise.bpm || 60); setHands(exercise.hands || "both"); setChecked([]); setAssessment("practising");
-    setMinutes(initialMinutes(exercise, defaultMinutes)); setNote(""); setSaved(false); setSaveError(null); setRange(defaultRange || { from: 1, to: Infinity });
+    setMinutes(initialMinutes(exercise, defaultMinutes)); setNote(""); setSaved(false); setSaveError(null); setKnowledgeResults([]); setRange(defaultRange || { from: 1, to: Infinity });
     saveGate.current = { busy: false, saved: false };
     let live = true;
     if (exercise.abc) import("abcjs").then((mod) => {
@@ -91,7 +94,10 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
     paper.replaceChildren();
     if (!parsed) return;
     try {
-      const [tune] = parsed.abcjs.renderAbc(paper, exercise.abc, {
+      // The accessible HTML heading already names the work. ABC's centered
+      // title does not wrap, and long arrangement titles clip on phone widths.
+      const displayAbc = exercise.abc.replace(/^T:[^\n]*(?:\n|$)/gm, "");
+      const [tune] = parsed.abcjs.renderAbc(paper, displayAbc, {
         responsive: "resize", add_classes: true, selectTypes: false, afterParsing: keepClefs,
         staffwidth: Math.max(230, width - 25), paddingtop: 12, paddingbottom: 12,
         foregroundColor: "#f3eee5", wrap: { preferredMeasuresPerLine: width < 600 ? 2 : 4, minSpacing: 1.5, maxSpacing: 2.8 },
@@ -142,7 +148,7 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
     stop(); setSaveError(null); setSaving(true);
     try {
       await onLog({ exerciseId: exercise.id, skillIds: exercise.skillIds || [], assessment, minutes: Number(minutes), bpm: Number(bpm), hands, note: note.trim(), section: exercise.section,
-        fromBar: range.from, toBar: Math.min(range.to, parsed?.score.bars.length || range.from), checks: checked.map((index) => exercise.checks[index]), goal });
+        fromBar: range.from, toBar: Math.min(range.to, parsed?.score.bars.length || range.from), checks: checked.map((index) => exercise.checks[index]), goal, knowledgeResults });
       gate.saved = true;
       if (mounted.current && currentExercise.current === exerciseId) setSaved(true);
     } catch { if (mounted.current && currentExercise.current === exerciseId) setSaveError("Your practice could not be saved. Please try again."); }
@@ -155,6 +161,17 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
   const availableHands = new Set(parsed?.score.notes.map((n) => n.hand) || []);
   const barLabel = (n) => exercise.pickup ? n === 1 ? "Pickup" : `Bar ${n - 1}` : `Bar ${n}`;
   const chooseRange = (value) => { stop(); setRange(value); edited(); };
+  const hearQuestion = async (question) => {
+    if (recordingActive || saving || !question.audio) return;
+    stop(); setAudioError(null); practice?.metro?.stop();
+    const token = playRevision.current;
+    try {
+      const plan = planPlayback({ beatsPerBar: 4, meter: [4, 4], bars: [{ n: 1, beat: 0 }], endBeat: question.audioBeats || 3, notes: question.audio }, { bpm: 60, countIn: false });
+      if (!playerRef.current) playerRef.current = createLessonPlayback();
+      setMode("listening");
+      await playerRef.current.start(plan, { onEnd: () => { if (mounted.current && token === playRevision.current) setMode(null); } });
+    } catch (error) { if (mounted.current && token === playRevision.current) { setAudioError(error.message || "The listening example could not start."); setMode(null); } }
+  };
   // The app dispatches its shortcuts here before the legacy practice tools. A
   // ref keeps one stable listener while each event sees the current lesson/run.
   shortcutHandler.current = (event) => {
@@ -178,6 +195,7 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
       </header>
       <p className="ws-player-summary">{exercise.summary}</p>
       {goal && <p className="ws-player-goal"><strong>This visit:</strong> {goal}</p>}
+      {previousAttempt && <details className="ws-player-previous"><summary>Your previous visit · {previousAttempt.date || "saved practice"}</summary><p>{previousAttempt.minutes} minutes{previousAttempt.bpm ? ` at ♩ = ${previousAttempt.bpm}` : ""} · {previousAttempt.hands === "R" ? "right hand" : previousAttempt.hands === "L" ? "left hand" : "both hands"} · {previousAttempt.assessment === "ready" ? "felt ready" : previousAttempt.assessment === "unsure" ? "felt unsure" : "still practising"}.</p>{previousAttempt.note && <p><strong>Your next step:</strong> {previousAttempt.note}</p>}<p>Try one uninterrupted return before the demo, then choose the specific join to repair today.</p></details>}
       <section className="ws-player-score-section" aria-label="Score and playback">
         <div className="ws-player-hand-controls" role="group" aria-label="Choose hands">
           {HANDS.map(([value, label]) => <button key={value} type="button" aria-pressed={hands === value} disabled={!!parsed && value !== "both" && !availableHands.has(value)} onClick={() => changeHands(value)}>{label}</button>)}
@@ -210,7 +228,7 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
             <label><input type="checkbox" checked={referenceAlong} onChange={(e) => { stop(); setReferenceAlong(e.target.checked); }} />Include reference while I play</label>
           </div>
           <div className="ws-player-position" aria-live="polite" aria-atomic="true">
-            {frame?.phase === "countin" ? `Count in: ${frame.count} of ${frame.countTotal}` : mode ? `${mode === "along" ? "Play along" : "Reference"} · ${barLabel(frame?.bar || range.from)}${loop ? ` · pass ${frame?.pass || 1}` : ""}` : "Ready to listen or play"}
+            {mode === "listening" ? "Listening example · the lesson score is paused" : frame?.phase === "countin" ? `Count in: ${frame.count} of ${frame.countTotal}` : mode ? `${mode === "along" ? "Play along" : "Reference"} · ${barLabel(frame?.bar || range.from)}${loop ? ` · pass ${frame?.pass || 1}` : ""}` : "Ready to listen or play"}
             <span>Ungraded · no keyboard connection needed</span>
           </div>
           <div className="ws-player-progress" aria-hidden="true"><span style={{ width: `${(frame?.progress || 0) * 100}%` }} /></div>
@@ -221,6 +239,7 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
       {exercise.fingering && <section className="ws-player-fingering"><h3>Where your hands go</h3><p>{exercise.fingering}</p></section>}
       <section className="ws-player-steps"><h3>Work through it</h3><ol>{(exercise.steps || []).map((step, i) => <li key={i}>{step}</li>)}</ol></section>
       {exercise.listenFor?.length > 0 && <section className="ws-player-listen"><h3>Listen for</h3><ul>{exercise.listenFor.map((item, i) => <li key={i}>{item}</li>)}</ul></section>}
+      <KnowledgeChecks questions={knowledgeForExercise(exercise)} onResultsChange={setKnowledgeResults} onEdited={edited} onHear={hearQuestion} disabled={recordingActive || saving} />
 
       <PracticeRecorder fileName={`woodshed-${exercise.id}`} disabled={mode !== null || saving} onActivityChange={setRecordingActive} onBeforeRecord={() => { stop(); practice?.metro?.stop(); }} />
 

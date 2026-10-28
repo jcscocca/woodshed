@@ -3,6 +3,7 @@ import { COURSE, UNITS, EXERCISES, SESSIONS, PLACEMENT, CATALOGUE, sessionsForUn
 import { normalizeProgress, exerciseProgress, sessionProgress, nextSession, editAttempt, removeAttempt } from "./progress.js";
 import PracticePlayer from "./PracticePlayer.jsx";
 import { guideForUnit } from "./guides.js";
+import { QUESTION_BY_ID } from "./knowledge.js";
 import { todayStr, daysSince } from "../dateUtils.js";
 import "./program.css";
 
@@ -72,6 +73,7 @@ export function ProgramProgress({ progress, onChangeProgress }) {
       {p.attempts.map((a, index) => ({ ...a, index })).filter((a) => a.section !== "placement").reverse().slice(0, visibleCount).map((a) => <li key={a.index}>
         <div><strong>{byId[a.exerciseId]?.title || a.exerciseId}</strong><span>{byId[a.exerciseId]?.key ? `${byId[a.exerciseId].key} · ` : ""}{a.date} · {a.minutes} min · {a.hands === "R" ? "RH" : a.hands === "L" ? "LH" : a.hands === "separate" ? "Hands separately" : "Both hands"}{a.bpm ? ` · ${a.bpm} bpm` : ""}{a.fromBar ? ` · ${passageLabel(a, byId[a.exerciseId])}` : ""}</span>{a.goal && <p>Goal: {a.goal}</p>}{a.note && <p>{a.note}</p>}
           {a.checks?.length > 0 && <details><summary>Self-checks you observed ({a.checks.length})</summary><ul>{a.checks.map((check) => <li key={check}>{check}</li>)}</ul></details>}
+          {a.knowledgeResults?.length > 0 && <details><summary>Understanding checks · {a.knowledgeResults.filter((result) => result.correct).length}/{a.knowledgeResults.length} correct</summary><ul>{a.knowledgeResults.map((result) => <li key={result.questionId}>{result.correct ? "✓ " : "Revisit: "}{QUESTION_BY_ID[result.questionId]?.prompt}</li>)}</ul><p>Written/listening answers are separate from your piano self-assessment.</p></details>}
           {onChangeProgress && <button className="ws-btn ghost sm" disabled={busy} onClick={() => { setError(""); setEditing({ ...a }); }}>Correct this practice</button>}
           {editing?.index === a.index && <form className="pg-history-edit" onSubmit={(event) => { event.preventDefault(); try { update(editAttempt(p, a.index, { minutes: Number(editing.minutes), assessment: editing.assessment, note: editing.note || "", date: editing.date })); } catch (err) { setError(err.message); } }}>
             <label>Minutes <input aria-label="Correct minutes" required type="number" min="1" max="240" value={editing.minutes} onChange={(event) => setEditing({ ...editing, minutes: event.target.value })} /></label>
@@ -146,7 +148,7 @@ export default function Program({ section, progress, onAttempt, onLegacyView, un
       {session && <div className="pg-session-bar"><span>{UNITS.find((candidate) => candidate.id === session.unitId)?.key} · Day {session.day} · Session {session.slot} · Block {active.blockIndex + 1} of {session.blocks.length}</span><strong>{session.title}</strong></div>}
       {active.placementIndex !== undefined && <p className="pg-muted">Placement check {active.placementIndex + 1} of {PLACEMENT.length} · You can leave and resume later.</p>}
       <PracticePlayer key={`${active.exerciseId}-${active.sessionId || "direct"}-${active.blockIndex ?? ""}`} exercise={byId[active.exerciseId]} onLog={save} onClose={() => setActive(null)} defaultMinutes={session?.blocks[active.blockIndex]?.minutes}
-        goal={session?.blocks[active.blockIndex]?.goal} defaultRange={session?.blocks[active.blockIndex]?.fromBar ? { from: session.blocks[active.blockIndex].fromBar, to: session.blocks[active.blockIndex].toBar } : undefined} />
+        goal={session?.blocks[active.blockIndex]?.goal} previousAttempt={exerciseProgress(p, active.exerciseId).lastAttempt} defaultRange={session?.blocks[active.blockIndex]?.fromBar ? { from: session.blocks[active.blockIndex].fromBar, to: session.blocks[active.blockIndex].toBar } : undefined} />
     </div>;
   }
 
@@ -181,7 +183,7 @@ export default function Program({ section, progress, onAttempt, onLegacyView, un
       })}</div></section>)}</div>
     </>}
     {(section === "chords" || section === "scales") && <>
-      <header className="pg-hero"><div className="pg-eyebrow">{unit.key} · Shared with Guided Practice</div><h1>{section === "chords" ? "Chords, in musical context" : "Scales, with somewhere to go"}</h1><p>{section === "chords" ? `Build related chords in ${unit.key}, connect them with small movements, and turn them into accompaniment.` : `Connect fingering, steady rhythm and the sound of ${unit.key}. Each lesson includes a small musical application.`}</p></header>
+      <header className="pg-hero"><div className="pg-eyebrow">{unit.key} · Shared with Guided Practice</div><h1>{section === "chords" ? "Chords, in musical context" : "Scales, with somewhere to go"}</h1><p>{unit.key === "Across keys" ? section === "chords" ? "Recall familiar chords and inversions, then transfer them to another key and a complete musical phrase." : "Connect scale patterns, comfortable hand motion and steady rhythm across the keys you have practised." : section === "chords" ? `Build related chords in ${unit.key}, connect them with small movements, and turn them into accompaniment.` : `Connect fingering, steady rhythm and the sound of ${unit.key}. Each lesson includes a small musical application.`}</p></header>
       <p className="pg-muted">Practice here counts toward a matching block in this key’s current guided session. Later reviews remain available.</p>
       <div className="pg-exercises">{EXERCISES.filter((e) => e.unitId === unit.id && e.section === section).map((e) => <ExerciseCard key={e.id} exercise={e} progress={p} onOpen={() => open(e.id)} />)}</div>
     </>}

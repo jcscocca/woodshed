@@ -4,6 +4,9 @@ import { UNIT as G_MAJOR, EXERCISES as G_EXERCISES, SESSIONS as G_SESSIONS, CATA
 import { UNIT as F_MAJOR, EXERCISES as F_EXERCISES, SESSIONS as F_SESSIONS, CATALOGUE as F_CATALOGUE } from "./units/f-major.js";
 import { UNIT as A_MINOR, EXERCISES as A_EXERCISES, SESSIONS as A_SESSIONS, CATALOGUE as A_CATALOGUE } from "./units/a-minor.js";
 import { UNIT as D_MAJOR, EXERCISES as D_EXERCISES, SESSIONS as D_SESSIONS, CATALOGUE as D_CATALOGUE } from "./units/d-major.js";
+import { UNIT as A_MAJOR, EXERCISES as AM_EXERCISES, SESSIONS as AM_SESSIONS, CATALOGUE as AM_CATALOGUE } from "./units/a-major.js";
+import { UNIT as E_MAJOR, EXERCISES as E_EXERCISES, SESSIONS as E_SESSIONS, CATALOGUE as E_CATALOGUE } from "./units/e-major.js";
+import { UNIT as MUSICIANSHIP, EXERCISES as M_EXERCISES, SESSIONS as M_SESSIONS, CATALOGUE as M_CATALOGUE } from "./units/musicianship.js";
 import { EXTERNAL_MUSIC } from "./guides.js";
 const original = { label: "Original Woodshed teaching material" };
 const grand = (title, right, left, unit = "1/4") => {
@@ -363,15 +366,18 @@ const C_CATALOGUE = [
   { id: "catalogue-ledger-reference", title: "Ledger notes and a family of Cs", description: "Optional Faber teacher guidance on C landmarks and expanded reading. This is reference material, not a required book purchase or a replacement for your chosen method.", url: "https://pianoadventures.com/piano-books/accelerated-piano-adventures/level-2/accelerated-2-qa/", kind: "external", skills: ["ledger-landmarks", "staff-reading"] },
 ];
 
-export const UNITS = [COURSE, G_MAJOR, F_MAJOR, A_MINOR, D_MAJOR];
-export const EXERCISES = [...C_EXERCISES, ...G_EXERCISES, ...F_EXERCISES, ...A_EXERCISES, ...D_EXERCISES];
-export const SESSIONS = [...C_SESSIONS, ...G_SESSIONS, ...F_SESSIONS, ...A_SESSIONS, ...D_SESSIONS];
+export const UNITS = [COURSE, G_MAJOR, F_MAJOR, A_MINOR, D_MAJOR, A_MAJOR, E_MAJOR, MUSICIANSHIP];
+export const EXERCISES = [...C_EXERCISES, ...G_EXERCISES, ...F_EXERCISES, ...A_EXERCISES, ...D_EXERCISES, ...AM_EXERCISES, ...E_EXERCISES, ...M_EXERCISES];
+export const SESSIONS = [...C_SESSIONS, ...G_SESSIONS, ...F_SESSIONS, ...A_SESSIONS, ...D_SESSIONS, ...AM_SESSIONS, ...E_SESSIONS, ...M_SESSIONS];
 export const CATALOGUE = [
   ...C_CATALOGUE.map((entry) => entry.kind === "external" ? entry : { ...entry, unitId: COURSE.id }),
   ...G_CATALOGUE,
   ...F_CATALOGUE,
   ...A_CATALOGUE,
   ...D_CATALOGUE,
+  ...AM_CATALOGUE,
+  ...E_CATALOGUE,
+  ...M_CATALOGUE,
   ...EXTERNAL_MUSIC,
 ];
 

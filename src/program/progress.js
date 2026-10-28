@@ -3,6 +3,7 @@
 // Keep this model independent of course content so the same exercise id works
 // from any section, and a session can be resumed after a save/reload.
 import { todayStr } from "../dateUtils.js";
+import { normalizeKnowledge } from "./knowledge.js";
 
 export const ASSESSMENTS = ["ready", "practising", "unsure"];
 const ASSESSMENT_SET = new Set(ASSESSMENTS);
@@ -37,6 +38,7 @@ function attempt(raw) {
     out.fromBar = raw.fromBar; out.toBar = raw.toBar;
   }
   if (Array.isArray(raw.checks)) out.checks = [...new Set(raw.checks.map((value) => text(value, 500)).filter(Boolean))].slice(0, 20);
+  if (Array.isArray(raw.knowledgeResults)) out.knowledgeResults = normalizeKnowledge(raw.knowledgeResults);
   if (typeof raw.bpm === "number" && Number.isFinite(raw.bpm) && raw.bpm > 0 && raw.bpm <= 400) out.bpm = raw.bpm;
   if (HANDS.has(raw.hands)) out.hands = raw.hands === "RH" ? "R" : raw.hands === "LH" ? "L" : raw.hands;
   // An index without a session (or a session without its block) is not a

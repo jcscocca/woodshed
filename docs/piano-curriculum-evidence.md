@@ -42,12 +42,20 @@ planning, not an endorsement of Woodshed's studies or target tempos.
 |---|---|---|
 | Beethoven, Für Elise, Mutopia 931 | PDF page 1 and LilyPond, both hands: E5–D#5 pickup, 3/8, sixteenth relays, restored D natural in bars 1/5, low A2/E2 starts, shortened first ending | Preserve pickup plus bars 1–8, first ending. Prepare subdivision before the first attempt. Revisit different passages over all five B sessions. Omit pedal/repeat; retain initial pp; fingerings are ours. This excerpt is a named finished goal, not the complete work. |
 | Pachelbel, Canon, Mutopia 2047 | Rendered cello part and LilyPond: D3 A2 B2 F#2 / G2 D2 G2 A2, eight quarters over two 4/4 bars; edition CC BY 4.0, Michael Fischer v. Mollard | Quote one exact bass cycle, then stretch each root to a full bar for a new piano realization, adding upper parts and a closing D. Label it a bass/chord arrangement. Teach F#m explicitly; source chord symbols are our analysis. Return to held and moving versions over five B visits. |
+| Mozart, K.331 theme, Mutopia 614 | Source LilyPond and rendered first-strain score: eight 6/8 bars, including dotted eighth/sixteenth figures, even sixteenths in bar 4 and the final eighth rest | Preserve the upper melody in three student versions. Omit extra RH voices and replace Mozart's two-voice LH with disclosed held/two-pulse bass. The full theme has 18 bars; this is its first strain, not the whole theme. |
+| Grieg, Morning Mood, Peters plate 7188 | Public-domain orchestral scan, printed page 1/PDF page 5: flute bars 1–4, beginning B5, including the turn's sixteenths and the final rest | Lower the main melody one octave, omit grace ornaments and add a simple new held piano bass. This is a student arrangement of a named four-bar phrase, not Grieg's original piano arrangement. |
 
 Sources: [Für Elise edition](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=931),
 [Für Elise PDF](https://www.mutopiaproject.org/ftp/BeethovenLv/WoO59/fur_Elise_WoO59/fur_Elise_WoO59-a4.pdf),
 [Canon edition and source bundles](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=2047),
 [Canon edition license](https://creativecommons.org/licenses/by/4.0/).
 Source and arrangement disclosures appear inside each lesson.
+
+Additional inspected editions: [Mozart Mutopia 614](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=614),
+[Grieg Op.46 orchestral editions, file 912194/Peters plate 7188](https://imslp.org/wiki/Peer_Gynt_Suite_No.1,_Op.46_(Grieg,_Edvard)).
+The A-major unit's complete original Two Rooms, E-major twelve-bar Switchyard
+Blues, and the final unit's complete AB/ABA works supply contrasting full-form
+goals without attaching famous titles to unrelated original music.
 
 ## Examined alternatives and decisions
 
@@ -76,15 +84,22 @@ Source and arrangement disclosures appear inside each lesson.
 
 ## Software checks versus learning evidence
 
-The release has 133 exercises and 50 planned sessions. Every score is checked
+The release has 193 exercises and 80 planned sessions. Every score is checked
 for each hand's bar duration, including declared partial bars, range and
 cross-hand key conflicts. Source regressions compare every Für Elise pitch,
 onset and duration in both hands, minor scale forms/registers, and the Canon
-bass route. Separate tests cover count-ins, passage looping, ties, save/load,
-cross-section credit, correction/removal and recording resource lifetimes.
+bass route, every Mozart/Grieg main-melody event, complete AB/ABA hand roles,
+unfolded ending order and six-key chord/inversion registers. These checks found
+and corrected a G-voicing octave error and an A-unit held-bass mismatch.
+Separate tests cover count-ins, passage looping, ties, save/load, cross-section
+credit, correction/removal and recording resource lifetimes.
 
 The player now supports small bar ranges, distinct visit goals, saved observed
 criteria, voluntary local recording/listen-back and delayed return suggestions.
+Inline written/listening checks give feedback and preserve checked answers
+separately from practical self-assessments. All 46 questions belong to real
+lessons; note-reading answers are checked against the rendered pitches, and
+audio interval/chord examples against their sounding note data.
 Recording is not automatic assessment. Controller tests simulate permission and
 codec lifecycle; live microphone capture and piano performance quality still
 need a real-device check. Reference playback is synthesized, without a human
@@ -92,6 +107,8 @@ expressive interpretation.
 
 Software agents inspected the scores and challenged each other's work. This
 was not an independent piano teacher review. No learning outcomes, physical
-technique, exact pacing or user enjoyment have been validated. A/E major and
-broader musical forms remain uncovered; five key units must not be presented
-as a complete replacement for every part of a published adult method.
+technique, exact pacing or user enjoyment have been validated. The broad
+published lesson topics are now mapped to actual instruction and practical
+checks in our own eight-unit program; [coverage evidence](piano-topic-coverage.md)
+records that scope. This does not claim to reproduce every etude, workbook
+activity, edition called Level 2, or later levels of the Bastien series.
