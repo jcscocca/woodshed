@@ -204,7 +204,7 @@ export const EXERCISES = [
     abc: grand("A new E-major path", ["!mp!(G2 F E)", "D E B2", "(cB) A G", "F2 E2"], ["!p!E,,4", "B,,4", "A,,4", "B,,2 E,,2"]),
     fingering: "RH starts G#4 with 3, then F#4(2) E4(1). Move for D#4–E4–B4, and use a planned C#5–B4–A4–G#4 descent such as 5 4 3 2. LH roots E2 B2 A2 B2 E2 use whole-hand moves.",
     steps: ["Before hearing anything, scan the signature, four-count meter, starting octaves and longest notes. Point out each D# and C# and choose a slow pulse.", "Give one uninterrupted first attempt, permitting a wrong note while keeping a recoverable count. Write what actually happened before using the reference.", "Listen and compare one specific issue, then repair only that bar. A later attempt checks retention of this phrase and must be described as retrieval rather than a new cold read."],
-    listenFor: ["The two-count notes remain sustained while the bass changes underneath.", "The final B-bass to E-bass change supports the closing melody."],
+    listenFor: ["Each two-count melody note remains sustained over the held bass.", "The final RH and LH changes happen together, with the B-bass to E-bass move supporting the closing melody."],
     checks: ["I attempted the phrase before hearing the model on its first visit.", "I can identify a concrete reading/timing issue and distinguish a later retrieval attempt."], skillIds: ["cold-reading", "four-sharp-reading", "self-review"],
   }),
   ex({

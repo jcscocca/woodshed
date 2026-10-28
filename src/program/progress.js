@@ -55,8 +55,9 @@ function markBlock(completedBlocks, sessionId, index) {
   completedBlocks[sessionId] = [...new Set([...blocks, index])].sort((a, b) => a - b);
 }
 
-// Only the three documented fields survive an imported save. Invalid optional
-// data cannot turn into measured accuracy, readiness or block completion.
+// Invalid optional data cannot turn into measured accuracy or readiness.
+// The optional completionOnlyBlocks provenance preserves imported completion
+// marks when a later review report is removed; it cannot create new marks.
 export function normalizeProgress(raw) {
   const source = object(raw) ? raw : {};
   // Preserve every valid log: practice totals must not shrink as the learner
@@ -79,7 +80,15 @@ export function normalizeProgress(raw) {
     if (a.section === "placement") placement[a.exerciseId] = a.assessment;
     else if (a.sessionId) markBlock(completedBlocks, a.sessionId, a.blockIndex);
   }
-  return { attempts, completedBlocks, placement };
+  const completionOnlyBlocks = {};
+  if (object(source.completionOnlyBlocks)) {
+    for (const [sessionId, values] of Object.entries(source.completionOnlyBlocks)) {
+      if (!id(sessionId) || !Array.isArray(values) || !own(completedBlocks, sessionId)) continue;
+      const blocks = [...new Set(values.filter((value) => blockIndex(value) !== null && completedBlocks[sessionId].includes(value)))].sort((a, b) => a - b);
+      if (blocks.length) completionOnlyBlocks[sessionId] = blocks;
+    }
+  }
+  return { attempts, completedBlocks, placement, ...(Object.keys(completionOnlyBlocks).length ? { completionOnlyBlocks } : {}) };
 }
 
 // Appending is immutable. The UI confirms a learner's assessment; this function
@@ -89,6 +98,13 @@ export function recordAttempt(progress, raw) {
   if (!entry) throw new TypeError("A progress attempt needs an exerciseId and a valid learner assessment.");
   if (!entry.date) entry.date = todayStr();
   const next = normalizeProgress(progress);
+  if (entry.section !== "placement" && entry.sessionId && own(next.completedBlocks, entry.sessionId) && next.completedBlocks[entry.sessionId].includes(entry.blockIndex)
+      && !next.attempts.some((a) => a.section !== "placement" && a.sessionId === entry.sessionId && a.blockIndex === entry.blockIndex)) {
+    // The old save knows this block was completed, but has no report to remove.
+    // Keep that independent evidence before appending the new review report.
+    next.completionOnlyBlocks ||= {};
+    markBlock(next.completionOnlyBlocks, entry.sessionId, entry.blockIndex);
+  }
   next.attempts = [...next.attempts, entry];
   if (entry.section === "placement") next.placement[entry.exerciseId] = entry.assessment;
   else if (entry.sessionId) markBlock(next.completedBlocks, entry.sessionId, entry.blockIndex);
@@ -114,7 +130,8 @@ export function removeAttempt(progress, index) {
   // Remove only the completion associated with the removed report; remaining
   // reports for that block restore it during normalization. Other saved blocks
   // (including older imported completion-only records) retain their identity.
-  if (entry.sessionId) {
+  const retained = next.completionOnlyBlocks && own(next.completionOnlyBlocks, entry.sessionId) && next.completionOnlyBlocks[entry.sessionId].includes(entry.blockIndex);
+  if (entry.section !== "placement" && entry.sessionId && !retained) {
     next.completedBlocks[entry.sessionId] = (next.completedBlocks[entry.sessionId] || []).filter((value) => value !== entry.blockIndex);
   }
   if (entry.section === "placement") delete next.placement[entry.exerciseId];

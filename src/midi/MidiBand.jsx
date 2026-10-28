@@ -3,6 +3,7 @@ import { useMidi, useOverlay } from "./MidiProvider.jsx";
 import { createKeyState } from "./midiModel.js";
 import { nameChord, spellChord, ROOTS } from "./chords.js";
 import { midiToNote } from "../audio/notes.js";
+import { usePractice } from "../PracticeProvider.jsx";
 
 // A0–C8: 52 white keys by percentage; a black key straddles its left white key's right edge.
 const W = 100 / 52;
@@ -51,6 +52,7 @@ function Keys({ label, held, ov }) {
 export default function MidiBand() {
   const midi = useMidi();
   const ov = useOverlay();
+  const playbackBlocked = !!usePractice()?.coursePlaying || ov.busy;
   const [held, setHeld] = useState([]);
   const connected = !!midi && midi.status === "connected";
   const subscribe = midi && midi.subscribe, setBandOpen = midi && midi.setBandOpen;
@@ -86,7 +88,7 @@ export default function MidiBand() {
             <div className="ws-midi-head">{head}</div>
             <div className="ws-midi-line mono">{(ov.readout && ov.readout.line) || [...new Set(names)].join(" ")}</div>
             <div className="ws-midi-row">
-              <button className="ws-btn ghost sm" onClick={midi.playLastTake}>▶ Play back</button>
+              <button className="ws-btn ghost sm" disabled={playbackBlocked} onClick={midi.playLastTake}>▶ Play back</button>
               {device}
               <button className="ws-x" ref={chev} onClick={toggle} aria-label="Hide keyboard" aria-expanded="true">⌄</button>
             </div>
@@ -94,7 +96,7 @@ export default function MidiBand() {
         ) : connected ? (
           <>
             {device}
-            <button className="ws-x" onClick={midi.playLastTake} aria-label="Play back">▶</button>
+            <button className="ws-x" disabled={playbackBlocked} onClick={midi.playLastTake} aria-label="Play back">▶</button>
             <button className="ws-x" ref={chev} onClick={toggle} aria-label="Show keyboard" aria-expanded="false">⌃</button>
           </>
         ) : midi.status === "disconnected" ? (

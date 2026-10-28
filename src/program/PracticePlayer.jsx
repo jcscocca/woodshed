@@ -5,6 +5,7 @@ import { createLessonPlayback, planPlayback } from "./playback.js";
 import PracticeRecorder from "./PracticeRecorder.jsx";
 import KnowledgeChecks from "./KnowledgeChecks.jsx";
 import { knowledgeForExercise } from "./knowledge.js";
+import { stop as stopLegacyAudio } from "../lessonAudio.js";
 import "./player.css";
 
 const HANDS = [["R", "Right hand"], ["L", "Left hand"], ["both", "Both hands"]];
@@ -17,6 +18,7 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
   const [audioError, setAudioError] = useState(null), [frame, setFrame] = useState(null), [mode, setMode] = useState(null);
   const [bpm, setBpm] = useState(exercise.bpm || 60), [hands, setHands] = useState(exercise.hands || "both");
   const [loop, setLoop] = useState(false), [referenceAlong, setReferenceAlong] = useState(false), [countIn, setCountIn] = useState(true);
+  const [followScore, setFollowScore] = useState(true);
   const [checked, setChecked] = useState([]), [assessment, setAssessment] = useState("practising");
   const [minutes, setMinutes] = useState(initialMinutes(exercise, defaultMinutes)), [note, setNote] = useState("");
   const [saving, setSaving] = useState(false), [saved, setSaved] = useState(false), [saveError, setSaveError] = useState(null);
@@ -25,6 +27,7 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
   const [recordingActive, setRecordingActive] = useState(false);
   const [knowledgeResults, setKnowledgeResults] = useState([]);
   const lessonRef = useRef(null), paperRef = useRef(null), playerRef = useRef(null), playRevision = useRef(0), mounted = useRef(true);
+  const taps = useRef([]);
 
   useEffect(() => {
     // A saved block opens a new lesson. Bring its instructions into view rather
@@ -122,11 +125,31 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
     }
   }, [drawing, hands, range, frame?.activeSignature, frame?.phase]);
 
+  useEffect(() => {
+    if (!drawing || !followScore || !mode || mode === "listening") return;
+    // Keep the current grand-staff system visible, including during a passage's
+    // count-in. Scroll only at bar changes and only when its system is obscured.
+    const bar = frame?.phase === "playing" ? frame.bar : range.from;
+    const mark = drawing.marks.find((item) => item.bar === bar && (hands === "both" || item.hand === hands));
+    const element = mark?.els.find((el) => el.closest?.(".abcjs-staff-wrapper"));
+    const system = element?.closest(".abcjs-staff-wrapper");
+    if (!system) return;
+    const rect = system.getBoundingClientRect();
+    const container = paperRef.current?.closest(".ws-desk-main");
+    const bounds = container?.getBoundingClientRect();
+    const top = (bounds?.top || 0) + 210, bottom = (bounds?.bottom || window.innerHeight) - 105;
+    if (rect.top < top || rect.bottom > bottom) {
+      // Immediate motion keeps notation steady once the count-in has begun.
+      (container || window).scrollBy({ top: rect.top - top, behavior: "instant" });
+    }
+  }, [drawing, followScore, mode, frame?.phase, frame?.bar, range.from, hands]);
+
   const play = async (nextMode, atBpm) => {
     if (recordingActive || saving) return;
     stop(); setAudioError(null);
     if (!parsed) return;
     practice?.metro?.stop();
+    stopLegacyAudio();
     const token = playRevision.current;
     try {
       const plan = planPlayback(parsed.score, { bpm: atBpm, hands, countIn, ...range, soundNotes: nextMode !== "along" || referenceAlong, metronome: nextMode === "along" });
@@ -163,7 +186,7 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
   const chooseRange = (value) => { stop(); setRange(value); edited(); };
   const hearQuestion = async (question) => {
     if (recordingActive || saving || !question.audio) return;
-    stop(); setAudioError(null); practice?.metro?.stop();
+    stop(); setAudioError(null); practice?.metro?.stop(); stopLegacyAudio();
     const token = playRevision.current;
     try {
       const plan = planPlayback({ beatsPerBar: 4, meter: [4, 4], bars: [{ n: 1, beat: 0 }], endBeat: question.audioBeats || 3, notes: question.audio }, { bpm: 60, countIn: false });
@@ -181,6 +204,15 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
     if (action === "metronome" || action === "coach") { if (mode) stop(); else if (ready) play("along", Number(bpm)); }
     else if (action === "bpm") {
       stop(); setBpm((value) => Math.max(20, Math.min(160, Number(value) + (Number(event.detail?.delta) || 5)))); edited();
+    } else if (action === "tap") {
+      if (recordingActive || saving) return;
+      stop();
+      const now = performance.now(), previous = taps.current.at(-1);
+      taps.current = previous === undefined || now - previous > 4000 ? [now] : [...taps.current, now].slice(-8);
+      if (taps.current.length > 1) {
+        const average = (now - taps.current[0]) / (taps.current.length - 1);
+        setBpm(Math.max(20, Math.min(160, Math.round(60000 / average)))); edited();
+      }
     } else if (action === "hands") {
       const choices = HANDS.map(([value]) => value).filter((value) => value === "both" || !parsed || availableHands.has(value));
       changeHands(choices[(choices.indexOf(hands) + 1) % choices.length]);
@@ -209,6 +241,10 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
         {exercise.abc && !parsed && !scoreError && <p role="status">Loading the written score…</p>}
         {!exercise.abc && <p className="ws-player-caption">This is an away-from-the-keys exercise. Follow the steps below.</p>}
         {scoreError && <p role="alert" className="ws-player-error">{scoreError}</p>}
+        {mode && mode !== "listening" && <div className="ws-player-follow-bar">
+          <span>{frame?.phase === "countin" ? `Count in: ${frame.count} of ${frame.countTotal}` : `${mode === "along" ? "Play along" : "Reference"} · ${barLabel(frame?.bar || range.from)}`}</span>
+          <button type="button" className="ws-player-button" onClick={stop}>■ Stop playback</button>
+        </div>}
         <div className="ws-player-paper" ref={paperRef} />
         {ready && <>
           <div className="ws-player-tempo">
@@ -226,6 +262,7 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
             <label><input type="checkbox" checked={countIn} onChange={(e) => { stop(); setCountIn(e.target.checked); }} />{exercise.pickup && range.from === 1 ? "Count in to the pickup" : "One-bar count-in"}</label>
             <label><input type="checkbox" checked={loop} onChange={(e) => { stop(); setLoop(e.target.checked); }} />Repeat the excerpt</label>
             <label><input type="checkbox" checked={referenceAlong} onChange={(e) => { stop(); setReferenceAlong(e.target.checked); }} />Include reference while I play</label>
+            <label><input type="checkbox" checked={followScore} onChange={(e) => setFollowScore(e.target.checked)} />Follow score while playing</label>
           </div>
           <div className="ws-player-position" aria-live="polite" aria-atomic="true">
             {mode === "listening" ? "Listening example · the lesson score is paused" : frame?.phase === "countin" ? `Count in: ${frame.count} of ${frame.countTotal}` : mode ? `${mode === "along" ? "Play along" : "Reference"} · ${barLabel(frame?.bar || range.from)}${loop ? ` · pass ${frame?.pass || 1}` : ""}` : "Ready to listen or play"}
@@ -241,7 +278,7 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
       {exercise.listenFor?.length > 0 && <section className="ws-player-listen"><h3>Listen for</h3><ul>{exercise.listenFor.map((item, i) => <li key={i}>{item}</li>)}</ul></section>}
       <KnowledgeChecks questions={knowledgeForExercise(exercise)} onResultsChange={setKnowledgeResults} onEdited={edited} onHear={hearQuestion} disabled={recordingActive || saving} />
 
-      <PracticeRecorder fileName={`woodshed-${exercise.id}`} disabled={mode !== null || saving} onActivityChange={setRecordingActive} onBeforeRecord={() => { stop(); practice?.metro?.stop(); }} />
+      <PracticeRecorder fileName={`woodshed-${exercise.id}`} disabled={mode !== null || saving} onActivityChange={setRecordingActive} onBeforeRecord={() => { stop(); practice?.metro?.stop(); stopLegacyAudio(); }} />
 
       <form onSubmit={save} className="ws-player-review">
         <h3>Review your practice</h3>

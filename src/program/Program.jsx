@@ -108,8 +108,13 @@ export default function Program({ section, progress, onAttempt, onLegacyView, un
     .sort((a, b) => String(exerciseProgress(p, a.id).lastPractised).localeCompare(String(exerciseProgress(p, b.id).lastPractised))).slice(0, 3);
   const open = (exerciseId, context = {}) => { setSaved(""); setActive({ exerciseId, ...context }); };
   const changeUnit = (id) => { setActive(null); setSaved(""); onUnitChange?.(id); };
-  const startSession = (session) => open(session.blocks[sessionProgress(p, session).nextBlock ?? 0].exerciseId,
-    { sessionId: session.id, blockIndex: sessionProgress(p, session).nextBlock ?? 0 });
+  const startSession = (session) => {
+    const state = sessionProgress(p, session), index = state.nextBlock ?? 0;
+    // A deliberate whole-session revisit is a fresh visit through every block.
+    // Its remaining work must not be inferred from lifetime completion marks.
+    open(session.blocks[index].exerciseId, { sessionId: session.id, blockIndex: index,
+      ...(state.done ? { reviewBlocks: session.blocks.map((_, i) => i) } : {}) });
+  };
   const startPlacement = () => {
     const index = PLACEMENT.findIndex((id) => !p.placement[id]);
     const i = index < 0 ? 0 : index;
@@ -127,9 +132,10 @@ export default function Program({ section, progress, onAttempt, onLegacyView, un
     } else if (active.sessionId) {
       const session = SESSIONS.find((s) => s.id === active.sessionId);
       const completed = sessionProgress(p, session).completedBlocks;
-      const i = session.blocks.findIndex((b, index) => index !== active.blockIndex && !completed.includes(index));
+      const reviewBlocks = active.reviewBlocks?.filter((index) => index !== active.blockIndex);
+      const i = reviewBlocks ? reviewBlocks[0] ?? -1 : session.blocks.findIndex((b, index) => index !== active.blockIndex && !completed.includes(index));
       if (i >= 0) {
-        open(session.blocks[i].exerciseId, { sessionId: session.id, blockIndex: i });
+        open(session.blocks[i].exerciseId, { sessionId: session.id, blockIndex: i, ...(reviewBlocks ? { reviewBlocks } : {}) });
         setSaved(`Saved: ${exercise.title}. Next block in this session:`);
       } else {
         setActive(null);

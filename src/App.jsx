@@ -368,7 +368,7 @@ export default function Woodshed() {
             {views}
             <nav className="ws-nav">
               {VIEWS.map(([k, label, icon]) => (
-                <button key={k} className={`ws-tab ${view === k ? "on" : ""}`} aria-current={view === k ? "page" : undefined} onClick={() => setView(k)}>
+                <button key={k} className={`ws-tab ${view === k ? "on" : ""}`} aria-current={view === k ? "page" : undefined} onClick={() => showView(k)}>
                   <span className="ws-tab-icon" aria-hidden="true">{icon}</span>{label}
                 </button>
               ))}

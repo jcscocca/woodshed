@@ -57,12 +57,16 @@ steps, listening goals and self-checks. **Hear slowly**, **Hear reference** and
 **Play along** share the displayed score's note data. Choose either hand or both,
 set a comfortable tempo, select a written bar range, count in and loop that passage. Pickups keep their actual written timing and bar labels. Play-along
 provides a click and moving score position; **Include reference while I play**
-adds the model notes. MIDI and microphone access are unnecessary.
+adds the model notes. **Follow score while playing** keeps the current system
+visible on long scores, with a pinned stop control; turn it off to browse freely.
+MIDI and microphone access are unnecessary.
 
 **Save practice** records learner-reported minutes, tempo, hands, passage, visit
 goal, observed self-checks, readiness and a note for next time. These are
 self-assessments, with no invented accuracy score. Progress includes earlier
-history and corrections; removing the last report for a block reopens that block.
+history and corrections; removing the last report for a block reopens that block
+unless an older imported completion already existed. **Revisit session** walks
+through every block again without clearing earlier progress.
 Save failures leave the lesson open with an error. Progress, session resume and
 placement survive reload and JSON export/import; older practice history is retained.
 The weekly target is five days × two 20-minute visits, or 200 minutes.
@@ -128,16 +132,17 @@ The sections below document the earlier piano/guitar tools retained in Catalogue
 
 ## On the desktop
 
-At 1024px and wider Woodshed switches to a three-pane layout: the views in a
-sidebar, today's set (or Tracks, Library, Progress) in the middle, and a
-practice rail on the right — metronome and stopwatch always there, with the
-open lesson or the tuner beneath them. Narrower windows get the phone layout.
+At 1024px and wider Woodshed switches to a three-pane layout: navigation in a
+sidebar, the piano program in the middle, and a practice rail on the right.
+The rail contains a metronome and stopwatch; earlier Catalogue lessons and the
+tuner also use that rail. Narrower windows get the phone layout.
 
 **Install it:** open https://jcscocca.github.io/woodshed/ in Chrome or Edge and
 choose *Install app* (address bar icon or the ⋮ menu). It gets its own window,
 works offline, and updates itself when a new version is pushed.
 
-**Keyboard** (desktop layout only): **Space** starts/stops the metronome —
+**Keyboard** (desktop layout only): **Space** starts/stops the open course
+lesson's play-along, or the metronome when no course lesson is open —
 unless you've Tabbed to a button, in which case Space presses that button
 instead. **T** taps tempo. **←/→** nudge tempo ±1 (**Shift** ±10). **S**
 starts/pauses the stopwatch. **1–5** switch the five piano program sections.

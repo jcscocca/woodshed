@@ -9,6 +9,8 @@
 .ws-player-paper svg{max-width:100%;height:auto;display:block}
 .ws-player-paper .ws-player-dim{opacity:.24}
 .ws-player-paper .ws-player-current{fill:var(--gold,#e3a948);color:var(--gold,#e3a948);filter:drop-shadow(0 0 3px rgba(227,169,72,.3))}
+.ws-player-follow-bar{position:sticky;top:108px;z-index:4;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px;background:var(--bg2,#221f1b);border:1px solid var(--line2);border-radius:8px;font-size:12px}
+.ws-player-follow-bar .ws-player-button{flex:none;padding:7px 9px}
 .ws-player-hand-controls{display:flex;gap:4px;padding:4px;background:var(--bg,#1b1916);border-radius:9px;width:fit-content;max-width:100%}
 .ws-player-hand-controls button{border:1px solid transparent;background:transparent;color:var(--muted,#a79d8e);font:inherit;font-size:13px;padding:6px 10px;border-radius:6px;cursor:pointer}
 .ws-player-hand-controls button[aria-pressed=true]{background:var(--bg3,#2b2722);border-color:var(--line2,rgba(243,238,229,.15));color:var(--text,#f3eee5)}

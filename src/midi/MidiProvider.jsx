@@ -2,7 +2,8 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { createMidiConnection } from "./connection.js";
 import { parseMidi, createTakeBuffer } from "./midiModel.js";
 import { overlay } from "./overlay.js";
-import { playTake } from "../lessonAudio.js";
+import { playTake, stop as stopLessonAudio } from "../lessonAudio.js";
+import { usePractice } from "../PracticeProvider.jsx";
 
 const MidiContext = createContext(null);
 export const useMidi = () => useContext(MidiContext);
@@ -20,6 +21,10 @@ function browserAccess() {
 // The one MIDI connection (piano, desktop). The context value changes only with
 // the connection status or band state; played notes reach subscribers directly.
 export function MidiProvider({ enabled, children }) {
+  const coursePlaying = !!usePractice()?.coursePlaying;
+  const coursePlayingRef = useRef(coursePlaying);
+  coursePlayingRef.current = coursePlaying;
+  useEffect(() => { if (coursePlaying) stopLessonAudio(); }, [coursePlaying]);
   const conn = useMemo(() => (enabled ? createMidiConnection(browserAccess()) : null), [enabled]);
   const [state, setState] = useState({ status: conn ? conn.status : "off", deviceName: "" });
   const [stateConn, setStateConn] = useState(conn);
@@ -44,7 +49,9 @@ export function MidiProvider({ enabled, children }) {
 
   const connect = useCallback(() => conn.connect(), [conn]);
   const subscribe = useCallback((f) => { subs.current.add(f); return () => subs.current.delete(f); }, []);
-  const playLastTake = useCallback(() => { if (!overlay.get().busy) playTake(take.current.lastTake()); }, []);
+  const playLastTake = useCallback(() => {
+    if (!overlay.get().busy && !coursePlayingRef.current) playTake(take.current.lastTake());
+  }, []);
   const value = useMemo(() => conn && {
     ...state,
     connect, subscribe, playLastTake,

@@ -252,4 +252,38 @@ test("removing the last report reopens only its block, retaining another report 
   assert.throws(() => removeAttempt(p, 90), /saved practice/);
 });
 
+test("removing a new review preserves the same block's imported completion through save, edit and reload", () => {
+  const old = normalizeProgress({ completedBlocks: { [session.id]: [0] } });
+  assert.deepEqual(Object.keys(old).sort(), ["attempts", "completedBlocks", "placement"]);
+  let p = log(old, { sessionId: session.id, blockIndex: 0 });
+  assert.deepEqual(p.completionOnlyBlocks, { [session.id]: [0] });
+  p = normalizeProgress(JSON.parse(JSON.stringify(p)));
+  p = editAttempt(p, 0, { minutes: 5 });
+  p = removeAttempt(p, 0);
+  assert.deepEqual(p.completedBlocks, old.completedBlocks);
+  assert.equal(sessionProgress(p, session).completed, 1);
+  assert.deepEqual(old, normalizeProgress({ completedBlocks: { [session.id]: [0] } }), "original remains unchanged");
+});
+
+test("new first-ever completions still reopen after every report is removed", () => {
+  let p = log({}, { sessionId: session.id, blockIndex: 0 });
+  p = log(p, { sessionId: session.id, blockIndex: 0 });
+  assert.equal(p.completionOnlyBlocks, undefined, "a logged block is not imported evidence");
+  p = removeAttempt(p, 1);
+  assert.deepEqual(sessionProgress(p, session).completedBlocks, [0]);
+  p = removeAttempt(p, 0);
+  assert.deepEqual(sessionProgress(p, session).completedBlocks, []);
+});
+
+test("completion-only provenance is sanitized and cannot manufacture a new completion", () => {
+  const p = normalizeProgress({ completedBlocks: { [session.id]: [0, 2] }, completionOnlyBlocks: {
+    [session.id]: [0, 0, 1, -1, "2", 99999], missing: [0], toString: [0], bad: "all",
+  } });
+  assert.deepEqual(p.completionOnlyBlocks, { [session.id]: [0] });
+  assert.deepEqual(p.completedBlocks, { [session.id]: [0, 2] });
+  const safe = log({}, { sessionId: "toString", blockIndex: 0 });
+  assert.deepEqual(safe.completedBlocks.toString, [0]);
+  assert.deepEqual(removeAttempt(safe, 0).completedBlocks, {});
+});
+
 process.on("exit", () => { if (failures) { console.error(`\n${failures} failing`); process.exitCode = 1; } else console.log("\nall green"); });
