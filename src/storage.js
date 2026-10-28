@@ -10,6 +10,8 @@
 import { SCHEMA_VERSION } from "./engine.js";
 import { INSTRUMENTS, ECHO_SEED, SEED, trackItems } from "./seed.js";
 import { COACH_ENABLED } from "./features.js";
+import { normalizeProgress } from "./program/progress.js";
+import { COURSE, UNITS } from "./program/curriculum.js";
 
 const KEY = "woodshed-state-v1";
 
@@ -82,6 +84,12 @@ export function migrate(state) {
     });
     if (s.currentSession?.items) s.currentSession.items = s.currentSession.items.filter((x) => !RETIRED.includes(x.itemId));
   }
+  // v8 -> v9: the self-guided piano course keeps learner-reported evidence
+  // separate from the older MIDI accuracy and tempo-ladder records.
+  s.programProgress = normalizeProgress(s.programProgress);
+  // The unit selector is additive: old C-major saves retain their exercise and
+  // session identities, and no completed work is reset when more keys arrive.
+  if (!UNITS.some((unit) => unit.id === s.programUnitId)) s.programUnitId = COURSE.id;
   s.version = SCHEMA_VERSION;
   return s;
 }

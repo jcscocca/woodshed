@@ -23,6 +23,9 @@ export function ShortcutBridge({ onAction }) {
   const midi = useMidi();
   const run = useRef(null);
   run.current = (action) => {
+    // The self-guided player owns its transport while open. Give it the first
+    // chance to consume a shortcut before the legacy metronome/MIDI tools.
+    if (!window.dispatchEvent(new CustomEvent("woodshed:program-shortcut", { detail: action, cancelable: true }))) return;
     const a = routeAction(action, runStore.get().run);
     if (!a) return;
     if (a.type === "metronome") metro.toggle();

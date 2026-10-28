@@ -47,7 +47,7 @@ export function gradeTimed(targets, events, { t0, bpm, beatsPerBar = 4, now = In
   const cursor = order.find((i) => statuses[i] === "pending") ?? -1;
   return {
     statuses, offsets, extras, notesPct, rhythmPct, revisitBars,
-    clean: notesPct >= 90 && rhythmPct >= 80,
+    clean: notesPct >= 90 && rhythmPct >= 80 && extras.length === 0,
     done: !targets.length || now > Math.max(...expected) + WINDOW_MS,
     cursor,
   };

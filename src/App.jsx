@@ -21,6 +21,9 @@ import { MidiProvider } from "./midi/MidiProvider.jsx";
 import MidiBand from "./midi/MidiBand.jsx";
 import ScoreStage from "./score/ScoreStage.jsx";
 import ScorePanel from "./score/ScorePanel.jsx";
+import Program from "./program/Program.jsx";
+import { contextForExercise, normalizeProgress, recordAttempt } from "./program/progress.js";
+import { EXERCISES, UNITS, sessionsForUnit } from "./program/curriculum.js";
 
 // Resource links are user-entered and ride along in exported/imported backups,
 // so treat them as untrusted. Only http(s) URLs ever reach an href — a
@@ -44,7 +47,8 @@ const normalizeUrl = (raw) => {
    ============================================================ */
 export default function Woodshed() {
   const [data, setData] = useState(null);
-  const [view, setView] = useState("today");
+  const [view, setView] = useState("guided");
+  const [legacyView, setLegacyView] = useState(null);
   const [logging, setLogging] = useState(false);    // true = today's set, or { items } for one coached item
   const [showSettings, setShowSettings] = useState(false);
   const [practiceOpen, setPracticeOpen] = useState(false);
@@ -123,7 +127,7 @@ export default function Woodshed() {
           date: today, itemId: e.itemId, inst: it ? it.inst : "piano",
           minutes: e.minutes, rating: e.rating, bpm: e.bpm ?? null, note: note || "",
           accuracy: e.accuracy ?? null, coached: e.accuracy != null, missed: e.missed ?? [],
-          rhythm: e.rhythm ?? null, section: e.section ?? null,
+          rhythm: e.rhythm ?? null, section: e.section ?? null, hands: e.hands ?? null, mode: e.mode ?? null,
         });
       }
       return { ...d, sessions, currentSession: logging === true ? { ...d.currentSession, completed: true } : d.currentSession };
@@ -208,13 +212,38 @@ export default function Woodshed() {
     } catch { return false; }
   };
 
-  const streak = streakInfo(data.sessions);
+  const courseAttempts = normalizeProgress(data.programProgress).attempts.filter((a) => a.section !== "placement");
+  const streak = streakInfo([...data.sessions, ...courseAttempts]);
+  const onProgramAttempt = async (entry) => {
+    const progress = normalizeProgress(data.programProgress);
+    const unitId = EXERCISES.find((exercise) => exercise.id === entry.exerciseId)?.unitId || data.programUnitId;
+    const context = entry.section === "placement" || entry.sessionId ? {} : contextForExercise(progress, sessionsForUnit(unitId), entry.exerciseId);
+    const programProgress = recordAttempt(progress, { ...context, ...entry });
+    // Confirm durability before the lesson says it was saved or advances.
+    if (!(await saveState({ ...data, programProgress }))) {
+      setSaveError(true);
+      throw new Error("Practice could not be saved in this browser.");
+    }
+    setData((d) => ({ ...d, programProgress }));
+    setSaveError(false);
+  };
+  const changeProgramProgress = async (value) => {
+    const programProgress = normalizeProgress(value);
+    if (!(await saveState({ ...data, programProgress }))) {
+      setSaveError(true);
+      throw new Error("Your practice correction could not be saved.");
+    }
+    setData((d) => ({ ...d, programProgress })); setSaveError(false);
+  };
+  const chooseProgramUnit = (unitId) => {
+    if (UNITS.some((unit) => unit.id === unitId)) setData((d) => ({ ...d, programUnitId: unitId }));
+  };
   const openLesson = (it) => { setTunerOpen(false); setLessonFor(it); if (hasScore(getLesson(it.id))) setShowScore(true); };
   const closeLesson = () => { setLessonFor(null); setShowScore(false); };
-  const showView = (v) => { setView(v); setShowScore(false); };
+  const showView = (v) => { closeLesson(); setTunerOpen(false); setView(v); setLegacyView(null); };
   const onShortcut = (a) => {
     if (a.type === "view") showView(a.view);
-    else if (a.type === "log") { if (!session.completed && session.items.length) setLogging(true); }
+    else if (a.type === "log") { if (view === "today" && !session.completed && session.items.length) setLogging(true); }
     else if (a.type === "close") { closeLesson(); setTunerOpen(false); }
     else if (a.type === "help") setShowKeys(true);
     else if (a.type === "score") { if (isScored) setShowScore(true); }
@@ -235,6 +264,14 @@ export default function Woodshed() {
   const saveErr = saveError && <div className="ws-saveerr">Couldn't save your latest change to this browser — your history may not persist.</div>;
   const views = (
     <main className="ws-main">
+      {["guided", "chords", "scales", "progress"].includes(view) && <Program key={view} section={view} progress={data.programProgress} onAttempt={onProgramAttempt} unitId={data.programUnitId} onUnitChange={chooseProgramUnit} onChangeProgress={changeProgramProgress} />}
+      {view === "progress" && data.sessions.length > 0 && <details className="pg-legacy-toggle"><summary>Earlier practice history</summary><Progress data={data} live={live} streak={streak} onEditSession={setEditSession} /></details>}
+      {view === "catalogue" && !legacyView && <Program key={view} section={view} progress={data.programProgress} onAttempt={onProgramAttempt} unitId={data.programUnitId} onUnitChange={chooseProgramUnit} onLegacyView={setLegacyView} />}
+      {view === "catalogue" && legacyView && <>
+        <button className="ws-btn ghost sm" style={{ marginBottom: 20 }} onClick={() => { closeLesson(); setLegacyView(null); }}>← Back to catalogue</button>
+        {legacyView === "tracks" && <Tracks live={live} onComplete={completeStage} onReopen={reopenStage} onLearn={openLesson} selectedId={selectedId} />}
+        {legacyView === "library" && <Library items={live.items} onOpen={(it) => setItemForm({ item: it })} onAdd={() => setItemForm({ item: null })} onLearn={openLesson} selectedId={selectedId} />}
+      </>}
       {view === "today" && proposals.length > 0 && (
         <button className="ws-prop-banner" onClick={() => setShowProposals(true)}>
           <span className="ws-prop-spark">✦</span>
@@ -253,7 +290,6 @@ export default function Woodshed() {
       {view === "library" && (
         <Library items={live.items} onOpen={(it) => setItemForm({ item: it })} onAdd={() => setItemForm({ item: null })} onLearn={openLesson} selectedId={selectedId} />
       )}
-      {view === "progress" && <Progress data={data} live={live} streak={streak} onEditSession={setEditSession} />}
     </main>
   );
   const dialogs = (
@@ -332,7 +368,7 @@ export default function Woodshed() {
             {views}
             <nav className="ws-nav">
               {VIEWS.map(([k, label, icon]) => (
-                <button key={k} className={`ws-tab ${view === k ? "on" : ""}`} aria-current={view === k ? "page" : undefined} onClick={() => setView(k)}>
+                <button key={k} className={`ws-tab ${view === k ? "on" : ""}`} aria-current={view === k ? "page" : undefined} onClick={() => showView(k)}>
                   <span className="ws-tab-icon" aria-hidden="true">{icon}</span>{label}
                 </button>
               ))}
@@ -458,7 +494,7 @@ function LogSheet({ session, itemById, lastTempo, coachResults = {}, onCancel, o
   const init = session.items.filter((x) => itemById(x.itemId)).map((x) => {
     const it = itemById(x.itemId);
     const c = coachResults[x.itemId];
-    return { itemId: x.itemId, title: it?.title || "", inst: it?.inst || "piano", done: true, minutes: x.minutes, rating: "good", bpm: c?.bpm ?? it?.lastBpm ?? null, accuracy: c?.accuracy ?? null, missed: c?.missed ?? [], rhythm: c?.rhythm ?? null, section: c?.section ?? null };
+    return { itemId: x.itemId, title: it?.title || "", inst: it?.inst || "piano", done: true, minutes: x.minutes, rating: "good", bpm: c?.bpm ?? it?.lastBpm ?? null, accuracy: c?.accuracy ?? null, missed: c?.missed ?? [], rhythm: c?.rhythm ?? null, section: c?.section ?? null, hands: c?.hands ?? null, mode: c?.mode ?? null };
   });
   const [entries, setEntries] = useState(init);
   const [note, setNote] = useState("");

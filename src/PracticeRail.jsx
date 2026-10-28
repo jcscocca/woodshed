@@ -24,7 +24,7 @@ export default function PracticeRail({ lesson, scored, tunerOpen, onOpenTuner, o
             {lesson || <ListenPanel />}
           </>
         ) : (
-          <p className="ws-rail-hint">Pick <b>Learn</b> on any card to open its lesson here, beside your set.</p>
+          <p className="ws-rail-hint">Open a lesson in Guided Practice, Chords or Scales to begin. Use these tools for extra practice.</p>
         )}
       </section>
     </aside>
