@@ -1,14 +1,88 @@
 # Woodshed
 
-A practice app for piano and guitar. It builds you a short daily set, gives
-each item a lesson, lets you log how it went, and shows your progress — and it
-shapes the next day from what you logged, favoring whichever instrument is most
-overdue and whatever you haven't played in a while.
+A guided piano program with separate **Guided Practice**, **Chords**, **Scales**,
+**Catalogue**, and **Progress** sections. Five self-contained units in **C, G, F,
+A minor and D major** work without a MIDI keyboard, building steady rhythm,
+hand coordination and musical reading alongside scales and accompaniment.
 
 Built with React + Vite. No account, no server — your history lives in your
 browser.
 
 ---
+
+## The guided key units
+
+Each key unit has five rolling practice days, each with two 20-minute sessions:
+**A — foundations**, then **B — applying those skills to music**. Resume at the
+first unfinished block; practice from Chords or Scales also satisfies a matching
+block in that key's current guided session. Later review blocks remain in the plan.
+Use **Piano unit** to move between keys in Guided Practice, Chords, Scales or
+Catalogue. The selection and each key's progress survive reload and backup/import.
+The units form a C → G → F → A minor → D sequence, with all lessons available for preview.
+
+- **C major:** steady pulse, ledger-note landmarks, held and broken bass,
+  one-octave scale fingering, primary chords and simple original studies.
+- **G major:** F♯ in both clefs, G-scale crossings, G/C/D7/Em progressions,
+  close chord changes, independent rhythms and new musical applications.
+- **F major:** B♭ in both clefs, the RH four-before-thumb fingering, F/B♭/C7/Dm,
+  rhythm and accompaniment work, and contrasting original studies.
+- **A minor:** natural/harmonic scales, Am/Dm/E7, 3/8 and sixteenth-note
+  preparation; five Music visits develop the authentic Für Elise pickup and
+  bars 1–8 through its first ending, with source notes, rests and partial bars.
+- **D major:** two sharps, D/G/A7/Bm/F#m and an inspected Canon ground bass;
+  five Music visits build a clearly labeled original piano realization of that
+  bass. Separate 6/8 preparation and two different first-reading examples.
+
+There are **133 self-contained exercises** and **50 guided sessions / 1,000 planned minutes** across the five units.
+The weekly target stays five days × two visits, or **200 minutes**; days are a
+rolling practice sequence, rather than calendar deadlines. Progress shows both
+the course total and the individual unit totals. Existing C-major saves retain
+their lesson IDs and completed blocks.
+
+Start with the short **placement** checks, or open any lesson directly. Each
+lesson includes its written score, explicit counting and fingering, practice
+steps, listening goals and self-checks. **Hear slowly**, **Hear reference** and
+**Play along** share the displayed score's note data. Choose either hand or both,
+set a comfortable tempo, select a written bar range, count in and loop that passage. Pickups keep their actual written timing and bar labels. Play-along
+provides a click and moving score position; **Include reference while I play**
+adds the model notes. MIDI and microphone access are unnecessary.
+
+**Save practice** records learner-reported minutes, tempo, hands, passage, visit
+goal, observed self-checks, readiness and a note for next time. These are
+self-assessments, with no invented accuracy score. Progress includes earlier
+history and corrections; removing the last report for a block reopens that block.
+Save failures leave the lesson open with an error. Progress, session resume and
+placement survive reload and JSON export/import; older practice history is retained.
+The weekly target is five days × two 20-minute visits, or 200 minutes.
+
+The Catalogue separates optional outside material from the self-contained core.
+Curated built-in alternatives can replace a matching guided goal. The original
+repertoire tracks and exercise library remain accessible there, including their
+existing MIDI score tools. Commercial repertoire links are external resources;
+they are not bundled into required lessons.
+
+**Optional recording:** press Record in a lesson to request the microphone, then
+stop and listen for one chosen criterion. Takes stay in that lesson's memory,
+with a three-minute maximum, explicit download/discard and no upload. Download
+before closing or saving/advancing if you want to keep the audio. Practice logs
+save your report and notes, not the recording. Denied/unsupported microphone
+access does not prevent any lesson or logging.
+
+The C/G/F bank is primarily short original foundation practice. A minor and D
+add returning, source-grounded musical projects. This is a developed foundation
+course, **not a validated complete adult-method replacement**: A/E major and
+broader forms, repertoire and technique remain beyond its current coverage.
+Synthesized audio models notes/time rather than a pianist's phrasing. Read the
+[material review and exact source decisions](docs/piano-curriculum-evidence.md)
+for what was examined, arranged, rejected or deferred.
+
+Run `npm test` for the existing suites plus curriculum, shared-progress,
+storage-round-trip and playback checks. `npm run test:program` runs only the new
+course checks.
+
+## Earlier practice tools
+
+The sections below document the earlier piano/guitar tools retained in Catalogue.
 
 ## What it does
 
@@ -42,7 +116,7 @@ works offline, and updates itself when a new version is pushed.
 **Keyboard** (desktop layout only): **Space** starts/stops the metronome —
 unless you've Tabbed to a button, in which case Space presses that button
 instead. **T** taps tempo. **←/→** nudge tempo ±1 (**Shift** ±10). **S**
-starts/pauses the stopwatch. **1–4** switch views. **L** logs today's set.
+starts/pauses the stopwatch. **1–5** switch the five piano program sections.
 **Esc** closes the lesson or tuner in the rail. **?** shows the full list.
 Nothing fires while you're typing in a field or while a dialog is open.
 
@@ -93,7 +167,7 @@ back.
 
 Open a piece, a pop stage, or the sight-reading drill, and it takes over the
 middle pane as a **grand staff**, four bars to a system, with a **Score**
-entry in the sidebar (key **5**) while it's open.
+entry in the sidebar (key **6**) while it's open.
 
 Work a **section** — the piece's own presets (**A**, **B**, **all**) or click
 any note in a bar (shift-click sets the far end) — and the rest of the staff dims
@@ -144,7 +218,7 @@ click; three clean drills in a row and the app offers **Level up →** — it
 only advances if you take the offer.
 
 New shortcuts: **W** wait mode / play-along, **H** cycles hands, **N** a new
-drill, **[ / ]** previous/next section, **5** back to the open score, **↑/↓**
+drill, **[ / ]** previous/next section, **6** back to the open score, **↑/↓**
 move the page. Mid-run, **Space** or **C** stops it, and ←/→ and the rail's
 tempo controls lock for the run; **Esc** stops a run on the first press and
 closes the score on the second.

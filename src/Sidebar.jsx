@@ -1,6 +1,6 @@
 import React from "react";
 
-export const VIEWS = [["today", "Today", "◐"], ["tracks", "Tracks", "◆"], ["library", "Library", "▤"], ["progress", "Progress", "◈"]];
+export const VIEWS = [["guided", "Guided Practice", "◐"], ["chords", "Chords", "♬"], ["scales", "Scales", "◆"], ["catalogue", "Catalogue", "▤"], ["progress", "Progress", "◈"]];
 
 export default function Sidebar({ view, onView, scoreOpen, onScore, onSettings, onHelp, children }) {
   return (
@@ -15,7 +15,7 @@ export default function Sidebar({ view, onView, scoreOpen, onScore, onSettings, 
         ))}
         {onScore && (
           <button className={`ws-side-tab ${scoreOpen ? "on" : ""}`} aria-current={scoreOpen ? "page" : undefined} onClick={onScore}>
-            <span className="ws-tab-icon" aria-hidden="true">♪</span>Score<kbd className="ws-kbd" aria-hidden="true">5</kbd>
+            <span className="ws-tab-icon" aria-hidden="true">♪</span>Score<kbd className="ws-kbd" aria-hidden="true">6</kbd>
           </button>
         )}
       </nav>

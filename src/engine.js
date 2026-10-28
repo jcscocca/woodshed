@@ -271,12 +271,12 @@ export function minutesInLastDays(sessions, n) {
 }
 
 // ---- fresh install state ----
-export const SCHEMA_VERSION = 8;
+export const SCHEMA_VERSION = 9;
 export function freshData() {
   return {
     version: SCHEMA_VERSION,
     items: [...SEED.map((s) => ({ ...s, hidden: false })), ...trackItems()],
-    settings: { target: 20, weeklyGoal: 4, enabled: { piano: true, guitar: true } },
+    settings: { target: 20, weeklyGoal: 5, enabled: { piano: true, guitar: false } },
     sessions: [],
     progress: { acked: {} },
     currentSession: null,
@@ -284,5 +284,7 @@ export function freshData() {
     sightLevel: {},
     songs: [],
     targetClean: {},
+    programProgress: { attempts: [], completedBlocks: {}, placement: {} },
+    programUnitId: "c-major-foundations-1",
   };
 }

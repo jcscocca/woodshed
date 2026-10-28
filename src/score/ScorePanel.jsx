@@ -136,7 +136,7 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, song
     const teardown = () => { off(); clearTimeout(timer); overlay.reset(); live.current = null; };
     const end = () => {
       teardown();
-      const result = { wait: true, ...run.result() };
+      const result = { wait: true, hands, mode: "wait", ...run.result() };
       setRun({ state: "done", statuses: statuses(), cursor: -1, flash: false, result });
       setSay(waitLine(result));
     };
@@ -165,7 +165,7 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, song
     const teardown = () => { cancelAnimationFrame(raf); off(); overlay.reset(); metroRef.current.stop(); live.current = null; };
     const finish = (g, complete) => {
       teardown();
-      setRun({ state: "done", statuses: g.statuses, cursor: -1, result: { ...g, bpm, section: k, from, to } });
+      setRun({ state: "done", statuses: g.statuses, cursor: -1, result: { ...g, bpm, section: k, from, to, hands, mode: "play" } });
       // a drill counts toward the level-up streak once, on its first graded pass; any pass that isn't clean resets it
       if (sight) { if (!complete || !g.clean) setStreak(0); else if (!graded.current) setStreak((s) => s + 1); graded.current = true; }
       else if (complete && g.clean) {
@@ -173,7 +173,7 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, song
         onLadder(l, up);
         metroRef.current.setBpm(up);
         setLastClean((c) => ({ ...c, [l]: bpm }));
-        if (!songMode && k === "all" && bpm >= spec.target) onTargetClean?.();
+        if (!songMode && k === "all" && hands === "both" && bpm >= spec.target) onTargetClean?.();
       }
       setSay(`${bandOf(g)}: notes ${g.notesPct}% · rhythm ${g.rhythmPct}%`);
     };
@@ -244,7 +244,7 @@ export default function ScorePanel({ item, lesson, ladder = {}, sightLevel, song
   const note = !connected && (midi && midi.status === "unsupported" ? "MIDI needs Chrome or Edge."
     : `${midi && midi.status === "disconnected" ? "Keyboard disconnected. Plug it back in" : "Connect your keyboard"} to practise this.`);
   const logIt = () => {
-    onResult(r.wait ? null : { accuracy: r.notesPct, rhythm: r.rhythmPct, section: r.section, bpm: r.bpm, missed: r.revisitBars.map((b) => `bar ${b}`) });
+    onResult(r.wait ? { hands: r.hands, mode: "wait" } : { accuracy: r.notesPct, rhythm: r.rhythmPct, section: r.section, bpm: r.bpm, hands: r.hands, mode: "play", missed: r.revisitBars.map((b) => `bar ${b}`) });
     onRequestLog();
   };
 

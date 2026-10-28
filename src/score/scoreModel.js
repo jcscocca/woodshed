@@ -9,24 +9,28 @@ const round = (x) => Math.round(x * 1000) / 1000;
 export function walkTune(tune, visit) {
   const first = tune.lines.find((l) => l.staff);
   if (!first) return 0;
-  const { num, den } = tune.getMeterFraction(), bpb = (num * 4) / den;
   const voices = first.staff.reduce((n, s) => n + s.voices.length, 0);
   const hand = (v) => (voices > 1 ? (v ? "L" : "R") : first.staff[0].clef.type === "bass" ? "L" : "R");
-  const beats = [];
+  const beats = [], bars = [], barStarts = [];
   tune.lines.forEach((line, l) => {
     let v = 0;
     (line.staff || []).forEach((staff, s) => staff.voices.forEach((voice) => {
       // abcjs (parse and audio) closes a tuplet left open at the end of its line
-      let beat = beats[v] || 0, k = 1;
+      let beat = beats[v] || 0, bar = bars[v] || 1, barStart = barStarts[v] || 0, k = 1;
       for (const el of voice) {
+        // Follow written barlines. Dividing elapsed time by the metre shifts
+        // every later bar in music with an anacrusis (for example Für Elise).
+        if (el.el_type === "bar" && beat > barStart + 1e-9) {
+          bar++; barStart = beat;
+        }
         if (el.el_type !== "note" || !el.duration || (el.rest && el.rest.type === "spacer")) continue;
         if (el.startTriplet) k = el.tripletMultiplier;
         const b = round(beat);
-        visit({ line: l, staff: s, voice: v, el, beat: b, hand: hand(v), bar: Math.floor(b / bpb + 1e-9) + 1 });
+        visit({ line: l, staff: s, voice: v, el, beat: b, duration: round(el.duration * 4 * k), hand: hand(v), bar });
         beat += el.duration * 4 * k;
         if (el.endTriplet) k = 1;
       }
-      beats[v++] = beat;
+      beats[v] = beat; bars[v] = bar; barStarts[v] = barStart; v++;
     }));
   });
   return round(Math.max(0, ...beats));
@@ -65,15 +69,19 @@ export function parseScore(abc, abcjs) {
   const k = tune.getKeySignature();
   const beatsPerBar = (num * 4) / den;
   tune.setUpAudio({});
-  const notes = [];
-  const end = walkTune(tune, ({ el, beat, bar, hand }) => {
+  const notes = [], visualNotes = [], writtenBars = new Map();
+  const end = walkTune(tune, ({ el, beat, bar, hand, duration }) => {
+    if (!writtenBars.has(bar) || beat < writtenBars.get(bar)) writtenBars.set(bar, beat);
+    // A tie sounds as one MIDI event but is drawn as several written notes.
+    // Keep those segments so the cursor follows the notation through the tie.
+    if (!el.rest && el.pitches?.length) visualNotes.push({ beat, dur: duration, bar, hand });
     for (const p of el.midiPitches || []) notes.push({ midi: p.pitch, beat, dur: round(p.duration * 4 * (el.gracenotes ? 2 : 1)), bar, hand });
   });
   notes.sort((a, b) => a.beat - b.beat || a.midi - b.midi);
   let onset = -1, last = null;
   for (const n of notes) { if (n.beat !== last) { onset++; last = n.beat; } n.onset = onset; }
-  const bars = Array.from({ length: Math.ceil(end / beatsPerBar - 1e-9) }, (_, i) => ({ n: i + 1, beat: i * beatsPerBar }));
-  return { meter: [num, den], beatsPerBar, key: `${k.root}${k.acc}${k.mode || ""}`, bars, notes };
+  const bars = [...writtenBars].sort(([a], [b]) => a - b).map(([n, beat]) => ({ n, beat }));
+  return { meter: [num, den], beatsPerBar, key: `${k.root}${k.acc}${k.mode || ""}`, bars, notes, visualNotes, endBeat: end };
 }
 
 export const inSection = (notes, from, to) => notes.filter((n) => n.bar >= from && n.bar <= to);

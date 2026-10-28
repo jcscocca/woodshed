@@ -59,7 +59,7 @@ test("schema 8: songs and targetClean, placeholders retired, kept items re-homed
     { id: "trk-pno-4", inst: "piano", title: "Melody over block chords", trackId: "trk-pno-hands", order: 3, hidden: false },
   ], sessions: [{ id: "x", itemId: "pno-hanon", inst: "piano", date: "2026-09-20", minutes: 5 }],
     currentSession: { date: today, items: [{ itemId: "pno-piece", minutes: 10 }, { itemId: "pno-scales", minutes: 10 }] } });
-  assert.deepEqual(s.songs, []); assert.deepEqual(s.targetClean, {}); assert.equal(s.version, 8);
+  assert.deepEqual(s.songs, []); assert.deepEqual(s.targetClean, {}); assert.equal(s.version, 9);
   const by = Object.fromEntries(s.items.map((it) => [it.id, it]));
   assert.equal(by["pno-minuet"].trackId, "trk-pno-pieces"); assert.equal(by["pno-minuet"].order, 0);
   assert.equal(by["trk-pno-1"].mastered, true); assert.notEqual(by["trk-pno-1"].title, "old");

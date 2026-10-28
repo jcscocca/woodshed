@@ -11,9 +11,10 @@ export const usePractice = () => useContext(PracticeContext);
 export function PracticeProvider({ onTempo, children }) {
   const metro = useMetronome(90, 4);
   const [watch, setWatch] = useState(RESET_WATCH);
+  const [coursePlaying, setCoursePlaying] = useState(false);
 
   // remember the tempo while the metronome is running, to prefill the log
   useEffect(() => { if (metro.playing && onTempo) onTempo(metro.bpm); }, [metro.playing, metro.bpm, onTempo]);
 
-  return <PracticeContext.Provider value={{ metro, watch, setWatch }}>{children}</PracticeContext.Provider>;
+  return <PracticeContext.Provider value={{ metro, watch, setWatch, coursePlaying, setCoursePlaying }}>{children}</PracticeContext.Provider>;
 }

@@ -1,0 +1,16 @@
+.ws-recorder{margin:24px 0;padding:20px;border:1px solid var(--line2,rgba(243,238,229,.15));border-radius:14px;background:var(--bg2,#221f1b)}
+.ws-recorder-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ws-recorder-heading h3{margin:0 0 8px}
+.ws-recorder-optional{font-size:11px;color:var(--muted,#a79d8e)}
+.ws-recorder-copy{font-size:13px;color:var(--muted,#a79d8e);line-height:1.55;margin:8px 0 12px}
+.ws-recorder-status{font-size:13px;margin:14px 0 8px;min-height:1.6em}
+.ws-recorder-live{font-weight:600;color:#edb2a7}
+.ws-recorder-live::before{content:"● ";font-size:12px}
+.ws-recorder-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}
+.ws-recorder-controls a{text-decoration:none;display:inline-flex;align-items:center}
+.ws-recorder-time{font:12px 'JetBrains Mono',monospace;color:var(--muted,#a79d8e);margin-left:4px}
+.ws-recorder-take{margin-top:18px;padding-top:14px;border-top:1px solid var(--line2,rgba(243,238,229,.15))}
+.ws-recorder-take>p:first-child{font-size:13px;margin:0 0 10px}
+.ws-recorder-take audio{display:block;width:100%;max-width:620px;margin:10px 0}
+.ws-recorder-retention{margin-bottom:0}
+@media(max-width:600px){.ws-recorder{padding:16px}.ws-recorder-time{flex-basis:100%;margin-left:0}}

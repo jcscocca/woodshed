@@ -1,24 +1,23 @@
 // Desktop keyboard shortcuts. actionFor is pure so it can be tested in node;
 // useShortcuts.js wires it to a keydown listener.
-const VIEW_KEYS = { 1: "today", 2: "tracks", 3: "library", 4: "progress" };
+const VIEW_KEYS = { 1: "guided", 2: "chords", 3: "scales", 4: "catalogue", 5: "progress" };
 
 export const clampBpm = (n) => Math.max(40, Math.min(240, Math.round(n)));
 
 export const KEY_HELP = [
-  ["Space", "Metronome start / stop"],
+  ["Space", "Open lesson play / stop; otherwise metronome"],
   ["T", "Tap tempo"],
   ["← →", "Tempo −1 / +1 (Shift: ±10)"],
   ["S", "Stopwatch start / pause"],
-  ["1–4", "Today · Tracks · Library · Progress"],
-  ["L", "Log today's set"],
+  ["1–5", "Guided Practice · Chords · Scales · Catalogue · Progress"],
   ["K", "Keyboard band: show / hide"],
   ["P", "Play back what you just played"],
-  ["C", "Start / stop coaching the open lesson"],
+  ["C", "Start / stop the open lesson"],
   ["W", "Score: wait mode / play-along"],
   ["H", "Score: hands — both / right / left"],
   ["N", "Sight-reading: new drill"],
   ["[ ]", "Score: previous / next section"],
-  ["5", "Back to the open score"],
+  ["6", "Back to the open catalogue score"],
   ["↑ ↓ PgUp PgDn", "Score: move the page"],
   ["Esc", "Close the lesson or tuner"],
   ["?", "This list"],
@@ -43,7 +42,7 @@ export function actionFor(e, { typing = false, dialogOpen = false, buttonFocused
   if (k === "h") return { type: "hands" };
   if (k === "n") return { type: "drill" };
   if (k === "[" || k === "]") return { type: "section", delta: k === "[" ? -1 : 1 };
-  if (k === "5") return { type: "score" };
+  if (k === "6") return { type: "score" };
   if (k === "ArrowUp" || k === "PageUp") return { type: "scroll", delta: -1 };
   if (k === "ArrowDown" || k === "PageDown") return { type: "scroll", delta: 1 };
   return null;

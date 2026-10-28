@@ -4,11 +4,11 @@ import { toggleWatch, elapsedSec, RESET_WATCH } from "./stopwatch.js";
 import { useRun } from "./score/useRun.js";
 
 export default function PracticeTools({ hints = false, compact = false, stopwatchExtra = null }) {
-  const { metro: m, watch, setWatch } = usePractice();
+  const { metro: m, watch, setWatch, coursePlaying } = usePractice();
   const [, tick] = useState(0);
   const running = watch.startedAt != null;
   // a live play-along run owns the metronome
-  const { state, play } = useRun().run, locked = !!play && (state === "countin" || state === "running");
+  const { state, play } = useRun().run, locked = coursePlaying || (!!play && (state === "countin" || state === "running"));
 
   useEffect(() => {
     if (!running) return;

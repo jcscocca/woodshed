@@ -18,11 +18,12 @@ test("arrows nudge the tempo by 1, Shift by 10", () => {
   assert.deepEqual(actionFor(key("ArrowLeft", { shiftKey: true })), { type: "bpm", delta: -10 });
 });
 test("S toggles the stopwatch", () => assert.deepEqual(actionFor(key("s")), { type: "stopwatch" }));
-test("1-4 switch views", () => {
-  assert.deepEqual(actionFor(key("1")), { type: "view", view: "today" });
-  assert.deepEqual(actionFor(key("2")), { type: "view", view: "tracks" });
-  assert.deepEqual(actionFor(key("3")), { type: "view", view: "library" });
-  assert.deepEqual(actionFor(key("4")), { type: "view", view: "progress" });
+test("1-5 switch the piano program sections", () => {
+  assert.deepEqual(actionFor(key("1")), { type: "view", view: "guided" });
+  assert.deepEqual(actionFor(key("2")), { type: "view", view: "chords" });
+  assert.deepEqual(actionFor(key("3")), { type: "view", view: "scales" });
+  assert.deepEqual(actionFor(key("4")), { type: "view", view: "catalogue" });
+  assert.deepEqual(actionFor(key("5")), { type: "view", view: "progress" });
 });
 test("L logs, Escape closes, ? opens help", () => {
   assert.deepEqual(actionFor(key("l")), { type: "log" });
@@ -55,15 +56,19 @@ test("clampBpm keeps 40-240", () => {
   assert.equal(clampBpm(250), 240);
   assert.equal(clampBpm(92), 92);
 });
-test("KEY_HELP lists every shortcut", () => assert.equal(KEY_HELP.length, 17));
-test("score keys: W mode, H hands, N drill, [ ] section, 5 score, ↑ ↓ scroll", () => {
+test("KEY_HELP describes current navigation and omits the retired daily-set action", () => {
+  assert.ok(KEY_HELP.some(([key, text]) => key === "1–5" && text.includes("Chords") && text.includes("Catalogue")));
+  assert.ok(KEY_HELP.some(([key, text]) => key === "6" && text.includes("score")));
+  assert.ok(!KEY_HELP.some(([key]) => key === "L"));
+});
+test("score keys: W mode, H hands, N drill, [ ] section, 6 score, ↑ ↓ scroll", () => {
   assert.deepEqual(actionFor(key("w")), { type: "mode" });
   assert.deepEqual(actionFor(key("W", { shiftKey: true })), { type: "mode" });
   assert.deepEqual(actionFor(key("h")), { type: "hands" });
   assert.deepEqual(actionFor(key("n")), { type: "drill" });
   assert.deepEqual(actionFor(key("[")), { type: "section", delta: -1 });
   assert.deepEqual(actionFor(key("]")), { type: "section", delta: 1 });
-  assert.deepEqual(actionFor(key("5")), { type: "score" });
+  assert.deepEqual(actionFor(key("6")), { type: "score" });
   assert.deepEqual(actionFor(key("ArrowUp")), { type: "scroll", delta: -1 });
   assert.deepEqual(actionFor(key("ArrowDown")), { type: "scroll", delta: 1 });
   assert.deepEqual(actionFor(key("PageUp")), { type: "scroll", delta: -1 });
