@@ -71,6 +71,45 @@ Save failures leave the lesson open with an error. Progress, session resume and
 placement survive reload and JSON export/import; older practice history is retained.
 The weekly target is five days × two 20-minute visits, or 200 minutes.
 
+**Cumulative review** appears before the next guided session and draws from
+practised lessons across every unit. Up to three short return checks show the
+key, previous passage and next-step note; opening one keeps your selected unit
+and guided position. The review starts at your previous tempo, hands and passage.
+Try once with the written score before app playback, report that first attempt,
+then listen and repair as needed. The initial result and its tempo, hands and
+passage are saved separately from your final practice assessment. Skipping the
+first report records practice without inventing retention evidence.
+
+Starting a new guided session includes one due check in its existing twenty
+minutes: three minutes for review or a fresh example, with seventeen minutes
+distributed across all original lesson blocks. Saving that check preserves the
+allocation and session resume across reload and backup/import; the check itself
+never completes a lesson block. Sessions already in progress keep their existing
+plan. You can start without review, and a complete-session revisit retains its
+original twenty-minute lesson allocation. Opening a lesson directly uses its
+listed practice time.
+
+After two comparable steady before-playback returns since the last setback or
+transfer, supported skills occasionally use a **fresh example**. Six bounded
+families vary pulse, subdivision, landmark reading, held-bass coordination,
+two-to-one coordination or a chord route in an already-taught key. They use
+authored pitch, register and fingering profiles. Each example has a stable ID;
+used examples are skipped, and exhausting the bank falls back to an ordinary
+return. A fresh example's first result is stored as transfer evidence, separately
+from the original passage's readiness and spacing. A difficult fresh attempt's
+next-step note carries into the following return. These checks remain
+learner-reported, rather than automatic performance assessments.
+
+Ready practice first returns after three days; difficult or uncertain attempts
+return the next day. A steady before-playback check on a later day can extend
+the gap to seven, fourteen and thirty days when it covers the previous passage,
+hands and tempo. A setback restarts with next-day practice, followed by a
+three-day gap after a successful return. Same-day repeats cannot extend the gap.
+These are practical scheduling defaults, not a validated mastery model. Reviews
+never complete guided blocks, and all lessons remain available. Return evidence
+survives reload and backup/import; correcting or removing a log recalculates
+the suggestions from the remaining history.
+
 **Check your understanding** appears within relevant lessons. It provides
 46 authored written/listening questions, staff examples, interval/chord audio
 and explanations. Checked answers travel with the practice log, independently

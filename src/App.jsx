@@ -217,7 +217,7 @@ export default function Woodshed() {
   const onProgramAttempt = async (entry) => {
     const progress = normalizeProgress(data.programProgress);
     const unitId = EXERCISES.find((exercise) => exercise.id === entry.exerciseId)?.unitId || data.programUnitId;
-    const context = entry.section === "placement" || entry.sessionId ? {} : contextForExercise(progress, sessionsForUnit(unitId), entry.exerciseId);
+    const context = entry.section === "placement" || entry.section === "review" || entry.section === "transfer" || entry.sessionId ? {} : contextForExercise(progress, sessionsForUnit(unitId), entry.exerciseId);
     const programProgress = recordAttempt(progress, { ...context, ...entry });
     // Confirm durability before the lesson says it was saved or advances.
     if (!(await saveState({ ...data, programProgress }))) {

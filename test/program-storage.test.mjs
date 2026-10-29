@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { freshData } from "../src/engine.js";
 import { migrate, saveState, loadState } from "../src/storage.js";
 import { normalizeProgress, recordAttempt, exerciseProgress, sessionProgress } from "../src/program/progress.js";
+import { todayStr } from "../src/dateUtils.js";
 
 const FIELD = "programProgress";
 const SESSION = { id: "day-1-a", blocks: [{ exerciseId: "scale-c" }, { exerciseId: "chord-c" }] };
@@ -154,4 +155,50 @@ test("old saves and invalid unit selections default to C without changing their 
     assert.equal(loaded.programUnitId, "c-major-foundations-1");
     assert.deepEqual(loaded[FIELD], before);
   }
+});
+
+test("review checks survive save, load and import independently of later repairs and guided completion", async () => {
+  await withStorage(async () => {
+    const state = freshData();
+    state[FIELD] = recordAttempt(state[FIELD], { ...entry, section: "review", assessment: "ready", bpm: 72, hands: "both", fromBar: 1, toBar: 6,
+      sessionId: SESSION.id, blockIndex: 0,
+      reviewCheck: { assessment: "practising", beforeDemo: true, bpm: 60, hands: "R", fromBar: 2, toBar: 4 } });
+    const expected = clone(state[FIELD]);
+    assert.equal(await saveState(state), true);
+    const loaded = await loadState();
+    assert.deepEqual(loaded[FIELD], expected);
+    assert.deepEqual(migrate(clone(loaded))[FIELD], expected);
+    assert.deepEqual(loaded[FIELD].completedBlocks, {});
+    assert.equal(sessionProgress(loaded[FIELD], SESSION).started, false);
+    assert.equal(loaded[FIELD].attempts[0].assessment, "ready");
+    assert.equal(loaded[FIELD].attempts[0].reviewCheck.assessment, "practising");
+  });
+});
+
+test("integrated return and transfer evidence survives reload and backup without completing core blocks", async () => {
+  await withStorage(async () => {
+    const state = freshData(), day = todayStr();
+    state[FIELD] = recordAttempt(state[FIELD], { ...entry, date: day, section: "review", assessment: "unsure", reviewForSession: SESSION.id,
+      reviewCheck: { assessment: "practising", beforeDemo: true, bpm: 60, hands: "both", fromBar: 2, toBar: 4 } });
+    state[FIELD] = recordAttempt(state[FIELD], { ...entry, date: day, section: "transfer", assessment: "ready", reviewForSession: SESSION.id,
+      transferId: "transfer-pulse-v1-c-2", bpm: 84, hands: "R", fromBar: 1, toBar: 2,
+      transferCheck: { assessment: "unsure", beforeDemo: false, bpm: 48, hands: "L", fromBar: 1, toBar: 2 },
+      sessionId: SESSION.id, blockIndex: 0, reviewCheck: { assessment: "ready", beforeDemo: true } });
+    const expected = clone(state[FIELD]);
+    assert.equal(await saveState(state), true);
+    const loaded = await loadState();
+    assert.deepEqual(loaded[FIELD], expected);
+    assert.deepEqual(migrate(clone(loaded))[FIELD], expected, "backup import retains distinct evidence");
+    const session = sessionProgress(loaded[FIELD], SESSION, { today: day });
+    assert.equal(session.started, true); assert.equal(session.minutes, 6); assert.equal(session.nextBlock, 0);
+    assert.equal(session.done, false); assert.deepEqual(session.completedBlocks, []); assert.deepEqual(session.attempts, []);
+    assert.equal(session.reviewAttempts.length, 2);
+    const source = exerciseProgress(loaded[FIELD], entry.exerciseId);
+    assert.equal(source.practiceCount, 2); assert.equal(source.minutes, 6);
+    assert.equal(source.status, "unsure"); assert.equal(source.hands, "both"); assert.equal(source.bpm, 60);
+    const fresh = loaded[FIELD].attempts[1];
+    assert.equal(fresh.transferId, "transfer-pulse-v1-c-2");
+    assert.equal(fresh.transferCheck.assessment, "unsure"); assert.equal(fresh.reviewCheck, undefined);
+    assert.equal(fresh.sessionId, undefined); assert.equal(fresh.blockIndex, undefined);
+  });
 });

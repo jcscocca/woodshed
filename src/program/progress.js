@@ -21,6 +21,17 @@ function date(x) {
   return Number.isFinite(d.getTime()) && d.toISOString().slice(0, 10) === x ? x : null;
 }
 
+function firstCheck(raw) {
+  if (!object(raw) || !ASSESSMENT_SET.has(raw.assessment) || typeof raw.beforeDemo !== "boolean") return null;
+  const out = { assessment: raw.assessment, beforeDemo: raw.beforeDemo };
+  if (typeof raw.bpm === "number" && Number.isFinite(raw.bpm) && raw.bpm > 0 && raw.bpm <= 400) out.bpm = raw.bpm;
+  if (HANDS.has(raw.hands)) out.hands = raw.hands === "RH" ? "R" : raw.hands === "LH" ? "L" : raw.hands;
+  if (Number.isInteger(raw.fromBar) && Number.isInteger(raw.toBar) && raw.fromBar > 0 && raw.toBar >= raw.fromBar && raw.toBar < 10000) {
+    out.fromBar = raw.fromBar; out.toBar = raw.toBar;
+  }
+  return out;
+}
+
 function attempt(raw) {
   if (!object(raw) || !id(raw.exerciseId) || !ASSESSMENT_SET.has(raw.assessment)) return null;
   const out = {
@@ -41,9 +52,18 @@ function attempt(raw) {
   if (Array.isArray(raw.knowledgeResults)) out.knowledgeResults = normalizeKnowledge(raw.knowledgeResults);
   if (typeof raw.bpm === "number" && Number.isFinite(raw.bpm) && raw.bpm > 0 && raw.bpm <= 400) out.bpm = raw.bpm;
   if (HANDS.has(raw.hands)) out.hands = raw.hands === "RH" ? "R" : raw.hands === "LH" ? "L" : raw.hands;
+  // A return check records the first attempt separately from any repair that
+  // follows. Old practice reports never acquire invented retention evidence.
+  if (section === "review" || section === "transfer") {
+    const field = section === "review" ? "reviewCheck" : "transferCheck", check = firstCheck(raw[field]);
+    if (check) out[field] = check;
+    if (id(raw.reviewForSession)) out.reviewForSession = raw.reviewForSession;
+    if (section === "transfer" && id(raw.transferId)) out.transferId = raw.transferId;
+  }
   // An index without a session (or a session without its block) is not a
-  // completion claim. Retain neither half of an incomplete pair.
-  if (id(raw.sessionId) && blockIndex(raw.blockIndex) !== null) {
+  // completion claim. Cumulative review is independent of the guided plan,
+  // even when an imported report includes a session and block.
+  if (section !== "review" && section !== "transfer" && id(raw.sessionId) && blockIndex(raw.blockIndex) !== null) {
     out.sessionId = raw.sessionId;
     out.blockIndex = raw.blockIndex;
   }
@@ -140,10 +160,14 @@ export function removeAttempt(progress, index) {
 
 function summary(attempts, placement = null) {
   const practice = attempts.filter((a) => a.section !== "placement");
+  // A fresh transfer example is practice of a related skill, not a new
+  // readiness or passage claim about the original lesson.
+  const sourceAttempts = attempts.filter((a) => a.section !== "transfer");
+  const sourcePractice = practice.filter((a) => a.section !== "transfer");
   const placements = attempts.filter((a) => a.section === "placement");
-  const lastAttempt = attempts[attempts.length - 1] || null;
-  const lastPractice = practice[practice.length - 1] || null;
-  const latestWith = (key) => [...practice].reverse().find((a) => a[key] !== undefined)?.[key] ?? null;
+  const lastAttempt = sourceAttempts[sourceAttempts.length - 1] || null;
+  const lastPractice = sourcePractice[sourcePractice.length - 1] || null;
+  const latestWith = (key) => [...sourcePractice].reverse().find((a) => a[key] !== undefined)?.[key] ?? null;
   return {
     attempts,
     count: attempts.length,
@@ -173,12 +197,14 @@ export function skillProgress(progress, skillId) {
 // Completion is explicit session evidence, not an exercise's latest readiness.
 // Practising a chord directly still improves its shared exercise/skill summary,
 // but does not silently skip that block of a guided session.
-export function sessionProgress(progress, session) {
+export function sessionProgress(progress, session, { today = todayStr() } = {}) {
   const p = normalizeProgress(progress);
   const total = Array.isArray(session?.blocks) ? session.blocks.length : 0;
   const sessionId = id(session?.id);
   const completedBlocks = sessionId && own(p.completedBlocks, sessionId) ? p.completedBlocks[sessionId].filter((i) => i < total) : [];
   const attempts = sessionId ? p.attempts.filter((a) => a.sessionId === sessionId && a.section !== "placement" && a.blockIndex < total) : [];
+  const reviewAttempts = sessionId && total && date(today) ? p.attempts.filter((a) => a.reviewForSession === sessionId
+    && (a.section === "review" || a.section === "transfer") && a.minutes > 0 && a.date && a.date <= today) : [];
   const nextBlock = Array.from({ length: total }, (_, i) => i).find((i) => !completedBlocks.includes(i)) ?? null;
   const uniqueBlocks = new Set(attempts.map((a) => a.blockIndex));
   return {
@@ -187,9 +213,10 @@ export function sessionProgress(progress, session) {
     completed: completedBlocks.length,
     total,
     done: total > 0 && completedBlocks.length === total,
-    started: completedBlocks.length > 0 || attempts.length > 0,
+    started: completedBlocks.length > 0 || attempts.length > 0 || reviewAttempts.length > 0,
     attempts,
-    minutes: attempts.reduce((n, a) => n + a.minutes, 0),
+    ...(reviewAttempts.length ? { reviewAttempts } : {}),
+    minutes: [...attempts, ...reviewAttempts].reduce((n, a) => n + a.minutes, 0),
     reviewCount: Math.max(0, attempts.length - uniqueBlocks.size),
   };
 }

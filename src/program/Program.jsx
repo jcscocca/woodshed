@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import { COURSE, UNITS, EXERCISES, SESSIONS, PLACEMENT, CATALOGUE, sessionsForUnit } from "./curriculum.js";
-import { normalizeProgress, exerciseProgress, sessionProgress, nextSession, editAttempt, removeAttempt } from "./progress.js";
+import { normalizeProgress, recordAttempt, exerciseProgress, sessionProgress, nextSession, editAttempt, removeAttempt } from "./progress.js";
 import PracticePlayer from "./PracticePlayer.jsx";
 import { guideForUnit } from "./guides.js";
 import { QUESTION_BY_ID } from "./knowledge.js";
+import { reviewQueue } from "./review.js";
+import { guidedSessionPlan } from "./sessionPlan.js";
+import { transferForExercise, TRANSFER_VARIANT_COUNT } from "./transfer.js";
 import { todayStr, daysSince } from "../dateUtils.js";
 import "./program.css";
 
@@ -71,8 +74,19 @@ export function ProgramProgress({ progress, onChangeProgress }) {
     })}</div>
     {practice.length === 0 ? <p className="pg-muted">Start a lesson in Guided Practice, Chords or Scales. Your work will appear here.</p> : <ol className="pg-history">
       {p.attempts.map((a, index) => ({ ...a, index })).filter((a) => a.section !== "placement").reverse().slice(0, visibleCount).map((a) => <li key={a.index}>
-        <div><strong>{byId[a.exerciseId]?.title || a.exerciseId}</strong><span>{byId[a.exerciseId]?.key ? `${byId[a.exerciseId].key} · ` : ""}{a.date} · {a.minutes} min · {a.hands === "R" ? "RH" : a.hands === "L" ? "LH" : a.hands === "separate" ? "Hands separately" : "Both hands"}{a.bpm ? ` · ${a.bpm} bpm` : ""}{a.fromBar ? ` · ${passageLabel(a, byId[a.exerciseId])}` : ""}</span>{a.goal && <p>Goal: {a.goal}</p>}{a.note && <p>{a.note}</p>}
+        <div><strong>{a.section === "transfer" ? "Fresh example: " : ""}{byId[a.exerciseId]?.title || a.exerciseId}</strong><span>{byId[a.exerciseId]?.key ? `${byId[a.exerciseId].key} · ` : ""}{a.date} · {a.minutes} min · {a.hands === "R" ? "RH" : a.hands === "L" ? "LH" : a.hands === "separate" ? "Hands separately" : "Both hands"}{a.bpm ? ` · ${a.bpm} bpm` : ""}{a.fromBar ? ` · ${passageLabel(a, a.section === "transfer" ? null : byId[a.exerciseId])}` : ""}</span>{a.goal && <p>Goal: {a.goal}</p>}{a.note && <p>{a.note}</p>}
           {a.checks?.length > 0 && <details><summary>Self-checks you observed ({a.checks.length})</summary><ul>{a.checks.map((check) => <li key={check}>{check}</li>)}</ul></details>}
+          {a.section === "review" && <p className="pg-return-evidence">{a.reviewCheck
+            ? `First return ${a.reviewCheck.beforeDemo ? "before playback" : "with playback"}: ${a.reviewCheck.assessment === "ready" ? "felt steady" : a.reviewCheck.assessment === "unsure" ? "not sure yet" : "needed more work"}. Self-reported, separately from the final practice assessment.`
+            : "Cumulative review practice · no first-attempt check recorded."}
+            {a.reviewCheck && <span>{a.reviewCheck.hands ? `First check: ${a.reviewCheck.hands === "R" ? "RH" : a.reviewCheck.hands === "L" ? "LH" : a.reviewCheck.hands === "separate" ? "hands separately" : "both hands"}` : "First check"}{a.reviewCheck.bpm ? ` · ${a.reviewCheck.bpm} bpm` : ""}{a.reviewCheck.fromBar ? ` · ${passageLabel(a.reviewCheck, byId[a.exerciseId])}` : ""}</span>}
+          </p>}
+          {a.section === "transfer" && <p className="pg-return-evidence">{a.transferCheck
+            ? `First try of the fresh example ${a.transferCheck.beforeDemo ? "before playback" : "with playback"}: ${a.transferCheck.assessment === "ready" ? "felt steady" : a.transferCheck.assessment === "unsure" ? "not sure yet" : "needed more work"}. Self-reported transfer evidence, separate from the original passage.`
+            : "Fresh-example practice · no first-attempt transfer check recorded."}
+            {a.transferCheck && <span>First check{a.transferCheck.hands ? `: ${a.transferCheck.hands === "R" ? "RH" : a.transferCheck.hands === "L" ? "LH" : "both hands"}` : ""}{a.transferCheck.bpm ? ` · ${a.transferCheck.bpm} bpm` : ""}{a.transferCheck.fromBar ? ` · ${passageLabel(a.transferCheck)}` : ""}</span>}
+          </p>}
+          {a.reviewForSession && <p>Included in guided session {SESSIONS.find((session) => session.id === a.reviewForSession)?.title || a.reviewForSession}.</p>}
           {a.knowledgeResults?.length > 0 && <details><summary>Understanding checks · {a.knowledgeResults.filter((result) => result.correct).length}/{a.knowledgeResults.length} correct</summary><ul>{a.knowledgeResults.map((result) => <li key={result.questionId}>{result.correct ? "✓ " : "Revisit: "}{QUESTION_BY_ID[result.questionId]?.prompt}</li>)}</ul><p>Written/listening answers are separate from your piano self-assessment.</p></details>}
           {onChangeProgress && <button className="ws-btn ghost sm" disabled={busy} onClick={() => { setError(""); setEditing({ ...a }); }}>Correct this practice</button>}
           {editing?.index === a.index && <form className="pg-history-edit" onSubmit={(event) => { event.preventDefault(); try { update(editAttempt(p, a.index, { minutes: Number(editing.minutes), assessment: editing.assessment, note: editing.note || "", date: editing.date })); } catch (err) { setError(err.message); } }}>
@@ -101,15 +115,36 @@ export default function Program({ section, progress, onAttempt, onLegacyView, un
   const next = nextSession(p, unitSessions);
   const placed = PLACEMENT.filter((id) => p.placement[id]).length;
   const needsSupport = PLACEMENT.filter((id) => p.placement[id] && p.placement[id] !== "ready");
-  const review = EXERCISES.filter((e) => {
-    const state = exerciseProgress(p, e.id);
-    return e.unitId === unit.id && e.section !== "placement" && state.practiceCount > 0 && (state.status !== "ready" || daysSince(state.lastPractised, todayStr()) >= 3);
-  })
-    .sort((a, b) => String(exerciseProgress(p, a.id).lastPractised).localeCompare(String(exerciseProgress(p, b.id).lastPractised))).slice(0, 3);
+  const transfers = p.attempts.filter((a) => a.section === "transfer" && a.transferId && a.minutes > 0 && a.date && a.date <= todayStr());
+  const seenTransfers = new Set(transfers.map((a) => a.transferId));
+  const review = reviewQueue(p, EXERCISES).map((item) => {
+    let transferExercise = null;
+    if (item.checksSinceTransfer >= 2) {
+      for (let variant = 0; variant < TRANSFER_VARIANT_COUNT; variant++) {
+        const candidate = transferForExercise(item.exercise, variant);
+        if (candidate && !seenTransfers.has(candidate.transferId)) { transferExercise = candidate; break; }
+      }
+    }
+    const previousTransfer = transfers.filter((a) => a.exerciseId === item.exercise.id).sort((a, b) => a.date.localeCompare(b.date)).at(-1);
+    const transferRepairNote = previousTransfer && previousTransfer.date >= item.previousAttempt.date
+      && (previousTransfer.assessment !== "ready" || previousTransfer.transferCheck?.assessment !== "ready") ? previousTransfer.note : null;
+    return { ...item, transferExercise, transferRepairNote };
+  });
+  const nextPlan = next && guidedSessionPlan(p, next, review);
+  const hasReviewHistory = p.attempts.some((a) => a.section !== "placement" && byId[a.exerciseId]?.section !== "placement" && byId[a.exerciseId] && a.date && a.date <= todayStr());
   const open = (exerciseId, context = {}) => { setSaved(""); setActive({ exerciseId, ...context }); };
+  const openReview = (item, context = {}, useTransfer = true) => open(item.exercise.id, {
+    reviewMode: true, previousAttempt: item.previousAttempt,
+    transferExercise: useTransfer ? item.transferExercise : null, reviewNote: item.transferRepairNote ? `From your fresh example: ${item.transferRepairNote}` : null, ...context,
+  });
   const changeUnit = (id) => { setActive(null); setSaved(""); onUnitChange?.(id); };
-  const startSession = (session) => {
+  const startSession = (session, { skipReview = false } = {}) => {
     const state = sessionProgress(p, session), index = state.nextBlock ?? 0;
+    const plan = guidedSessionPlan(p, session, skipReview ? [] : review);
+    if (plan.review) {
+      openReview(plan.review, { reviewForSession: session.id });
+      return;
+    }
     // A deliberate whole-session revisit is a fresh visit through every block.
     // Its remaining work must not be inferred from lifetime completion marks.
     open(session.blocks[index].exerciseId, { sessionId: session.id, blockIndex: index,
@@ -121,13 +156,23 @@ export default function Program({ section, progress, onAttempt, onLegacyView, un
     open(PLACEMENT[i], { placementIndex: i });
   };
   const save = async (entry) => {
-    const exercise = byId[active.exerciseId];
+    const exercise = active.transferExercise || byId[active.exerciseId];
     const isPlacement = active.placementIndex !== undefined;
-    const logged = { ...entry, exerciseId: exercise.id, skillIds: exercise.skillIds,
-      ...(isPlacement ? { section: "placement" } : { section }),
+    const logged = { ...entry, exerciseId: active.exerciseId, skillIds: exercise.skillIds,
+      section: isPlacement ? "placement" : active.transferExercise ? "transfer" : active.reviewMode ? "review" : section,
+      ...(active.transferExercise ? { transferId: exercise.transferId } : {}),
+      ...(active.reviewForSession ? { reviewForSession: active.reviewForSession } : {}),
       ...(active.sessionId ? { sessionId: active.sessionId, blockIndex: active.blockIndex } : {}) };
     await onAttempt(logged);
-    if (isPlacement && active.placementIndex + 1 < PLACEMENT.length) {
+    const updated = recordAttempt(p, logged);
+    if (active.reviewForSession) {
+      const session = SESSIONS.find((candidate) => candidate.id === active.reviewForSession);
+      const index = sessionProgress(updated, session).nextBlock;
+      if (index !== null) {
+        open(session.blocks[index].exerciseId, { sessionId: session.id, blockIndex: index });
+        setSaved(`${active.transferExercise ? "Fresh check" : "Review"} saved within this session’s 20 minutes. Continue with the lesson blocks below.`);
+      } else setActive(null);
+    } else if (isPlacement && active.placementIndex + 1 < PLACEMENT.length) {
       open(PLACEMENT[active.placementIndex + 1], { placementIndex: active.placementIndex + 1 });
     } else if (active.sessionId) {
       const session = SESSIONS.find((s) => s.id === active.sessionId);
@@ -143,18 +188,28 @@ export default function Program({ section, progress, onAttempt, onLegacyView, un
       }
     } else {
       setActive(null);
-      setSaved(isPlacement ? "Placement saved. Your first unit is open; use your check results to choose a comfortable starting point." : `Saved: ${exercise.title}. Your progress is shared across the piano program.`);
+      setSaved(isPlacement ? "Placement saved. Your first unit is open; use your check results to choose a comfortable starting point." : active.reviewMode
+        ? `${active.transferExercise ? "Fresh check" : "Review"} saved: ${exercise.title}. Return to your guided session whenever you are ready.`
+        : `Saved: ${exercise.title}. Your progress is shared across the piano program.`);
     }
   };
 
   if (active && byId[active.exerciseId]) {
     const session = SESSIONS.find((s) => s.id === active.sessionId);
+    const reviewSession = SESSIONS.find((s) => s.id === active.reviewForSession);
+    const sessionPlan = session && guidedSessionPlan(p, session);
+    const exercise = active.transferExercise || byId[active.exerciseId];
+    const previousAttempt = active.transferExercise ? null : active.reviewMode ? active.previousAttempt : exerciseProgress(p, active.exerciseId).lastAttempt;
+    const defaultRange = active.reviewMode && !active.transferExercise && previousAttempt?.fromBar
+      ? { from: previousAttempt.fromBar, to: previousAttempt.toBar }
+      : session?.blocks[active.blockIndex]?.fromBar ? { from: session.blocks[active.blockIndex].fromBar, to: session.blocks[active.blockIndex].toBar } : undefined;
     return <div className="pg-root">
       {saved && <p className="pg-notice" role="status">{saved}</p>}
+      {reviewSession && <div className="pg-session-bar"><span>{UNITS.find((candidate) => candidate.id === reviewSession.unitId)?.key} · Day {reviewSession.day} · Session {reviewSession.slot} · {active.transferExercise ? "Fresh check" : "Cumulative review"} · 3 of 20 min</span><strong>{reviewSession.title}</strong><p className="pg-muted">Seventeen minutes are reserved for this session’s lessons after the check.</p></div>}
       {session && <div className="pg-session-bar"><span>{UNITS.find((candidate) => candidate.id === session.unitId)?.key} · Day {session.day} · Session {session.slot} · Block {active.blockIndex + 1} of {session.blocks.length}</span><strong>{session.title}</strong></div>}
       {active.placementIndex !== undefined && <p className="pg-muted">Placement check {active.placementIndex + 1} of {PLACEMENT.length} · You can leave and resume later.</p>}
-      <PracticePlayer key={`${active.exerciseId}-${active.sessionId || "direct"}-${active.blockIndex ?? ""}`} exercise={byId[active.exerciseId]} onLog={save} onClose={() => setActive(null)} defaultMinutes={session?.blocks[active.blockIndex]?.minutes}
-        goal={session?.blocks[active.blockIndex]?.goal} previousAttempt={exerciseProgress(p, active.exerciseId).lastAttempt} defaultRange={session?.blocks[active.blockIndex]?.fromBar ? { from: session.blocks[active.blockIndex].fromBar, to: session.blocks[active.blockIndex].toBar } : undefined} />
+      <PracticePlayer key={`${active.exerciseId}-${active.transferExercise?.transferId || (active.reviewMode ? "review" : active.sessionId || "direct")}-${active.blockIndex ?? ""}`} exercise={exercise} onLog={save} onClose={() => setActive(null)} defaultMinutes={active.reviewMode ? 3 : sessionPlan?.blocks[active.blockIndex]?.minutes}
+        reviewMode={!!active.reviewMode} transferMode={!!active.transferExercise} reviewNote={active.reviewNote} goal={active.transferExercise ? "Try this new example of a familiar skill before playback. Keep this first result separate from later repairs." : active.reviewMode ? "Return to your previous passage, then choose one detail to repair." : session?.blocks[active.blockIndex]?.goal} previousAttempt={previousAttempt} defaultRange={defaultRange} />
     </div>;
   }
 
@@ -176,14 +231,33 @@ export default function Program({ section, progress, onAttempt, onLegacyView, un
         <ul className="pg-placement-list">{PLACEMENT.filter((id) => p.placement[id]).map((id) => <li key={id}><div><strong>{byId[id].title.replace(/^Placement: /, "")}</strong><span className={`pg-status ${p.placement[id]}`}>{LABELS[p.placement[id]]}</span></div>
           <button className="ws-btn ghost sm" onClick={() => open(PLACEMENT_SUPPORT[id])}>Open supporting lesson</button></li>)}</ul>
       </section>}
-      {next ? <section className="pg-next"><div className="pg-eyebrow">Up next · {unit.key} · Day {next.day} / Session {next.slot}</div><h2>{next.title}</h2><p>{next.focus}</p><button className="ws-btn primary" onClick={() => startSession(next)}>{sessionProgress(p, next).started ? "Resume session" : "Start 20-minute session"}</button></section>
+      {hasReviewHistory && <section className="pg-cumulative-review" aria-label="Cumulative review">
+        <div className="pg-eyebrow">Across your piano program</div><h2>Keep earlier skills alive</h2>
+        {review.length > 0 ? <>
+          <p className="pg-muted">Your next new guided session includes one three-minute check within its twenty minutes. After two steady returns, a fresh example checks the same skill in new music. You can also open a check here on its own.</p>
+          <ul className="pg-review-list">{review.map((item) => <li key={item.exercise.id}>
+            <div><span className="pg-eyebrow">{item.exercise.key || UNITS.find((candidate) => candidate.id === item.exercise.unitId)?.key} · 3 min</span>
+              <h3>{item.transferExercise?.title || item.exercise.title}</h3><p>{item.transferExercise ? `New music for a familiar skill: ${item.exercise.title}` : item.reason}</p>
+              <span className="pg-status">Last practised {item.previousAttempt.date}{item.previousAttempt.fromBar ? ` · ${passageLabel(item.previousAttempt, item.exercise)}` : ""}{item.previousAttempt.bpm ? ` · ${item.previousAttempt.bpm} bpm` : ""}</span>
+              {item.previousAttempt.note && <p className="pg-review-note">Your next step: {item.previousAttempt.note}</p>}
+              {item.transferRepairNote && <p className="pg-review-note">Fresh-example repair: {item.transferRepairNote}</p>}
+            </div><div className="pg-actions"><button className="ws-btn ghost sm" onClick={() => openReview(item)}>{item.transferExercise ? "Start fresh check" : "Start return check"}</button>{item.transferExercise && <button className="ws-btn ghost sm" onClick={() => openReview(item, {}, false)}>Revisit previous passage</button>}</div>
+          </li>)}</ul>
+        </> : <p className="pg-muted">No return checks are due today. Earlier work will come back here across all units as you continue practising.</p>}
+      </section>}
+      {next ? <section className="pg-next"><div className="pg-eyebrow">Up next · {unit.key} · Day {next.day} / Session {next.slot}</div><h2>{next.title}</h2><p>{next.focus}</p>
+        {nextPlan.review && <p className="pg-session-budget">3 min {nextPlan.review.transferExercise ? "fresh example" : "cumulative review"} + 17 min lesson practice · 20 min total</p>}
+        {nextPlan.reviewDone && <p className="pg-session-budget">Review saved · lesson practice uses the remaining 17-minute allocation</p>}
+        <div className="pg-actions"><button className="ws-btn primary" onClick={() => startSession(next)}>{sessionProgress(p, next).started ? "Resume session" : "Start 20-minute session"}</button>{nextPlan.review && <button className="ws-btn ghost" onClick={() => startSession(next, { skipReview: true })}>Start without review</button>}</div></section>
         : <section className="pg-next"><h2>Your {unit.key} sessions are complete</h2><p>Revisit a lesson for a fresh check or choose another unit above.</p>{followingUnit && <button className="ws-btn primary" onClick={() => changeUnit(followingUnit.id)}>Continue to {followingUnit.key}</button>}</section>}
       <p className="pg-muted">Session A builds foundations. Session B applies them to music. Keep the two 20-minute visits on each of five practice days; a unit can take longer than one calendar week. Repeat a day or preview another unit whenever it helps.</p>
-      {review.length > 0 && <section className="pg-placement-results" aria-label="Suggested review"><h2>Worth another visit</h2><p className="pg-muted">Return to work you marked uncertain, or check a ready goal after a few days. Try once before the demo, compare what happened, then repair one specific bar. These suggestions never lock the next unit.</p><ul className="pg-placement-list">{review.map((e) => <li key={e.id}><div><strong>{e.title}</strong><span className="pg-status">{exerciseProgress(p, e.id).lastAttempt?.note || (exerciseProgress(p, e.id).status === "ready" ? "Ready last time · try a return check" : LABELS[exerciseProgress(p, e.id).status])}</span></div><button className="ws-btn ghost sm" onClick={() => open(e.id)}>Revisit</button></li>)}</ul></section>}
+      <p className="pg-muted">Open a lesson directly for its listed practice time, or start a session to include due review within twenty minutes.</p>
       <div className="pg-days">{Array.from({ length: 5 }, (_, i) => i + 1).map((day) => <section key={day} className="pg-day"><h2>Day {day}</h2><div className="pg-session-grid">{unitSessions.filter((s) => s.day === day).map((s) => {
         const state = sessionProgress(p, s);
+        const plan = guidedSessionPlan(p, s);
         return <article className="pg-card" key={s.id}><div className="pg-eyebrow">Session {s.slot} · 20 min{state.done ? " · Completed" : ""}</div><h3>{s.title}</h3><p>{s.focus}</p>
-          <ol className="pg-blocks">{s.blocks.map((b, i) => <li key={i}><button onClick={() => open(b.exerciseId, { sessionId: s.id, blockIndex: i })}><span>{state.completedBlocks.includes(i) ? "✓ " : ""}{byId[b.exerciseId]?.title || b.exerciseId}{b.goal && <small className="pg-block-goal">{b.goal}</small>}</span><small>{b.minutes}m</small></button></li>)}</ol>
+          {plan.reviewMinutes > 0 && <p className="pg-session-budget">{plan.reviewDone ? "✓ Review saved" : `3m ${plan.review?.transferExercise ? "fresh example" : "cumulative review"}`} · 17m lesson practice</p>}
+          <ol className="pg-blocks">{plan.blocks.map((b, i) => <li key={i}><button onClick={() => open(b.exerciseId, { sessionId: s.id, blockIndex: i })}><span>{state.completedBlocks.includes(i) ? "✓ " : ""}{byId[b.exerciseId]?.title || b.exerciseId}{b.goal && <small className="pg-block-goal">{b.goal}</small>}</span><small>{b.minutes}m</small></button></li>)}</ol>
           <button className="ws-btn ghost sm" onClick={() => startSession(s)}>{state.done ? "Revisit session" : state.started ? `Resume · ${state.completed}/${state.total} blocks` : "Open session"}</button>
         </article>;
       })}</div></section>)}</div>

@@ -96,6 +96,30 @@ credit, correction/removal and recording resource lifetimes.
 
 The player now supports small bar ranges, distinct visit goals, saved observed
 criteria, voluntary local recording/listen-back and delayed return suggestions.
+Cumulative review draws those returns from every practised unit and preserves
+the previous passage, hands, tempo and next-step note. An optional first-attempt
+self-report records whether it preceded app playback and retains its initial
+scope separately from subsequent repair. Ready practice first returns after
+three days; comparable steady delayed checks can extend that to seven, fourteen
+and thirty. Difficulty returns the next day, then a successful return rebuilds
+from three days. Same-day repeats cannot lengthen the gap. These intervals are
+product defaults rather than research-validated prescriptions. Review reports
+never complete guided blocks, and an initial difficult check cannot be erased
+by a later successful repair in the same visit.
+New guided visits reserve one three-minute due check inside the twenty-minute
+budget, proportionally allocating seventeen minutes to the existing blocks
+without changing their identities or omitting instruction. Saved checks carry
+a separate session association for resuming; older partial sessions keep their
+original allocation. After two qualified returns, a supported skill may use one
+of eight bounded fresh studies instead. The six task families retain inspected
+registers, key spellings, hand positions and chord voicings while changing note
+order, rhythm or harmonic route. Used example IDs are skipped and an exhausted
+bank returns to ordinary review. Transfer first-attempt evidence remains
+separate from the original passage's readiness and interval. Musical regressions
+check all generated studies for notation duration, registers, hand conflicts,
+distinctness and named chord tones; flow/storage tests check the time budget,
+resume and separation of evidence. These are software and content checks,
+rather than evidence of improved learner outcomes.
 Inline written/listening checks give feedback and preserve checked answers
 separately from practical self-assessments. All 46 questions belong to real
 lessons; note-reading answers are checked against the rendered pitches, and

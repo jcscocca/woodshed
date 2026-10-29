@@ -10,13 +10,22 @@ import "./player.css";
 
 const HANDS = [["R", "Right hand"], ["L", "Left hand"], ["both", "Both hands"]];
 const initialMinutes = (exercise, minutes) => minutes ?? exercise.minutes ?? 5;
+const initialBpm = (exercise, previousAttempt, reviewMode) => reviewMode && Number.isFinite(previousAttempt?.bpm) && previousAttempt.bpm > 0
+  ? Math.max(20, Math.min(160, previousAttempt.bpm)) : exercise.bpm || 60;
+const initialHands = (exercise, previousAttempt, reviewMode) => reviewMode && HANDS.some(([value]) => value === previousAttempt?.hands)
+  ? previousAttempt.hands : exercise.hands || "both";
+const RETURN_LABELS = { ready: "Felt steady", practising: "Needs more work", unsure: "Not sure yet" };
+const boundedRange = (value, bars) => {
+  const end = Math.max(1, bars), from = Number.isInteger(value?.from) && value.from > 0 ? Math.min(value.from, end) : 1;
+  return { from, to: Math.max(from, Number.isInteger(value?.to) && value.to > 0 ? Math.min(value.to, end) : end) };
+};
 
-export default function PracticePlayer({ exercise, onLog, onClose, defaultMinutes, defaultRange, goal, previousAttempt }) {
+export default function PracticePlayer({ exercise, onLog, onClose, defaultMinutes, defaultRange, goal, previousAttempt, reviewMode = false, transferMode = false, reviewNote }) {
   const id = useId();
   const practice = usePractice(), setCoursePlaying = practice?.setCoursePlaying;
   const [parsed, setParsed] = useState(null), [scoreError, setScoreError] = useState(null);
   const [audioError, setAudioError] = useState(null), [frame, setFrame] = useState(null), [mode, setMode] = useState(null);
-  const [bpm, setBpm] = useState(exercise.bpm || 60), [hands, setHands] = useState(exercise.hands || "both");
+  const [bpm, setBpm] = useState(initialBpm(exercise, previousAttempt, reviewMode && !transferMode)), [hands, setHands] = useState(initialHands(exercise, previousAttempt, reviewMode && !transferMode));
   const [loop, setLoop] = useState(false), [referenceAlong, setReferenceAlong] = useState(false), [countIn, setCountIn] = useState(true);
   const [followScore, setFollowScore] = useState(true);
   const [checked, setChecked] = useState([]), [assessment, setAssessment] = useState("practising");
@@ -26,6 +35,8 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
   const [range, setRange] = useState(defaultRange || { from: 1, to: Infinity });
   const [recordingActive, setRecordingActive] = useState(false);
   const [knowledgeResults, setKnowledgeResults] = useState([]);
+  const [reviewCheck, setReviewCheck] = useState(null);
+  const firstCheck = useRef(null), playbackRequested = useRef(false);
   const lessonRef = useRef(null), paperRef = useRef(null), playerRef = useRef(null), playRevision = useRef(0), mounted = useRef(true);
   const taps = useRef([]);
 
@@ -66,8 +77,9 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
 
   useEffect(() => {
     stop(); setParsed(null); setDrawing(null); setScoreError(null); setAudioError(null);
-    setBpm(exercise.bpm || 60); setHands(exercise.hands || "both"); setChecked([]); setAssessment("practising");
+    setBpm(initialBpm(exercise, previousAttempt, reviewMode && !transferMode)); setHands(initialHands(exercise, previousAttempt, reviewMode && !transferMode)); setChecked([]); setAssessment("practising");
     setMinutes(initialMinutes(exercise, defaultMinutes)); setNote(""); setSaved(false); setSaveError(null); setKnowledgeResults([]); setRange(defaultRange || { from: 1, to: Infinity });
+    setReviewCheck(null); firstCheck.current = null; playbackRequested.current = false;
     saveGate.current = { busy: false, saved: false };
     let live = true;
     if (exercise.abc) import("abcjs").then((mod) => {
@@ -75,11 +87,14 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
       try {
         const abcjs = mod.default ?? mod, score = parseScore(exercise.abc, abcjs);
         score.endBeat = walkTune(abcjs.parseOnly(exercise.abc)[0], () => {});
+        setRange(boundedRange(defaultRange, score.bars.length));
+        const wanted = initialHands(exercise, previousAttempt, reviewMode && !transferMode), available = new Set(score.notes.map((note) => note.hand));
+        if (wanted !== "both" && !available.has(wanted)) setHands(available.has(exercise.hands) ? exercise.hands : "both");
         setParsed({ abcjs, score });
       } catch { setScoreError("This score could not be loaded. You can still use the written practice steps and log your session."); }
     }).catch(() => { if (live) setScoreError("The score could not load. Check your connection and reopen the lesson."); });
     return () => { live = false; playRevision.current++; playerRef.current?.stop(); };
-  }, [exercise.id, exercise.abc]);
+  }, [exercise.id, exercise.abc, reviewMode, transferMode]);
 
   useLayoutEffect(() => {
     const el = paperRef.current;
@@ -146,6 +161,7 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
 
   const play = async (nextMode, atBpm) => {
     if (recordingActive || saving) return;
+    playbackRequested.current = true;
     stop(); setAudioError(null);
     if (!parsed) return;
     practice?.metro?.stop();
@@ -171,7 +187,9 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
     stop(); setSaveError(null); setSaving(true);
     try {
       await onLog({ exerciseId: exercise.id, skillIds: exercise.skillIds || [], assessment, minutes: Number(minutes), bpm: Number(bpm), hands, note: note.trim(), section: exercise.section,
-        fromBar: range.from, toBar: Math.min(range.to, parsed?.score.bars.length || range.from), checks: checked.map((index) => exercise.checks[index]), goal, knowledgeResults });
+        fromBar: range.from, toBar: Math.min(range.to, parsed?.score.bars.length || range.from), checks: checked.map((index) => exercise.checks[index]), goal, knowledgeResults,
+        ...(reviewMode && firstCheck.current ? { [transferMode ? "transferCheck" : "reviewCheck"]: firstCheck.current } : {}),
+        ...(transferMode && exercise.transferId ? { transferId: exercise.transferId } : {}) });
       gate.saved = true;
       if (mounted.current && currentExercise.current === exerciseId) setSaved(true);
     } catch { if (mounted.current && currentExercise.current === exerciseId) setSaveError("Your practice could not be saved. Please try again."); }
@@ -186,6 +204,7 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
   const chooseRange = (value) => { stop(); setRange(value); edited(); };
   const hearQuestion = async (question) => {
     if (recordingActive || saving || !question.audio) return;
+    playbackRequested.current = true;
     stop(); setAudioError(null); practice?.metro?.stop(); stopLegacyAudio();
     const token = playRevision.current;
     try {
@@ -194,6 +213,12 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
       setMode("listening");
       await playerRef.current.start(plan, { onEnd: () => { if (mounted.current && token === playRevision.current) setMode(null); } });
     } catch (error) { if (mounted.current && token === playRevision.current) { setAudioError(error.message || "The listening example could not start."); setMode(null); } }
+  };
+  const recordFirstCheck = (value) => {
+    if (!reviewMode || firstCheck.current || recordingActive || saving || mode || !parsed || scoreError) return;
+    const passage = boundedRange(range, parsed.score.bars.length);
+    const result = { assessment: value, beforeDemo: !playbackRequested.current, bpm: Number(bpm), hands, fromBar: passage.from, toBar: passage.to };
+    firstCheck.current = result; setReviewCheck(result); setAssessment(value); edited();
   };
   // The app dispatches its shortcuts here before the legacy practice tools. A
   // ref keeps one stable listener while each event sees the current lesson/run.
@@ -227,6 +252,23 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
       </header>
       <p className="ws-player-summary">{exercise.summary}</p>
       {goal && <p className="ws-player-goal"><strong>This visit:</strong> {goal}</p>}
+      {reviewMode && <section className="ws-player-return" aria-labelledby={`${id}-return-title`}>
+        <div className="ws-player-eyebrow">{transferMode ? "Fresh example" : "Cumulative review"} · about 3 minutes</div>
+        <h3 id={`${id}-return-title`}>{transferMode ? "Try the new example before playback" : "Try one return before playback"}</h3>
+        <p>{transferMode ? "This is new music for a skill you have already practised. Preview the notes and count, try once before playback, then report the first attempt. Later tries are practice of this example, rather than another fresh reading." : "Use the written score and your last practice setup. Try this passage once, then report how that first attempt felt. You can listen and repair it afterward."}</p>
+        {(reviewNote || previousAttempt?.note) && <p className="ws-player-return-note"><strong>Your next step:</strong> {reviewNote || previousAttempt.note}</p>}
+        {reviewCheck ? <div className="ws-player-return-result" role="status">
+          <strong>{transferMode ? "First fresh attempt" : "First return"}: {RETURN_LABELS[reviewCheck.assessment].toLowerCase()}.</strong>
+          <span>{reviewCheck.hands === "R" ? "Right hand" : reviewCheck.hands === "L" ? "Left hand" : "Both hands"} · ♩ = {reviewCheck.bpm} · {barLabel(reviewCheck.fromBar)}{reviewCheck.toBar !== reviewCheck.fromBar ? `–${barLabel(reviewCheck.toBar)}` : ""}</span>
+          <span>{reviewCheck.beforeDemo ? "Reported before playback." : "Reported after playback."} This first result will stay separate from how the rest of your practice goes.</span>
+          <span>Save practice below to keep this self-assessment.</span>
+        </div> : <>
+          <div className="ws-player-return-choices" role="group" aria-label="How did your first return feel?">
+            {Object.entries(RETURN_LABELS).map(([value, label]) => <button key={value} type="button" className="ws-player-button" disabled={!!mode || recordingActive || saving || !parsed || !!scoreError} onClick={() => recordFirstCheck(value)}>{label}</button>)}
+          </div>
+          <p className="ws-player-caption">Your report is optional. Playback stays available, and saving without a first report records practice only.</p>
+        </>}
+      </section>}
       {previousAttempt && <details className="ws-player-previous"><summary>Your previous visit · {previousAttempt.date || "saved practice"}</summary><p>{previousAttempt.minutes} minutes{previousAttempt.bpm ? ` at ♩ = ${previousAttempt.bpm}` : ""} · {previousAttempt.hands === "R" ? "right hand" : previousAttempt.hands === "L" ? "left hand" : "both hands"} · {previousAttempt.assessment === "ready" ? "felt ready" : previousAttempt.assessment === "unsure" ? "felt unsure" : "still practising"}.</p>{previousAttempt.note && <p><strong>Your next step:</strong> {previousAttempt.note}</p>}<p>Try one uninterrupted return before the demo, then choose the specific join to repair today.</p></details>}
       <section className="ws-player-score-section" aria-label="Score and playback">
         <div className="ws-player-hand-controls" role="group" aria-label="Choose hands">
@@ -276,7 +318,7 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
       {exercise.fingering && <section className="ws-player-fingering"><h3>Where your hands go</h3><p>{exercise.fingering}</p></section>}
       <section className="ws-player-steps"><h3>Work through it</h3><ol>{(exercise.steps || []).map((step, i) => <li key={i}>{step}</li>)}</ol></section>
       {exercise.listenFor?.length > 0 && <section className="ws-player-listen"><h3>Listen for</h3><ul>{exercise.listenFor.map((item, i) => <li key={i}>{item}</li>)}</ul></section>}
-      <KnowledgeChecks questions={knowledgeForExercise(exercise)} onResultsChange={setKnowledgeResults} onEdited={edited} onHear={hearQuestion} disabled={recordingActive || saving} />
+      {!transferMode && <KnowledgeChecks questions={knowledgeForExercise(exercise)} onResultsChange={setKnowledgeResults} onEdited={edited} onHear={hearQuestion} disabled={recordingActive || saving} />}
 
       <PracticeRecorder fileName={`woodshed-${exercise.id}`} disabled={mode !== null || saving} onActivityChange={setRecordingActive} onBeforeRecord={() => { stop(); practice?.metro?.stop(); stopLegacyAudio(); }} />
 

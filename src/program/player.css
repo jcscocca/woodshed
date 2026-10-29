@@ -62,3 +62,7 @@
 .ws-player-source p{margin:6px 0;}
 .ws-player-goal{border-left:3px solid var(--gold);padding:12px 16px;background:var(--bg2);border-radius:0 8px 8px 0;}
 .ws-player-previous{border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:14px 0;color:var(--muted);font-size:14px;}.ws-player-previous summary{cursor:pointer;color:var(--piano);}.ws-player-previous p{margin:10px 0 0;}
+.ws-player-return{border:1px solid var(--piano,#5fa8a0);border-left:3px solid var(--piano,#5fa8a0);border-radius:12px;background:rgba(95,168,160,.06);padding:18px;margin:18px 0;}
+.ws-player-return h3{margin:8px 0 10px;}.ws-player-return p{font-size:14px;color:var(--muted,#a79d8e);margin:0 0 12px;}
+.ws-player-return .ws-player-return-note{color:var(--text,#f3eee5);}.ws-player-return-choices{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0;}
+.ws-player-return-result{display:grid;gap:7px;font-size:13px;}.ws-player-return-result strong{color:var(--piano,#5fa8a0);}.ws-player-return-result span{color:var(--muted,#a79d8e);}
