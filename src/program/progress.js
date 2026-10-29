@@ -6,6 +6,8 @@ import { todayStr } from "../dateUtils.js";
 import { normalizeKnowledge } from "./knowledge.js";
 
 export const ASSESSMENTS = ["ready", "practising", "unsure"];
+export const TECHNIQUE_SCOPES = ["chunk", "ascent", "round-trip"];
+const TECHNIQUE_SCOPE_SET = new Set(TECHNIQUE_SCOPES);
 const ASSESSMENT_SET = new Set(ASSESSMENTS);
 const HANDS = new Set(["both", "R", "L", "RH", "LH", "separate"]);
 const object = (x) => x !== null && typeof x === "object" && !Array.isArray(x);
@@ -24,6 +26,7 @@ function date(x) {
 function firstCheck(raw) {
   if (!object(raw) || !ASSESSMENT_SET.has(raw.assessment) || typeof raw.beforeDemo !== "boolean") return null;
   const out = { assessment: raw.assessment, beforeDemo: raw.beforeDemo };
+  if (TECHNIQUE_SCOPE_SET.has(raw.techniqueScope)) out.techniqueScope = raw.techniqueScope;
   if (typeof raw.bpm === "number" && Number.isFinite(raw.bpm) && raw.bpm > 0 && raw.bpm <= 400) out.bpm = raw.bpm;
   if (HANDS.has(raw.hands)) out.hands = raw.hands === "RH" ? "R" : raw.hands === "LH" ? "L" : raw.hands;
   if (Number.isInteger(raw.fromBar) && Number.isInteger(raw.toBar) && raw.fromBar > 0 && raw.toBar >= raw.fromBar && raw.toBar < 10000) {
@@ -42,6 +45,7 @@ function attempt(raw) {
   };
   const section = text(raw.section, 80), note = text(raw.note, 2000), day = date(raw.date), goal = text(raw.goal, 500);
   if (section) out.section = section;
+  if (TECHNIQUE_SCOPE_SET.has(raw.techniqueScope)) out.techniqueScope = raw.techniqueScope;
   if (note) out.note = note;
   if (goal) out.goal = goal;
   if (day) out.date = day;
@@ -59,11 +63,14 @@ function attempt(raw) {
     if (check) out[field] = check;
     if (id(raw.reviewForSession)) out.reviewForSession = raw.reviewForSession;
     if (section === "transfer" && id(raw.transferId)) out.transferId = raw.transferId;
+    if (id(raw.reviewVisitId) && blockIndex(raw.reviewVisitIndex) !== null) {
+      out.reviewVisitId = raw.reviewVisitId; out.reviewVisitIndex = raw.reviewVisitIndex;
+    }
   }
   // An index without a session (or a session without its block) is not a
   // completion claim. Cumulative review is independent of the guided plan,
   // even when an imported report includes a session and block.
-  if (section !== "review" && section !== "transfer" && id(raw.sessionId) && blockIndex(raw.blockIndex) !== null) {
+  if (section !== "review" && section !== "transfer" && section !== "knowledge" && id(raw.sessionId) && blockIndex(raw.blockIndex) !== null) {
     out.sessionId = raw.sessionId;
     out.blockIndex = raw.blockIndex;
   }
@@ -159,10 +166,10 @@ export function removeAttempt(progress, index) {
 }
 
 function summary(attempts, placement = null) {
-  const practice = attempts.filter((a) => a.section !== "placement");
+  const practice = attempts.filter((a) => a.section !== "placement" && a.section !== "knowledge");
   // A fresh transfer example is practice of a related skill, not a new
   // readiness or passage claim about the original lesson.
-  const sourceAttempts = attempts.filter((a) => a.section !== "transfer");
+  const sourceAttempts = attempts.filter((a) => a.section !== "transfer" && a.section !== "knowledge");
   const sourcePractice = practice.filter((a) => a.section !== "transfer");
   const placements = attempts.filter((a) => a.section === "placement");
   const lastAttempt = sourceAttempts[sourceAttempts.length - 1] || null;

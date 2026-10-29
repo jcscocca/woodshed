@@ -8,6 +8,11 @@ import { UNIT as A_MAJOR, EXERCISES as AM_EXERCISES, SESSIONS as AM_SESSIONS, CA
 import { UNIT as E_MAJOR, EXERCISES as E_EXERCISES, SESSIONS as E_SESSIONS, CATALOGUE as E_CATALOGUE } from "./units/e-major.js";
 import { UNIT as MUSICIANSHIP, EXERCISES as M_EXERCISES, SESSIONS as M_SESSIONS, CATALOGUE as M_CATALOGUE } from "./units/musicianship.js";
 import { EXTERNAL_MUSIC } from "./guides.js";
+import { SCALE_EXERCISES } from "./scales.js";
+import { INTEGRATED_EXERCISES, integrateMusicSessions, integrateMusicExercises } from "./musicIntegration.js";
+import { resolveSessionVersions } from "./sessionVersions.js";
+import { findPracticeDraftForSession } from "./drafts.js";
+import { ARCHIVED_EXERCISES, ARCHIVED_SESSIONS } from "./legacyPractice.js";
 const original = { label: "Original Woodshed teaching material" };
 const grand = (title, right, left, unit = "1/4") => {
   if (right.length !== left.length) throw new Error(`Unmatched hands: ${title}`);
@@ -367,8 +372,13 @@ const C_CATALOGUE = [
 ];
 
 export const UNITS = [COURSE, G_MAJOR, F_MAJOR, A_MINOR, D_MAJOR, A_MAJOR, E_MAJOR, MUSICIANSHIP];
-export const EXERCISES = [...C_EXERCISES, ...G_EXERCISES, ...F_EXERCISES, ...A_EXERCISES, ...D_EXERCISES, ...AM_EXERCISES, ...E_EXERCISES, ...M_EXERCISES];
-export const SESSIONS = [...C_SESSIONS, ...G_SESSIONS, ...F_SESSIONS, ...A_SESSIONS, ...D_SESSIONS, ...AM_SESSIONS, ...E_SESSIONS, ...M_SESSIONS];
+export const EXERCISES = [...integrateMusicExercises([...C_EXERCISES, ...G_EXERCISES, ...F_EXERCISES, ...A_EXERCISES, ...D_EXERCISES, ...AM_EXERCISES, ...E_EXERCISES, ...M_EXERCISES]), ...INTEGRATED_EXERCISES, ...SCALE_EXERCISES];
+// The guided course is still eight units and eighty visits. Revised visits
+// have their own identity so old completion never claims a different task.
+export const LEGACY_SESSIONS = [...C_SESSIONS, ...G_SESSIONS, ...F_SESSIONS, ...A_SESSIONS, ...D_SESSIONS, ...AM_SESSIONS, ...E_SESSIONS, ...M_SESSIONS];
+export const SESSIONS = integrateMusicSessions(LEGACY_SESSIONS, EXERCISES);
+export const ALL_SESSIONS = [...new Map([...ARCHIVED_SESSIONS, ...LEGACY_SESSIONS, ...SESSIONS].map((session) => [session.id, session])).values()];
+export const HISTORY_EXERCISES = [...EXERCISES, ...ARCHIVED_EXERCISES];
 export const CATALOGUE = [
   ...C_CATALOGUE.map((entry) => entry.kind === "external" ? entry : { ...entry, unitId: COURSE.id }),
   ...G_CATALOGUE,
@@ -378,7 +388,12 @@ export const CATALOGUE = [
   ...AM_CATALOGUE,
   ...E_CATALOGUE,
   ...M_CATALOGUE,
+  ...INTEGRATED_EXERCISES.map((exercise) => ({ id: `catalogue-${exercise.id}`, unitId: exercise.unitId, title: exercise.title, description: exercise.summary, exerciseId: exercise.id, kind: "built-in", skills: [...exercise.skillIds] })),
+  ...SCALE_EXERCISES.map((exercise) => ({ id: `catalogue-${exercise.id}`, unitId: exercise.unitId, title: exercise.title, description: exercise.summary, exerciseId: exercise.id, kind: "built-in", skills: [...exercise.skillIds] })),
   ...EXTERNAL_MUSIC,
 ];
 
-export const sessionsForUnit = (unitId) => SESSIONS.filter((session) => session.unitId === unitId);
+export const sessionsForUnit = (unitId, progress) => resolveSessionVersions(progress,
+  SESSIONS.filter((session) => session.unitId === unitId),
+  LEGACY_SESSIONS.filter((session) => session.unitId === unitId),
+  { hasDraft: findPracticeDraftForSession });

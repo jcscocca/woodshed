@@ -1,21 +1,22 @@
 import assert from "node:assert/strict";
 import { TOPIC_COVERAGE, ADDITIONAL_LEARNING } from "../src/program/coverage.js";
-import { UNITS, EXERCISES, SESSIONS } from "../src/program/curriculum.js";
+import { UNITS, EXERCISES, SESSIONS, CATALOGUE } from "../src/program/curriculum.js";
 import { QUESTION_BY_ID, knowledgeForExercise } from "../src/program/knowledge.js";
 
 const byId = new Map(EXERCISES.map((e) => [e.id, e]));
 const scheduled = new Set(SESSIONS.flatMap((s) => s.blocks.map((b) => b.exerciseId)));
 const test = (name, fn) => { fn(); console.log(`ok   ${name}`); };
 
-test("every benchmark topic has scheduled instruction, practical criteria and relevant concept checks", () => {
+test("benchmark topics have guided context, practical criteria and accessible supplemental references", () => {
   assert.equal(TOPIC_COVERAGE.length, 29);
   const ids = [...TOPIC_COVERAGE, ...ADDITIONAL_LEARNING].map((topic) => topic.id);
   assert.equal(new Set(ids).size, ids.length);
   for (const topic of [...TOPIC_COVERAGE, ...ADDITIONAL_LEARNING]) {
     assert.ok(topic.title && topic.source && topic.practicalCheck.length > 50, topic.id);
+    assert.ok(topic.lessonIds.some((id) => scheduled.has(id)), `${topic.id}: no scheduled teaching context`);
     for (const id of topic.lessonIds) {
       assert.ok(byId.has(id), `${topic.id}: missing lesson ${id}`);
-      assert.ok(scheduled.has(id), `${topic.id}: no guided opportunity for ${id}`);
+      assert.ok(scheduled.has(id) || (["scales","chords"].includes(byId.get(id).section) && CATALOGUE.some((entry) => entry.exerciseId === id)), `${topic.id}: neither assigned nor an accessible technique reference: ${id}`);
       assert.ok(byId.get(id).steps.length >= 3 && byId.get(id).checks.length >= 2, id);
     }
     const questions = new Set(topic.lessonIds.flatMap((id) => knowledgeForExercise(byId.get(id)).map((q) => q.id)));
@@ -26,7 +27,7 @@ test("every benchmark topic has scheduled instruction, practical criteria and re
   }
 });
 
-test("six major keys retain separate-hand and two-hand scale practice, not just signature labels", () => {
+test("six major keys retain complete hand-specific notation and guided coordination", () => {
   const scales = [
     ["scale-c-octave", "r", "l", "both"], ["g-scale", "r", "l", "both"],
     ["f3-scale-octave", "r", "l", "both"], ["d-scale", "r", "l", "both"],
@@ -34,7 +35,11 @@ test("six major keys retain separate-hand and two-hand scale practice, not just 
   ];
   for (const [prefix, ...suffixes] of scales) for (const suffix of suffixes) {
     const e = byId.get(`${prefix}-${suffix}`);
-    assert.ok(e && e.section === "scales" && e.abc && scheduled.has(e.id), `${prefix}-${suffix}`);
+    assert.ok(e && e.section === "scales" && e.abc, `${prefix}-${suffix}`);
+    // Mozart's new guided preparation is its actual fixed hand shape. The
+    // A-major RH octave remains an optional worksheet; later guided two-hand
+    // work contains both hands' explicit crossings and starts separately.
+    assert.ok(scheduled.has(e.id) || (prefix === "a6-scale" && suffix === "r" && CATALOGUE.some((entry) => entry.exerciseId === e.id)), `${prefix}-${suffix}: no guided or reference route`);
   }
 });
 

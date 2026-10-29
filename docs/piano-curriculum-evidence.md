@@ -84,7 +84,7 @@ goals without attaching famous titles to unrelated original music.
 
 ## Software checks versus learning evidence
 
-The release has 193 exercises and 80 planned sessions. Every score is checked
+The course has 196 exercises and 80 planned sessions. Every score is checked
 for each hand's bar duration, including declared partial bars, range and
 cross-hand key conflicts. Source regressions compare every Für Elise pitch,
 onset and duration in both hands, minor scale forms/registers, and the Canon
@@ -107,11 +107,11 @@ product defaults rather than research-validated prescriptions. Review reports
 never complete guided blocks, and an initial difficult check cannot be erased
 by a later successful repair in the same visit.
 New guided visits reserve one three-minute due check inside the twenty-minute
-budget, proportionally allocating seventeen minutes to the existing blocks
-without changing their identities or omitting instruction. Saved checks carry
+budget, proportionally allocating seventeen minutes to the selected plan's blocks
+without omitting instruction. Saved checks carry
 a separate session association for resuming; older partial sessions keep their
 original allocation. After two qualified returns, a supported skill may use one
-of eight bounded fresh studies instead. The six task families retain inspected
+of eight bounded fresh studies instead. The nine supported families retain inspected
 registers, key spellings, hand positions and chord voicings while changing note
 order, rhythm or harmonic route. Used example IDs are skipped and an exhausted
 bank returns to ordinary review. Transfer first-attempt evidence remains
@@ -120,10 +120,86 @@ check all generated studies for notation duration, registers, hand conflicts,
 distinctness and named chord tones; flow/storage tests check the time budget,
 resume and separation of evidence. These are software and content checks,
 rather than evidence of improved learner outcomes.
-Inline written/listening checks give feedback and preserve checked answers
-separately from practical self-assessments. All 46 questions belong to real
-lessons; note-reading answers are checked against the rendered pitches, and
-audio interval/chord examples against their sounding note data.
+
+The recommendation layer now rotates explicit related preparations and versions
+of the same project. The 187 distinct assigned exercises map to 148 families,
+including 18 multi-source groups; this reduces duplicate recommendations without
+changing any passage's raw due date, report or readiness. Only a comparable
+before-playback steady return can trigger a three-day family scheduling pause.
+Ordinary rehearsal, assisted or smaller returns cannot, uncertain passages keep
+their own repair, and seven-day-overdue passages bypass that pause. The interface
+shows recommended skill checks separately from raw passages available for return.
+
+A workload of at least five representative checks, or three with the oldest a
+week overdue, can recommend a resumable twenty-minute consolidation for up to
+five passages. A saved consolidation check consumes that day's new recommendation;
+unfinished plans can still resume and ordinary lessons always remain available.
+This uses more actual visits rather than claiming the authored course's 1,600
+minutes will service every return. The deterministic all-ready projection takes
+152 visits/3,040 minutes and still ends with 98 raw passages due, 80 representative
+checks due and an oldest overdue age of 18 days. This is synthetic scheduling
+evidence, not a learner result or efficacy claim. [Audit fixes](audit-fixes.md)
+records its assumptions and comparison.
+
+The bank has 200 studies: the previous 176 are unchanged, and 24 add finite
+variants of the three new preparations. Canon variants reorder the exact Bm/F#m
+released placements, Mozart variants keep A4–E5 on fixed fingers in a new
+quarter-note order, and blues variants reorder the known E7/A7/B7 chord-tone
+lines and roots. They are bounded checks of those skills, not newly assigned
+pieces or a claim that every passage has a transfer family.
+
+The optional all-key reference is additional to that eight-unit inventory. It
+adds all twelve major and minor tonics, natural/harmonic/classical melodic minor,
+one- and two-octave hand progressions, root-position arpeggios, full contrary
+motion and chromatic work. Pattern/range and key selection support short visits;
+their shared review evidence does not create guided completion. Content sources
+and exact scope are recorded in the modules and
+[continuing scales guide](continuing-scales.md). Independently specified interval
+tests verify actual sounding ranges, including melodic-minor descent. This is
+content/software verification; physical fingering suitability still belongs in
+the teacher review.
+
+[Integration within the existing lessons](integrated-lessons.md) revises 23
+visits and adds three focused preparations. The actual score determines which
+scale fragment, chord shape or movement is useful. Canon bars 3–4 need specific
+Bm/F♯m LH bass-to-chord travel; Mozart's melody needs a stationary A4–E5 position;
+Switchyard needs E7/A7/B7 tones while retaining its written blues colours. Existing
+preparations are placed closer to the other pieces they already support. No
+additional pieces or units were added to justify covering every technical form.
+Destination notation and source disclosures remain unchanged.
+
+The audit corrected an overstatement in C Day 4 B. The chord worksheet is still
+C–G–Am–F; its shapes are explicitly reordered to the piece's C–Am–F–G. Only the
+first three LH preparation bars match exactly. Its G2–B2–C3 ending holds C3 for
+two beats on 5–2–1, while *After the Rain* bar 4 uses G2–B2–D3–B2 quarters on
+5–3–1–3. The destination block now begins by isolating that actual LH bar before
+adding the melody. No existing score or saved identity was changed. Tests now
+compare reused preparations with their named destination notes, rhythm and
+register, and require the three new preparations to precede their named music.
+
+Changed visits receive new plan identities. Saved original blocks, review context
+or unfinished drafts normally retain the old plan; original reports never become
+credit for new preparation. A completed revised plan counts the visit once and
+leaves its earlier unfinished plan accessible through Resume earlier. A completed
+original plan stays completed while a revision is only partial; partial versions
+never combine into completion. Unfinished review/fresh-example drafts restore
+their exact source, variant and score even if the current queue changes or is
+empty, preserving the initial evidence separately from repair. Removed
+experimental-unit reports retain readable titles in history.
+Explicit chunk/ascent/round-trip reports, written bar scope,
+hands and tempo still support technical self-checks; older logs do not acquire
+invented complete-range evidence.
+
+The active inventory is 637 exercises: 196 course exercises and 441 optional
+technical setups. Inline written/listening checks give feedback separately from
+practical self-assessments. There are 50 active questions; 15 historical
+definitions remain recognized when reading saved answers. Note-reading answers
+are checked against the rendered pitches, and audio interval/chord examples
+against their sounding note data. Four new questions address Canon's placements,
+Mozart's actual fixed fingers and the blues's written/heard D/D# contrast.
+Known wrong answers return separately; same-day correction needs a later-date
+correct answer. Answer-only reports record zero minutes and cannot change piano
+readiness, practice days, guided completion or passage spacing.
 Recording is not automatic assessment. Controller tests simulate permission and
 codec lifecycle; live microphone capture and piano performance quality still
 need a real-device check. Reference playback is synthesized, without a human
@@ -133,6 +209,6 @@ Software agents inspected the scores and challenged each other's work. This
 was not an independent piano teacher review. No learning outcomes, physical
 technique, exact pacing or user enjoyment have been validated. The broad
 published lesson topics are now mapped to actual instruction and practical
-checks in our own eight-unit program; [coverage evidence](piano-topic-coverage.md)
+checks in our foundation program; [coverage evidence](piano-topic-coverage.md)
 records that scope. This does not claim to reproduce every etude, workbook
 activity, edition called Level 2, or later levels of the Bastien series.

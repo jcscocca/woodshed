@@ -2,9 +2,9 @@
 // Persistence layer. This is the ONLY file that knows where data
 // lives. Today it's the browser's localStorage (per-device).
 //
-// The interface is async on purpose: when you want real cross-device
-// sync, replace the bodies of loadState/saveState with fetch() calls
-// to whatever backend you choose, and nothing else in the app changes.
+// Mutations run against the latest profile under a same-origin Web Lock.
+// Revision checks protect explicit replacements; generations prevent an old
+// tab from replaying practice into an imported or reset profile.
 // ============================================================
 
 import { SCHEMA_VERSION } from "./engine.js";
@@ -12,8 +12,16 @@ import { INSTRUMENTS, ECHO_SEED, SEED, trackItems } from "./seed.js";
 import { COACH_ENABLED } from "./features.js";
 import { normalizeProgress } from "./program/progress.js";
 import { COURSE, UNITS } from "./program/curriculum.js";
+import { REMOVED_UNIT_REPLACEMENTS } from "./program/legacyPractice.js";
 
 const KEY = "woodshed-state-v1";
+const LOCK = "woodshed-profile-v1";
+const snapshots = new WeakMap();
+const metadata = (state) => state?._persistence && Number.isSafeInteger(state._persistence.revision)
+  && state._persistence.revision > 0 && typeof state._persistence.generation === "string"
+  ? state._persistence : null;
+export const stateRevision = (state) => metadata(state)?.revision || 0;
+export const stateGeneration = (state) => metadata(state)?.generation || "legacy";
 
 // v7 -> v8: placeholders retired (kept hidden, off their track, when they have history);
 // items that kept their id but changed meaning take their new content fields.
@@ -87,8 +95,9 @@ export function migrate(state) {
   // v8 -> v9: the self-guided piano course keeps learner-reported evidence
   // separate from the older MIDI accuracy and tempo-ladder records.
   s.programProgress = normalizeProgress(s.programProgress);
-  // The unit selector is additive: old C-major saves retain their exercise and
-  // session identities, and no completed work is reset when more keys arrive.
+  // Removed bridge navigation returns to a related existing unit. Its reports,
+  // block marks, notes and first checks remain unchanged in programProgress.
+  if (Object.hasOwn(REMOVED_UNIT_REPLACEMENTS, s.programUnitId)) s.programUnitId = REMOVED_UNIT_REPLACEMENTS[s.programUnitId];
   if (!UNITS.some((unit) => unit.id === s.programUnitId)) s.programUnitId = COURSE.id;
   s.version = SCHEMA_VERSION;
   return s;
@@ -103,11 +112,20 @@ export class SavedStateError extends Error {
   }
 }
 
-export async function loadState() {
-  let raw;
-  try {
-    raw = localStorage.getItem(KEY);
-  } catch { throw new SavedStateError("read"); }
+export class StateConflictError extends Error {
+  constructor(code = "conflict") {
+    super(code === "replaced" ? "Practice was replaced in another tab. Reopen this lesson before saving." : "Practice changed in another tab. Review the latest history and try again.");
+    this.name = "StateConflictError";
+    this.code = code;
+  }
+}
+
+function readRaw() {
+  try { return localStorage.getItem(KEY); }
+  catch { throw new SavedStateError("read"); }
+}
+
+function decode(raw) {
   if (raw === null) return null;
   let parsed;
   try { parsed = JSON.parse(raw); }
@@ -116,18 +134,97 @@ export async function loadState() {
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Invalid save");
     const state = migrate(parsed);
     if (!state) throw new Error("Invalid save");
+    snapshots.set(state, raw);
     return state;
   } catch { throw new SavedStateError("migration", raw); }
 }
 
-// Returns true on success, false on failure — callers can surface a warning
-// instead of silently losing data (e.g. private mode or a full quota).
-export async function saveState(state) {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(state));
-    return true;
-  } catch (e) {
-    console.warn("Woodshed: couldn't save state.", e);
-    return false;
+export async function loadState() { return decode(readRaw()); }
+
+function unchanged(base, current, raw) {
+  if (metadata(base)) return !!metadata(current) && stateRevision(base) === stateRevision(current)
+    && stateGeneration(base) === stateGeneration(current);
+  if (base && snapshots.has(base)) return snapshots.get(base) === raw;
+  return raw === null || JSON.stringify(base) === raw;
+}
+
+async function exclusive(action) {
+  // A same-origin Web Lock covers the read, mutation and write across tabs.
+  // localStorage has no atomic compare-and-swap: a lease/spinlock fallback can
+  // silently lose a concurrent write, so unsupported browsers refuse to save.
+  if (!globalThis.navigator?.locks?.request) return { ok: false, error: new SavedStateError("locking-unavailable") };
+  try { return await navigator.locks.request(LOCK, { mode: "exclusive" }, action); }
+  catch (error) { return { ok: false, error }; }
+}
+
+const generationId = () => globalThis.crypto?.randomUUID?.() || `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+function write(current, next, replacement) {
+  if (!next || typeof next !== "object" || Array.isArray(next) || typeof next.then === "function") throw new TypeError("A saved profile must be an object.");
+  if (!replacement && metadata(current)) {
+    const { _persistence: _old, ...before } = current;
+    const { _persistence: _next, ...after } = next;
+    if (JSON.stringify(before) === JSON.stringify(after)) return { ok: true, state: current };
   }
+  const state = { ...next, _persistence: { revision: stateRevision(current) + 1,
+    generation: replacement || !current ? generationId() : stateGeneration(current) } };
+  const raw = JSON.stringify(state);
+  localStorage.setItem(KEY, raw);
+  snapshots.set(state, raw);
+  return { ok: true, state };
+}
+
+// Re-run an action against the latest durable profile. A revision may advance
+// normally, but a replacement generation must never accept an old action.
+export async function mutateState(base, updater) {
+  return exclusive(() => {
+    const raw = readRaw(), current = decode(raw);
+    if (current) {
+      if (metadata(base)) {
+        if (!metadata(current) || stateGeneration(base) !== stateGeneration(current)) throw new StateConflictError("replaced");
+      } else if (metadata(current)) {
+        if (!snapshots.has(base) || stateGeneration(current) !== "legacy") throw new StateConflictError("replaced");
+      } else if (!snapshots.has(base) && !unchanged(base, current, raw)) throw new StateConflictError("replaced");
+    } else if (metadata(base) || snapshots.has(base)) throw new StateConflictError("replaced");
+    return write(current, updater(current || base), false);
+  });
+}
+
+// Import/reset and corrections are explicit replacements, not unions of logs.
+// A stale replacement fails rather than deleting another tab's newer work.
+export async function replaceState(base, next, { expectedRaw } = {}) {
+  return exclusive(() => {
+    const raw = readRaw();
+    let current;
+    if (expectedRaw !== undefined) {
+      if (raw !== expectedRaw) throw new StateConflictError();
+      try { current = decode(raw); } catch { current = null; }
+    } else {
+      current = decode(raw);
+      if (!unchanged(base, current, raw)) throw new StateConflictError();
+    }
+    return write(current, next, true);
+  });
+}
+
+// Compatibility for complete-snapshot callers: compare the loaded revision,
+// never blindly replace a newer profile. App actions use mutateState instead.
+export async function saveState(state) {
+  const result = await exclusive(() => {
+    const raw = readRaw(), current = decode(raw);
+    if (!unchanged(state, current, raw)) throw new StateConflictError();
+    return write(current, state, false);
+  });
+  if (result.ok) {
+    state._persistence = result.state._persistence;
+    snapshots.set(state, snapshots.get(result.state));
+    return true;
+  }
+  console.warn("Woodshed: couldn't save state.", result.error);
+  return false;
+}
+
+export function subscribeState(listener) {
+  const onStorage = (event) => { if (event.key === KEY || event.key === null) listener(); };
+  globalThis.window?.addEventListener("storage", onStorage);
+  return () => globalThis.window?.removeEventListener("storage", onStorage);
 }

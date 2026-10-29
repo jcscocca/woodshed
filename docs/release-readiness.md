@@ -1,8 +1,122 @@
 # v1 release readiness
 
 **PASS** means the named check has evidence for the recorded application code and
-environment. **PENDING** means it has not been demonstrated. An automated or
-simulated result is not physical-browser, instrument, teacher or learner evidence.
+environment. **PENDING** means it has not been demonstrated. Software checks do
+not establish physical playing, teaching quality or learner outcomes.
+
+## Current audit-fix release revision
+
+This release revision retains **eight units, 80 authored twenty-minute course
+visits and 1,600 planned course minutes**. Repeated or consolidation visits can
+extend the actual practice schedule. The active inventory is **637 exercises:
+196 course exercises and 441 optional reference setups**. All 637 existing scores
+remain unchanged by the audit fixes. The 23 integrated visits and three focused
+preparations remain in the existing course; the separate bridge units stay
+removed.
+
+There are **50 active understanding questions**, **15 historical definitions**,
+and **200 bounded transfer studies across nine supported families**. The prior
+176 transfer studies and 61 prior question definitions are unchanged; four new
+questions and 24 new transfer studies support the three focused preparations.
+See [audit fixes](audit-fixes.md) and [integrated lessons](integrated-lessons.md).
+
+Current-build profile mutations use same-origin Web Locks against the latest
+durable state. Revision/generation checks reject stale replacements and prevent
+import/reset resurrection; ordinary remote reports retain the open lesson.
+Unsupported locking refuses saved-profile writes with an explicit warning.
+Older already-open builds that do not follow this protocol are outside its
+guarantee. Responsive lesson ownership, exact draft resume and zero-minute
+concept repair are part of the new verification scope.
+
+Review recommendations rotate explicit related preparations/projects without
+changing raw passage evidence. One new consolidation is recommended per day
+after a saved check; unfinished plans can resume and core lessons stay available.
+The raw backlog stays visible. The synthetic all-ready model needs 152 visits /
+3,040 minutes to complete the 80 course visits and still has 98 raw passages due,
+80 recommended checks due and an oldest overdue age of 18 days. This does not
+establish a forty-practice-day completion or complete review-service guarantee.
+
+| Gate | Current evidence / limit |
+|---|---|
+| Final Node suite | **PASS after the SongEditor reset-race guard:** complete `npm test` on Node 26.8.1 and actual Node 22.23.4, including musical, persistence, concept, scheduling and SongEditor regressions. |
+| Production build | **PASS after the guard:** final production builds on Node 22.23.4 and Node 26.8.1, including service-worker generation. The Node-26 build generated an 18-entry precache. |
+| Dependency audit | **PASS runtime: zero findings.** Full audit: zero high/moderate and four low entries caused by one unpatched deepmerge advisory in the Workbox build chain. No forced override, downgrade or audit exclusion was applied. |
+| Final production browser suite | **PASS:** clean full run against the frozen post-guard source: 60 scheduled, 58 passed and two intentional project skips in 1.5 minutes. Twenty cases run in desktop Chromium, narrow Chromium and WebKit; the real PWA upgrade/offline case runs only in desktop Chromium, with the other two instances intentionally skipped. |
+| Earlier forms and song editing | **PASS in final Node suites:** 15 focused SongEditor cases, seven draft-reset checks and 22 App checks cover ordered/coalesced saves, exact failure drafts, selection, raw tempo text, explicit retry and synchronous invalidation of stale draft writers. Earlier forms await durable success. |
+| Current live preview | **PASS within observed IAB scope:** the earlier `127.0.0.1:51915` check covered corrected C4B restoration and playback. The follow-up walkthrough below used the isolated `127.0.0.1:51917` profile for complete C1A, concept repair, all-key scales, songs and compact controls. No physical piano performance was measured. |
+| Hosted CI and deployment | **PENDING:** matching hosted checks and deployment must certify the published revision; local verification alone does not establish these gates. |
+| Teacher, learner and physical-device gates | **PENDING:** independent teacher review, learner returns, native devices, real instruments and assistive-technology acceptance remain outstanding. |
+
+The dependency update moves Vite to **6.4.5**, a branch still receiving security
+patches, and retains the PWA configuration and runtime dependency versions.
+Official evidence: [Vite support policy](https://vite.dev/releases),
+[deepmerge advisory: no patched version](https://github.com/advisories/GHSA-gcqx-w48m-w2h4).
+An isolated Node-22 `npm ci --ignore-scripts` checks lockfile consistency; actual
+Node-22/26 builds check the installed toolchain. Workbox's glob-11 deprecation
+warning remains upstream and is not represented as a clean full toolchain.
+
+Local dependency evidence on the testing Mac:
+`/private/tmp/woodshed-dependency-audit.json`,
+`/private/tmp/woodshed-dependency-runtime-audit.json`,
+`/private/tmp/woodshed-dependency-build.log`,
+`/private/tmp/woodshed-dependency-node22-build.log`, and
+`/private/tmp/woodshed-dependency-ci.log`.
+Final frozen-source verification is also recorded at
+`/private/tmp/woodshed-audit-final-browser.log` and
+`/private/tmp/woodshed-audit-final-node26-build.log`.
+These temporary local files are not published CI artifacts. The current IAB
+screenshot is retained on the testing Mac at
+`/private/tmp/woodshed-audit-fixes-proof/restored-integrated-lesson.png`.
+The preceding audit verification was recorded before publication, with an empty
+index and HEAD at `a59e3ca`. That is historical pre-commit evidence; publication
+and subsequent hosted results are tracked in Git and the matching hosted checks.
+
+### Follow-up live walkthrough · 2026-10-28
+
+**PASS within the observed UI scope; no new confirmed bugs.** The isolated local
+preview at `127.0.0.1:51917` completed all four C Day 1 A blocks after restoring
+passage, loop and note edits through navigation and reload. A wrong written-note
+answer produced a concept follow-up; its corrected answer saved separately.
+Progress remained four reported piano minutes, one practice day and one of 80
+course visits. These were UI fixture reports rather than measured playing.
+
+The all-key reference showed D-flat, two octaves and both hands with its written
+notation and explicit chunk scope; filter choices survived navigation. Two
+independent songs survived reload with their titles, chords and tempo edits
+(including tempo 82). Invalid `H` chord input produced an explanation, and a
+corrected Dm/G7/C progression could be saved.
+
+Changing the live viewport from 1,264 pixels wide to 900 and back retained the
+active C-chord lesson and draft. Compact Tuner stopped the owned playback and
+waited for an explicit **Start listening** action; no microphone was opened.
+Runtime source was unchanged since the passing Node-22/26 suites, both production
+builds and 58-case browser result above. This walkthrough does not establish
+physical-piano, real-microphone or learner acceptance.
+
+## Prior integration verification
+
+Before the critical audit fixes, local `npm test` and the production build passed.
+The expanded integration suite scheduled 39 browser cases: 34 passed, two duplicate
+PWA cases were intentionally skipped, and three earlier-plan instances initially
+failed because the test omitted opening the disclosure. After adding that user
+action, the three targeted instances passed. Thus **37 applicable cases passed
+across that run and rerun**. Those results do not certify the later persistence,
+interface, concept-repair or review-scheduling changes.
+
+The prior IAB walkthrough observed eight selectable units, readable removed-unit
+history, Canon preparation playback, Mozart's fixed position and E7/A7/B7
+preparation. It did not establish native-browser or physical-piano acceptance.
+Its logs remain at `/private/tmp/woodshed-integrated-all-tests.log`,
+`/private/tmp/woodshed-integrated-build.log`,
+`/private/tmp/woodshed-integrated-browser-final.log` and
+`/private/tmp/woodshed-integrated-progress-browser.log`.
+
+## Historical candidate record — a59e3ca
+
+The following release evidence is preserved from
+[`a59e3ca`](https://github.com/jcscocca/woodshed/commit/a59e3ca). It describes the
+earlier application-code candidate and its environments. Its inventory and PASS
+entries do not certify the current working tree above.
 
 Tested application-code commit:
 [`74097c37f1d8d2db58441c6d7c2f4fdce3f8e1e0`](https://github.com/jcscocca/woodshed/commit/74097c37f1d8d2db58441c6d7c2f4fdce3f8e1e0).
@@ -13,7 +127,7 @@ The tag is published only after the matching Pages deployment and its isolated
 production smoke check pass; the tag reference identifies the published commit.
 Final v1 tag: **HOLD — native/device and human gates remain pending**.
 
-## Current evidence
+## Historical evidence matrix
 
 | Gate | Status | Evidence / limits |
 |---|---|---|

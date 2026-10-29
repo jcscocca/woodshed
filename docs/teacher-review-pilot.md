@@ -22,18 +22,56 @@ Minimum sample: **three lessons per unit (24 total)** — one preparation, one
 coordination/harmony task and one musical destination. Also inspect all three
 placement prompts, one before-playback review and one eligible fresh example.
 Open any source disclosure named below. This is a spot-check; it does not certify
-all 193 exercises or every source edition.
+all 196 course exercises, 441 optional reference setups or every source edition.
 
 | Unit | Preparation | Coordination/harmony | Musical destination and specific concern |
 |---|---|---|---|
-| C | `read-family-c` | `coord-held-bass` | `music-night-windows`: octave landmarks, full held bass and a usable phrase goal. |
-| G | `g-read-f-sharp` | `g-chords-close` | `g-music-homeward`: F♯ across registers, actual voicing pitches and continuity. |
-| F | `f3-scale-octave-r` | `f3-chord-cadence` | `f3-music-paper-boats`: finger-4 turn, B♭ and whether preparation supports the phrase. |
+| C | `read-family-c` | `coord-broken-chords` | `music-after-rain`: explicitly reorder the chord worksheet C/G/Am/F to C/Am/F/G; preparation bars 1–3 match, but the piece's bar 4 needs G2–B2–D3–B2 quarters on 5–3–1–3 rather than the worksheet's G2–B2–C3 hold. Check that this LH repair precedes melody. |
+| G | `g-read-f-sharp` | `g-coord-offbeats` | `g-music-homeward`: F♯ across registers, released root/fifth positions and bar 7's bass transition. |
+| F | `f3-scale-octave-r` | `f3-chord-ballad` | `f3-scale-turn-application` / `f3-music-paper-boats`: distinguish the phrase that needs the finger-4 turn from the piece's stationary RH and matching rolling LH. |
 | A minor | `a4-rhythm-sixteenths` | `a4-relay-e` | `a4-fur-elise-opening`: pickup/3/8, sixteenth relay, D♯→D♮, rests and shortened first ending; excerpt disclosure. |
-| D | `d-canon-source-bass` | `d-bass-chord-prep` | `d-canon-bass-chords`: actual low roots, released movement instead of stretch, held alternative and disclosed original realization. |
-| A | `a6-rhythm-dotted-six` | `a6-coord-left-melody` | `a6-mozart-two-pulse`: 6/8 subdivision, preserved upper melody/rest and disclosed simpler accompaniment. |
-| E | `e7-six-eight-turn` | `e7-syncopation` | `e7-switchyard-blues`: twelve-bar route, natural signs and held offbeats. Also compare `e7-morning-arrangement` with its disclosure. |
-| Musicianship | `m8-inversion-sharp-keys` | `m8-pedal-change` | `m8-form-aba`: D/A/E passage-specific goals, real root/bass distinction, no-pedal alternative and an audible AB/ABA contrast. |
+| D | `d-canon-source-bass` | `d-canon-minor-lh-prep` | `d-canon-bass-chords` bars 3–4: B2→D3/F♯3/B3 and F♯2→A2/C♯3/F♯3, released travel, held alternative and disclosed original realization. |
+| A | `a6-mozart-key-shape` | `a6-coord-left-melody` | `a6-mozart-two-pulse`: actual A4–E5 fingers without a scale crossing, 6/8 subdivision and disclosed accompaniment. Also carry the LH line into `a6-two-rooms` B. |
+| E | `e7-six-eight-turn` | `e7-blues-sevenths` | `e7-switchyard-blues`: E7/A7/B7 tones, intentional G naturals and held offbeats. Compare the separate Grieg melody, register and disclosure. |
+| Musicianship | `m8-inversion-sharp-keys` | `m8-cadence-transfer` | `m8-form-ab` bars 5–8: exact C/F/G7 RH shapes above the prepared LH line; also hear the contrast and return in `m8-form-aba`. |
+
+The optional [all-key reference](continuing-scales.md) needs an additional technical
+sample: B-flat and E-flat starts; B-major LH; a black-tonic major; the middle-tonic
+continuation of a two-octave scale; D/E/G minor; a minor form whose melodic ascent
+and natural descent change fingering; one major and one minor arpeggio; a complete
+contrary-motion scale; and chromatic fingering. Check both hands against the
+written registers and ask the learner to identify a comfortable chunk before
+connecting the full range. This sample extends the review; it has not been
+performed by an independent teacher.
+
+Use the [integration map](integrated-lessons.md) to examine preparation followed
+by application in the same visit. Check all three new preparations above. Ask
+whether their actual registers, fingering and movements make the named passage
+easier to understand and attempt. In A major, confirm that the full RH octave
+worksheet can remain optional while scheduled LH/both-hands work still teaches
+crossing; do not insert that crossing into Mozart's fixed five-note opening.
+The twenty-minute budgets remain repeatable structures, not evidence that the
+material's pacing suits a learner without revision.
+
+Check the new written/listening feedback alongside the Canon, Mozart and blues
+preparations. The bank now has 50 active questions, 15 historical definitions,
+and nine supported fresh-example families (200 finite studies). Same-day concept
+correction must remain pending for a later-date correct answer; zero-minute
+answer reports must not count as piano practice or complete a block. Fresh
+examples for the three preparations must retain the learned register, movement,
+fixed fingers or chord-tone line while changing the order. A teacher should
+judge whether that change tests useful transfer rather than another memorized
+exercise.
+
+Observe review burden as well as correctness. The interface distinguishes
+recommended skill checks from the raw passage backlog; a family representative
+must not be mistaken for a successful check of its siblings. A difficult passage
+keeps its own repair. When offered, a consolidation visit can take one of the
+normal practice slots; regular lessons remain available and the plan may require
+more days. At most one new consolidation is recommended per day after a saved
+check, while an unfinished visit stays resumable. The synthetic all-ready model
+still leaves overdue work, so record actual burden, assistance and deferrals
+rather than assuming every review clock is serviced.
 
 For every sample, rate the following independently as **Accept / Revise /
 Cannot judge**, with a concrete bar, sentence or interaction. An Accept is the
@@ -95,6 +133,14 @@ changes the schedule; follow the real queue and record the changed plan.
 | Day 7 | Usability check-in, export backup, review history and pick the next musical goal. | Can the learner explain progress and the next action? Record 20-minute plan versus actual time and any help needed. This is not a seven-day retention gap after Day 3. |
 | Around Day 10 | Perform the anchor's next return if its Day-3 result earned a seven-day interval. Same scope before playback, then comparison/repair. | Actual seven-day gap, comparable conditions and honest first/final reports. If eligibility/due date changed, record why; do not rename another interval. |
 | When naturally offered | After two qualifying returns, open a supported fresh example before hearing it and save the first/final reports. This may require a later due visit after Day 10. | Identify one detail transferred and one repair; verify familiar key/register and distinct example. Otherwise mark fresh-example learner evidence PENDING, not failed. |
+
+Also check a resized window, an exact later-block draft and an ordinary update
+from another current-build tab: the open lesson/take should remain in place.
+Use exported/disposable data for import/reset conflict tests. Those deliberate
+replacements invalidate stale practice; they must not restore old history. The
+saved-profile protocol requires Web Locks, and older builds that do not follow
+it are outside its guarantee. [Audit fixes](audit-fixes.md) lists these software
+scenarios separately from physical playing and learning evidence.
 
 There is no required Ready count, speed gain or completion streak. Tiredness,
 difficulty or a smaller comfortable passage is useful evidence. A smaller scope

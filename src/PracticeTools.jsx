@@ -48,7 +48,7 @@ export default function PracticeTools({ hints = false, compact = false, stopwatc
           <button className="ws-chip" disabled={locked} onClick={m.tap}>Tap tempo{hints && <kbd className="ws-kbd" aria-hidden="true">T</kbd>}</button>
           {activeLesson ? <span className="ws-stop-note">Lesson meter · {m.meterLabel || `${m.beatsPer} beats`}</span> : <div className="ws-sig">
             {[2, 3, 4].map((n) => (
-              <button key={n} className={`ws-sig-btn ${m.beatsPer === n ? "on" : ""}`} aria-pressed={m.beatsPer === n} aria-label={`${n} beats per bar`} disabled={locked} onClick={() => m.setBeatsPer(n)}>{n}/4</button>
+              <button key={n} className={`ws-sig-btn ${m.beatsPer === n ? "on" : ""}`} aria-pressed={m.beatsPer === n} aria-label={`${n}/4 · ${n} beats per bar`} disabled={locked} onClick={() => m.setBeatsPer(n)}>{n}/4</button>
             ))}
           </div>}
         </div>

@@ -6,7 +6,7 @@ import PracticeTools from "./PracticeTools.jsx";
 
 /* ----------------------- practice tools (metronome + timer) ----------------------- */
 export function PracticeSheet({ onClose, onOpenListen }) {
-  const { metro } = usePractice();
+  const { metro, activeLesson } = usePractice();
   const close = () => { metro.stop(); onClose(); };
   const dlgRef = useDialog(close);
 
@@ -19,7 +19,7 @@ export function PracticeSheet({ onClose, onOpenListen }) {
           <button className="ws-x" onClick={close} aria-label="Close">✕</button>
         </div>
         <PracticeTools />
-        <button className="ws-listen-open" onClick={() => { metro.stop(); onOpenListen(); }}>
+        <button className="ws-listen-open" disabled={activeLesson?.disabled} onClick={() => { if (activeLesson?.disabled) return; activeLesson?.stop(); metro.stop(); onOpenListen(); }}>
           <span className="ws-listen-dot" /> Tuner <span className="ws-beta">beta</span>
         </button>
       </div>

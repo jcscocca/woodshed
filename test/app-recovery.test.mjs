@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
+import { createWebLocks } from "./web-locks-harness.mjs";
 import { test } from "node:test";
 import { build } from "esbuild";
 import { fileURLToPath } from "node:url";
 import { freshData } from "../src/engine.js";
+import { recordAttempt, removeAttempt } from "../src/program/progress.js";
 
 // Keep the actual App, recovery/settings handlers, migration and storage. Only
 // rendering and browser file/download boundaries are replaced.
@@ -73,7 +75,7 @@ function runner(Component, props = {}) {
   return h;
 }
 async function harness(raw, options = {}) {
-  const names = ["localStorage", "sessionStorage", "window", "document", "FileReader", "setInterval", "clearInterval", "setTimeout"];
+  const names = ["localStorage", "sessionStorage", "window", "document", "navigator", "FileReader", "setInterval", "clearInterval", "setTimeout"];
   const previous = new Map(names.map(name => [name, Object.getOwnPropertyDescriptor(globalThis, name)]));
   const urlCreate = URL.createObjectURL, urlRevoke = URL.revokeObjectURL, warn = console.warn;
   const values = new Map(raw === undefined ? [] : [["woodshed-state-v1", raw]]), drafts = new Map();
@@ -82,7 +84,7 @@ async function harness(raw, options = {}) {
     setItem(key, value) { env.writes.push(value); if (env.failWrites) throw new Error("Quota exceeded"); values.set(key, value); } };
   const sessionStorage = { get length() { return drafts.size; }, key: i => [...drafts.keys()][i] ?? null, getItem: k => drafts.get(k) ?? null, setItem: (k, v) => drafts.set(k, v), removeItem: k => drafts.delete(k) };
   const document = new EventTarget(); document.visibilityState = "visible"; document.body = { appendChild() {} }; document.createElement = () => ({ click() { env.downloads.at(-1).filename = this.download; }, remove() {} });
-  const globals = { localStorage, sessionStorage, window: new EventTarget(), document,
+  const globals = { localStorage, sessionStorage, window: new EventTarget(), document, navigator: { locks: options.noLocks ? undefined : createWebLocks() },
     FileReader: class { readAsText(file) { env.readers.push(file); this.result = file.contents; this.onload?.(); } },
     setInterval: () => 1, clearInterval() {}, setTimeout: () => 1 };
   for (const [name, value] of Object.entries(globals)) Object.defineProperty(globalThis, name, { configurable: true, writable: true, value });
@@ -204,4 +206,198 @@ test("choosing an invalid file discards the previously selected backup instead o
     assert.equal(button(screen.tree, "Restore backup").props.disabled, true);
     assert.equal(h.env.values.get("woodshed-state-v1"), "{original");
   });
+});
+
+const report=(note)=>({exerciseId:"rhythm-long-short",section:"guided",minutes:3,assessment:"practising",date:"2026-10-28",note});
+const durable=h=>JSON.parse(h.env.values.get("woodshed-state-v1"));
+async function secondTab(h) { const peer=h.child({type:App,props:{}});await peer.flush();return peer; }
+function settingsNode(app) {
+  find(app.tree,node=>typeof node.props?.onSettings==="function").props.onSettings();app.render();
+  return find(app.tree,node=>typeof node.props?.onImport==="function");
+}
+
+test("two stale actual App instances append both reports and return the latest durable progress", async () => withApp(JSON.stringify(freshData()),async h=>{
+  const peer=await secondTab(h),saveA=program(h.app.tree).props.onAttempt,saveB=program(peer.tree).props.onAttempt;
+  const [a,b]=await Promise.all([saveA(report("Tab A")),saveB(report("Tab B"))]);
+  assert.equal(a.attempts.length,1);assert.equal(b.attempts.length,2);
+  assert.deepEqual(durable(h).programProgress.attempts.map(a=>a.note),["Tab A","Tab B"]);
+}));
+
+test("a stale unit/settings action preserves another tab's newly saved history", async () => withApp(JSON.stringify(freshData()),async h=>{
+  const peer=await secondTab(h),choose=program(peer.tree).props.onUnitChange,settings=settingsNode(peer);
+  await program(h.app.tree).props.onAttempt(report("Keep this report"));
+  await choose("g-major-foundations-2");
+  await settings.props.onChange({weeklyGoal:5});
+  assert.equal(durable(h).programUnitId,"g-major-foundations-2");assert.equal(durable(h).settings.weeklyGoal,5);
+  assert.deepEqual(durable(h).programProgress.attempts.map(a=>a.note),["Keep this report"]);
+}));
+
+test("stale correction/removal rejects safely, then deliberate deletion stays deleted after a stale selection", async () => {
+  const initial=freshData();initial.programProgress=recordAttempt({},report("Original"));
+  await withApp(JSON.stringify(initial),async h=>{
+    const peer=await secondTab(h),old=program(peer.tree),staleChoose=program(h.app.tree).props.onUnitChange;
+    await program(h.app.tree).props.onAttempt(report("Other tab's new report"));
+    await assert.rejects(old.props.onChangeProgress(removeAttempt(old.props.progress,0)),/changed in another tab/);
+    assert.equal(durable(h).programProgress.attempts.length,2);
+    await peer.flush();const latest=program(peer.tree);
+    const saved=await latest.props.onChangeProgress(removeAttempt(latest.props.progress,0));
+    assert.deepEqual(saved.attempts.map(a=>a.note),["Other tab's new report"]);
+    await staleChoose("f-major-foundations-3");
+    assert.deepEqual(durable(h).programProgress.attempts.map(a=>a.note),["Other tab's new report"]);
+  });
+});
+
+test("reset/import are explicit generation changes and old App actions cannot resurrect prior history", async () => {
+  const initial=freshData();initial.programProgress=recordAttempt({},report("Before reset"));
+  await withApp(JSON.stringify(initial),async h=>{
+    const peer=await secondTab(h),old=program(peer.tree),staleSettings=settingsNode(peer);
+    assert.equal(await settingsNode(h.app).props.onReset(),true);
+    await assert.rejects(old.props.onAttempt(report("Stale replay")),/replaced in another tab/);
+    await old.props.onUnitChange("g-major-foundations-2");
+    assert.deepEqual(durable(h).programProgress.attempts,[]);
+    assert.equal(await staleSettings.props.onImport(initial),false,"a stale import cannot silently replace intervening reset");
+    await peer.flush();const backup=freshData();backup.programProgress=recordAttempt({},report("Imported history"));
+    assert.equal(await settingsNode(peer).props.onImport(backup),true);
+    await assert.rejects(old.props.onAttempt(report("Replay after import")),/replaced in another tab/);
+    assert.deepEqual(durable(h).programProgress.attempts.map(a=>a.note),["Imported history"]);
+  });
+});
+
+test("quota failure in a stale App keeps durable history and unfinished work, then retry appends once", async () => withApp(JSON.stringify(freshData()),async h=>{
+  const peer=await secondTab(h),save=program(peer.tree).props.onAttempt;
+  await program(h.app.tree).props.onAttempt(report("Already durable"));
+  const raw=h.env.values.get("woodshed-state-v1");writePracticeDraft("unfinished-concurrent","score",{note:"Retain my draft"});
+  h.env.failWrites=true;
+  await assert.rejects(save(report("Retry me")),error=>/could not be saved/.test(error.message)&&/Quota/.test(error.cause?.message));
+  assert.equal(h.env.values.get("woodshed-state-v1"),raw);assert.equal(readPracticeDraft("unfinished-concurrent","score").note,"Retain my draft");
+  h.env.failWrites=false;await save(report("Retry me"));
+  assert.deepEqual(durable(h).programProgress.attempts.map(a=>a.note),["Already durable","Retry me"]);
+}));
+
+test("storage events adopt ordinary practice without remounting, but remount after another tab replaces history", async () => withApp(JSON.stringify(freshData()),async h=>{
+  const peer=await secondTab(h),before=program(peer.tree).props.key;
+  const publish=()=>{const event=new Event("storage");Object.defineProperty(event,"key",{value:"woodshed-state-v1"});window.dispatchEvent(event);};
+  await program(h.app.tree).props.onAttempt(report("External update"));publish();await peer.flush();
+  assert.equal(program(peer.tree).props.progress.attempts.length,1);assert.equal(program(peer.tree).props.key,before);
+  await h.app.flush();assert.equal(await settingsNode(h.app).props.onReset(),true);publish();await peer.flush();
+  assert.deepEqual(program(peer.tree).props.progress.attempts,[]);assert.notEqual(program(peer.tree).props.key,before);
+}));
+
+test("a browser without Web Locks opens existing practice readably and explicitly refuses unsafe saves", async ()=>withApp(JSON.stringify(freshData()),async h=>{
+  assert.ok(program(h.app.tree));assert.equal(h.env.writes.length,0);
+  await assert.rejects(program(h.app.tree).props.onAttempt(report("Must not overwrite")),error=>error.code==="locking-unavailable");
+  await h.app.flush();assert.match(content(h.app.tree),/Saving needs a browser with Web Locks/);assert.equal(h.env.writes.length,0);
+},{noLocks:true}));
+
+test("concept-only answers bypass session inference and remain distinct from piano practice",async()=>withApp(JSON.stringify(freshData()),async h=>{
+  await program(h.app.tree).props.onAttempt({...report("Concept repair"),section:"knowledge",minutes:0,assessment:"unsure"});
+  const saved=durable(h).programProgress;
+  assert.equal(saved.attempts[0].section,"knowledge");assert.equal(saved.attempts[0].sessionId,undefined);
+  assert.deepEqual(saved.completedBlocks,{});
+}));
+
+function todayNode(app) {
+  find(app.tree,node=>typeof node.props?.onView==="function").props.onView("today");app.render();
+  return find(app.tree,node=>typeof node.props?.onStartLog==="function");
+}
+
+test("legacy session saves wait for durability, reject double-clicks and retain the form after quota failure",async()=>withApp(JSON.stringify(freshData()),async h=>{
+  todayNode(h.app).props.onStartLog();h.app.render();
+  const log=()=>find(h.app.tree,node=>typeof node.props?.onCommit==="function");
+  const entries=[{done:true,itemId:durable(h).items[0].id,minutes:5,rating:"good"}];
+  h.env.failWrites=true;assert.equal(await log().props.onCommit(entries,"Retry this legacy note"),false);await h.app.flush();
+  assert.ok(log(),"the unsaved form remains open");assert.deepEqual(durable(h).sessions,[]);
+  h.env.failWrites=false;const commit=log().props.onCommit;
+  assert.deepEqual(await Promise.all([commit(entries,"One durable save"),commit(entries,"One durable save")]),[true,false]);
+  await h.app.flush();assert.equal(log(),null);assert.equal(durable(h).sessions.length,1);
+}));
+
+test("a stale saved-song replacement cannot erase a song added by another App instance",async()=>withApp(JSON.stringify(freshData()),async h=>{
+  const peer=await secondTab(h),item=durable(h).items.find(item=>item.id==="pno-song");assert.ok(item);
+  const open=(app)=>{todayNode(app).props.onLearn(item);app.render();return find(app.tree,node=>typeof node.props?.onOpenTuner==="function").props.lesson.props.onSongs;};
+  const a=open(h.app),b=open(peer);
+  const first=await a([{id:"a",title:"Song from A"}]);assert.ok(first);
+  assert.ok(await a([{id:"a",title:"Song from A, edited"}],first.songs),"a serialized same-tab edit can use its accepted baseline before a parent rerender");
+  assert.equal(await b([{id:"b",title:"Song from stale B"}]),null);
+  assert.deepEqual(durable(h).songs,[{id:"a",title:"Song from A, edited"}]);
+  await peer.flush();assert.match(content(peer.tree),/changed in another tab/);
+}));
+
+test("a stale App export includes the latest durable reports from the other instance",async()=>withApp(JSON.stringify(freshData()),async h=>{
+  const peer=await secondTab(h),exportOld=settingsNode(peer).props.onExport;
+  await program(h.app.tree).props.onAttempt(report("Include this in the backup"));
+  await exportOld();
+  const exported=JSON.parse(await h.env.downloads.at(-1).blob.text());
+  assert.deepEqual(exported.programProgress.attempts.map(a=>a.note),["Include this in the backup"]);
+}));
+
+function libraryNode(app) {
+  find(app.tree,node=>typeof node.props?.onView==="function").props.onView("library");app.render();
+  return find(app.tree,node=>typeof node.props?.onAdd==="function");
+}
+const itemEditor=app=>find(app.tree,node=>node.type?.name==="ItemForm");
+const sessionEditor=app=>find(app.tree,node=>node.type?.name==="SessionEdit");
+const titleInput=child=>find(child.tree,node=>node.type==="input"&&node.props.placeholder==="e.g. Drop-D riff");
+
+test("the actual custom exercise form retains fields after quota failure and closes only after one durable add",async()=>withApp(JSON.stringify(freshData()),async h=>{
+  libraryNode(h.app).props.onAdd();h.app.render();const editor=h.child(itemEditor(h.app));
+  titleInput(editor).props.onChange({target:{value:"Keep this new exercise"}});editor.render();
+  find(editor.tree,node=>node.type==="textarea").props.onChange({target:{value:"Keep these unsaved instructions"}});editor.render();
+  h.env.failWrites=true;assert.equal(await button(editor.tree,"Add").props.onClick(),false);editor.render();await h.app.flush();
+  assert.ok(itemEditor(h.app));assert.equal(titleInput(editor).props.value,"Keep this new exercise");
+  assert.equal(find(editor.tree,node=>node.type==="textarea").props.value,"Keep these unsaved instructions");
+  assert.match(content(editor.tree),/edits are kept here/);assert.equal(durable(h).items.some(i=>i.title==="Keep this new exercise"),false);
+  h.env.failWrites=false;const save=button(editor.tree,"Add").props.onClick,first=save();editor.render();
+  assert.equal(button(editor.tree,"Saving…").props.disabled,true);assert.equal(titleInput(editor).props.disabled,true);
+  await save();await first;await h.app.flush();
+  assert.equal(itemEditor(h.app),null);assert.equal(durable(h).items.filter(i=>i.title==="Keep this new exercise").length,1);
+}));
+
+test("exercise edit/delete failures keep the editor and entered fields instead of closing prematurely",async()=>{
+  const initial=freshData(),item={id:"custom-persist-form",inst:"piano",title:"Original title",type:"technique",diff:1,min:5,desc:"Original notes",hidden:false,custom:true};initial.items.push(item);
+  await withApp(JSON.stringify(initial),async h=>{
+    libraryNode(h.app).props.onOpen(item);h.app.render();const editor=h.child(itemEditor(h.app));
+    titleInput(editor).props.onChange({target:{value:"Edited title"}});editor.render();
+    h.env.failWrites=true;await button(editor.tree,"Save").props.onClick();editor.render();await h.app.flush();
+    assert.ok(itemEditor(h.app));assert.equal(titleInput(editor).props.value,"Edited title");assert.equal(durable(h).items.find(i=>i.id===item.id).title,"Original title");
+    await button(editor.tree,"Delete").props.onClick();editor.render();await h.app.flush();assert.ok(itemEditor(h.app));assert.ok(durable(h).items.some(i=>i.id===item.id));
+    h.env.failWrites=false;await button(editor.tree,"Save").props.onClick();await h.app.flush();assert.equal(itemEditor(h.app),null);assert.equal(durable(h).items.find(i=>i.id===item.id).title,"Edited title");
+    libraryNode(h.app).props.onOpen(durable(h).items.find(i=>i.id===item.id));h.app.render();const deleting=h.child(itemEditor(h.app));
+    await button(deleting.tree,"Delete").props.onClick();await h.app.flush();assert.equal(itemEditor(h.app),null);assert.equal(durable(h).items.some(i=>i.id===item.id),false);
+  });
+});
+
+test("legacy session correction/deletion keeps its form and edited minutes until durable success",async()=>{
+  const initial=freshData(),session={id:"legacy-form-report",itemId:initial.items[0].id,inst:initial.items[0].inst,date:"2026-10-28",minutes:5,rating:"good"};initial.sessions.push(session);
+  await withApp(JSON.stringify(initial),async h=>{
+    find(h.app.tree,node=>typeof node.props?.onView==="function").props.onView("progress");h.app.render();
+    find(h.app.tree,node=>typeof node.props?.onEditSession==="function").props.onEditSession(session);h.app.render();const editor=h.child(sessionEditor(h.app));
+    button(editor.tree,"+").props.onClick();editor.render();h.env.failWrites=true;
+    await button(editor.tree,"Save").props.onClick();editor.render();await h.app.flush();
+    assert.ok(sessionEditor(h.app));assert.match(content(editor.tree),/10m/);assert.equal(durable(h).sessions[0].minutes,5);
+    await button(editor.tree,"Delete").props.onClick();editor.render();await h.app.flush();assert.ok(sessionEditor(h.app));assert.equal(durable(h).sessions.length,1);
+    h.env.failWrites=false;await button(editor.tree,"Save").props.onClick();await h.app.flush();assert.equal(sessionEditor(h.app),null);assert.equal(durable(h).sessions[0].minutes,10);
+    find(h.app.tree,node=>typeof node.props?.onEditSession==="function").props.onEditSession(durable(h).sessions[0]);h.app.render();const deleting=h.child(sessionEditor(h.app));
+    await button(deleting.tree,"Delete").props.onClick();await h.app.flush();assert.equal(sessionEditor(h.app),null);assert.deepEqual(durable(h).sessions,[]);
+  });
+});
+
+test("successful profile replacement closes old legacy forms and scored-song work as well as guided drafts",async()=>{
+  for(const kind of ["item","session","log","song"]) {
+    const initial=freshData();initial.sessions.push({id:"legacy-replace-form",itemId:initial.items[0].id,inst:initial.items[0].inst,date:"2026-10-28",minutes:5,rating:"good"});
+    await withApp(JSON.stringify(initial),async h=>{
+      if(kind==="item"){libraryNode(h.app).props.onAdd();h.app.render();assert.ok(itemEditor(h.app));}
+      if(kind==="session"){
+        find(h.app.tree,node=>typeof node.props?.onView==="function").props.onView("progress");h.app.render();
+        find(h.app.tree,node=>typeof node.props?.onEditSession==="function").props.onEditSession(initial.sessions[0]);h.app.render();assert.ok(sessionEditor(h.app));
+      }
+      if(kind==="log"){todayNode(h.app).props.onStartLog();h.app.render();assert.ok(find(h.app.tree,node=>typeof node.props?.onCommit==="function"));}
+      if(kind==="song"){todayNode(h.app).props.onLearn(initial.items.find(i=>i.id==="pno-song"));h.app.render();assert.ok(find(h.app.tree,node=>typeof node.props?.onOpenTuner==="function").props.lesson);}
+      const settings=settingsNode(h.app);
+      assert.equal(kind==="session"?await settings.props.onImport(freshData()):await settings.props.onReset(),true);
+      await h.app.flush();
+      assert.equal(itemEditor(h.app),null);assert.equal(sessionEditor(h.app),null);assert.equal(find(h.app.tree,node=>typeof node.props?.onCommit==="function"),null);
+      assert.equal(find(h.app.tree,node=>typeof node.props?.onOpenTuner==="function").props.lesson,null);
+    });
+  }
 });

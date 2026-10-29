@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { installWebLocks } from "./web-locks-harness.mjs";
 import { test } from "node:test";
 import { build } from "esbuild";
 import { fileURLToPath } from "node:url";
@@ -58,6 +59,7 @@ function appHarness() {
   return h;
 }
 async function withStorage(fn) {
+  const restoreLocks = installWebLocks();
   const previous = Object.getOwnPropertyDescriptor(globalThis, "sessionStorage");
   const previousLocal = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
   const values = new Map();
@@ -69,6 +71,7 @@ async function withStorage(fn) {
   clearAllPracticeDrafts();
   try { await fn(storage, values); }
   finally {
+    restoreLocks();
     clearAllPracticeDrafts(); delete globalThis.__draftResetHooks;
     if (previous) Object.defineProperty(globalThis, "sessionStorage", previous); else delete globalThis.sessionStorage;
     if (previousLocal) Object.defineProperty(globalThis, "localStorage", previousLocal); else delete globalThis.localStorage;

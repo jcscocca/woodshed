@@ -100,6 +100,19 @@ test("a slower, narrower or single-hand check cannot lengthen a larger previous 
   assert.equal(first(joined).intervalDays, 7, "both hands may include a prior single-hand task");
 });
 
+test("a short chunk cannot lengthen a previous full round trip even with identical selected bars", () => {
+  const previous=report("2026-10-01",{hands:"both",bpm:40,fromBar:1,toBar:4,techniqueScope:"round-trip"});
+  const snapshot={assessment:"ready",beforeDemo:true,hands:"both",bpm:40,fromBar:1,toBar:4};
+  for(const techniqueScope of [undefined,"chunk","ascent"]) {
+    const p=progress(previous,check("2026-10-04",{techniqueScope:"round-trip",reviewCheck:{...snapshot,techniqueScope}}));
+    assert.equal(first(p).delayedCheckCount,0,String(techniqueScope));
+    assert.equal(first(p).intervalDays,3,String(techniqueScope));
+  }
+  const p=progress(previous,check("2026-10-04",{techniqueScope:"round-trip",reviewCheck:{...snapshot,techniqueScope:"round-trip"}}));
+  assert.equal(first(p).delayedCheckCount,1);
+  assert.equal(first(p).intervalDays,7);
+});
+
 test("a failed first check survives repair, resets spacing and rebuilds after a later steady check", () => {
   let p = progress(report("2026-10-01"), check("2026-10-04"), check("2026-10-11", {
     assessment: "ready", reviewCheck: { assessment: "practising", beforeDemo: true },

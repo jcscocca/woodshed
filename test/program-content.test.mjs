@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import abcjs from "abcjs";
-import { COURSE, UNITS, EXERCISES, SESSIONS, PLACEMENT, CATALOGUE } from "../src/program/curriculum.js";
+import { COURSE, UNITS, EXERCISES, SESSIONS, LEGACY_SESSIONS, PLACEMENT, CATALOGUE } from "../src/program/curriculum.js";
 import { parseScore } from "../src/score/scoreModel.js";
 import { guideForUnit } from "../src/program/guides.js";
+import { SCALE_TRACK, SCALE_STAGES } from "../src/program/scales.js";
 
 let failures = 0;
 const test = (name, fn) => { try { fn(); console.log(`ok   ${name}`); } catch (e) { failures++; console.error(`FAIL ${name}\n     ${e.stack}`); } };
@@ -67,7 +68,7 @@ test("adding units preserves C exercise IDs, placement and saved block positions
     ["rhythm-dotted", "read-ledger-transfer", "coord-offbeat-melody", "scale-c-octave-both"],
     ["chord-ballad", "music-dawn-drive", "create-new-ending", "read-new-phrase"],
   ];
-  const cSessions = SESSIONS.filter((s) => s.unitId === COURSE.id);
+  const cSessions = LEGACY_SESSIONS.filter((s) => s.unitId === COURSE.id);
   assert.deepEqual(cSessions.map((s) => s.id), ["c1-d1-a", "c1-d1-b", "c1-d2-a", "c1-d2-b", "c1-d3-a", "c1-d3-b", "c1-d4-a", "c1-d4-b", "c1-d5-a", "c1-d5-b"]);
   assert.deepEqual(cSessions.map((s) => s.blocks.map((b) => b.exerciseId)), blocks);
 });
@@ -81,7 +82,7 @@ test("placement takes five to ten minutes and lessons carry usable self-guidance
   }, 0);
   assert.ok(minutes >= 5 && minutes <= 10);
   for (const e of EXERCISES) {
-    assert.ok(UNITS.some((u) => u.id === e.unitId), `${e.id}: missing or unknown unit`);
+    assert.ok(UNITS.some((u) => u.id === e.unitId) || (e.unitId === SCALE_TRACK.id && e.trackId === SCALE_TRACK.id), `${e.id}: missing or unknown unit/track`);
     assert.ok(["guided", "chords", "scales", "placement"].includes(e.section), e.id);
     assert.ok(["R", "L", "both"].includes(e.hands), e.id);
     for (const field of ["title", "summary", "fingering"]) assert.ok(typeof e[field] === "string" && e[field].trim(), `${e.id}: ${field}`);
@@ -143,13 +144,14 @@ test("unit guides and scheduled passages refer to real playable material", () =>
     assert.ok(Number.isInteger(from) && Number.isInteger(to) && from >= 1 && to >= from && to <= scores.get(exercise.id).bars.length, label);
   };
   for (const e of EXERCISES) for (const p of e.passages || []) validateRange(`${e.id}: ${p.label}`, p.from, p.to, e);
-  for (const s of SESSIONS) for (const b of s.blocks) if (b.fromBar !== undefined || b.toBar !== undefined) validateRange(s.id, b.fromBar, b.toBar, byId.get(b.exerciseId));
+  for (const s of [...SESSIONS,...LEGACY_SESSIONS]) for (const b of s.blocks) if (b.fromBar !== undefined || b.toBar !== undefined) validateRange(s.id, b.fromBar, b.toBar, byId.get(b.exerciseId));
 });
 
-test("standalone chord and scale lessons are shared with their unit's guided practice", () => {
+test("chord and scale lessons belong to guided practice or the continuing scales route", () => {
   for (const e of EXERCISES.filter((x) => x.section === "chords" || x.section === "scales")) {
-    const used = new Set(SESSIONS.filter((s) => s.unitId === e.unitId).flatMap((s) => s.blocks.map((b) => b.exerciseId)));
-    assert.ok(used.has(e.id), `${e.id} is duplicated outside the guided curriculum`);
+    const used = new Set([...SESSIONS,...LEGACY_SESSIONS].filter((s) => s.unitId === e.unitId).flatMap((s) => s.blocks.map((b) => b.exerciseId)));
+    const routed = e.trackId === SCALE_TRACK.id && SCALE_STAGES.some((stage) => stage.exerciseIds.includes(e.id));
+    assert.ok(used.has(e.id) || routed, `${e.id} has no guided session or continuing scales route`);
     assert.ok(CATALOGUE.some((c) => c.exerciseId === e.id && c.kind === "built-in"), `${e.id}: missing catalogue entry`);
   }
 });

@@ -7,7 +7,7 @@ import { recordAttempt } from "../../src/program/progress.js";
 
 const stateKey = "woodshed-state-v1";
 const ago = (days) => { const d = new Date(); d.setDate(d.getDate() - days); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
-const start = page => page.getByRole("button", { name: "Start 20-minute session", exact: true }).click();
+const start = page => page.getByRole("button", { name: /^(Start 20-minute session|Resume session)$/ }).click();
 const note = page => page.getByRole("textbox", { name: "One thing to try next time", exact: true });
 const minutes = page => page.getByRole("spinbutton", { name: "Minutes practised", exact: true });
 const save = async (page, message) => {
@@ -52,16 +52,19 @@ test("placement, drafts, shared controls, all core blocks and completion", async
     await expect(lessonTempo).toHaveValue("57");
     await expect(page.getByRole("slider", { name: "Tempo", exact: true })).toHaveValue("57");
   }
-  await page.getByLabel("Last bar", { exact: true }).selectOption("2");
+  await page.getByLabel("Through bar", { exact: true }).selectOption("2");
   await page.getByLabel("Repeat the excerpt", { exact: true }).check();
   await note(page).fill("Keep my unfinished passage and note.");
   await page.getByRole("button", { name: "Progress", exact: true }).click();
   await page.getByRole("button", { name: "Guided Practice", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Resume session", exact: true })).toBeVisible();
   await start(page);
   await expect(note(page)).toHaveValue("Keep my unfinished passage and note.");
-  await expect(page.getByLabel("Last bar", { exact: true })).toHaveValue("2");
+  await expect(page.getByLabel("Through bar", { exact: true })).toHaveValue("2");
   await expect(page.getByLabel("Repeat the excerpt", { exact: true })).toBeChecked();
-  await page.reload(); await start(page);
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Resume session", exact: true })).toBeVisible();
+  await start(page);
   await expect(note(page)).toHaveValue("Keep my unfinished passage and note.");
   await save(page, "Acceptance fixture: first block.");
   await expect(page.getByRole("heading", { name: "Three Cs, two clefs, one keyboard", exact: true })).toBeVisible();
@@ -149,13 +152,16 @@ test("unreadable data is preserved and recovery reports quota failure before rep
   await expect(page.getByRole("button", { name: "Start 20-minute session", exact: true })).toBeVisible();
 });
 
-test("keyboard, enlarged notation, reduced motion and automated accessibility", async ({ page }) => {
+test("keyboard, enlarged notation, reduced motion and automated accessibility", async ({ page, browserName }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("./");
   // The loading Shell has its own skip link. Wait for the real application so
   // its replacement cannot remove keyboard focus halfway through this check.
   await expect(page.getByRole("button", { name: "Start 20-minute session", exact: true })).toBeVisible();
-  await page.keyboard.press("Tab");
+  // macOS WebKit follows Safari's native link-navigation preference: Option-Tab
+  // includes links. Keep the actual keyboard/focus assertions on every host.
+  // https://support.apple.com/guide/safari/cpsh003/mac
+  await page.keyboard.press(browserName === "webkit" && process.platform === "darwin" ? "Alt+Tab" : "Tab");
   await expect(page.getByRole("link", { name: "Skip to practice", exact: true })).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.locator("#ws-main")).toBeFocused();
@@ -166,10 +172,10 @@ test("keyboard, enlarged notation, reduced motion and automated accessibility", 
   const before = await page.getByRole("slider", { name: /^Practice tempo/ }).inputValue();
   await page.keyboard.press("ArrowRight");
   await expect(page.getByRole("slider", { name: /^Practice tempo/ })).toHaveValue(before);
-  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+  const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
   expect(results.violations.map(v => ({ id: v.id, impact: v.impact, nodes: v.nodes.map(n => n.target) }))).toEqual([]);
   await page.getByRole("button", { name: "Settings", exact: true }).click();
-  const settings = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+  const settings = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
   expect(settings.violations.map(v => ({ id: v.id, nodes: v.nodes.map(n => n.target) }))).toEqual([]);
 });
 

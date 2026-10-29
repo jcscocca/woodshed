@@ -19,6 +19,8 @@ function coversPreviousScope(check, previous) {
   if (previous.bpm && !(check.bpm >= previous.bpm)) return false;
   if (previous.hands && check.hands !== previous.hands && check.hands !== "both") return false;
   if (previous.fromBar && !(check.fromBar <= previous.fromBar && check.toBar >= previous.toBar)) return false;
+  const scopes = { chunk: 0, ascent: 1, "round-trip": 2 };
+  if (previous.techniqueScope && !(scopes[check.techniqueScope] >= scopes[previous.techniqueScope])) return false;
   return true;
 }
 
@@ -71,7 +73,7 @@ export function reviewQueue(progress, exercises, { today = todayStr(), limit = 3
   for (const entry of normalizeProgress(progress).attempts) {
     // A placement, missing date, future correction or malformed zero-minute
     // report cannot silently establish that a lesson has been practised.
-    if (entry.section === "placement" || !byId.has(entry.exerciseId) || !entry.minutes
+    if (entry.section === "placement" || entry.section === "knowledge" || !byId.has(entry.exerciseId) || !entry.minutes
         || calendarDay(entry.date) === null || entry.date > today) continue;
     // A new example supplies different evidence. It neither earns nor resets
     // the original passage's spacing, but occupies that skill's turn today.

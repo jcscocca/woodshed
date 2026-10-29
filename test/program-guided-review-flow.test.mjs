@@ -35,7 +35,7 @@ const programBundle = await build({
   bundle: true, write: false, format: "esm", platform: "node",
   plugins: [{ name: "guided-review-program-boundaries", setup(b) {
     commonBoundaries(b);
-    b.onResolve({ filter: /PracticePlayer\.jsx$/ }, () => ({ path: "player", namespace: "boundary" }));
+    b.onResolve({ filter: /(?:PracticePlayer|ConceptReview)\.jsx$/ }, () => ({ path: "player", namespace: "boundary" }));
     b.onLoad({ filter: /.*/, namespace: "boundary" }, () => ({ contents: "export default function PracticePlayer() {}" }));
   } }],
 });
@@ -66,6 +66,14 @@ const appBundle = await build({
         env.writes.push(JSON.parse(JSON.stringify(value)));
         return env.saveOk;
       }
+      export async function mutateState(base,updater) {
+        const env=globalThis.__woodshedGuidedReviewApp, state=updater(env.latest || base);
+        if(!(await saveState(state)))return {ok:false,error:new Error("storage unavailable")};
+        env.latest=state;return {ok:true,state};
+      }
+      export const replaceState=(base,next)=>mutateState(base,()=>next);
+      export const stateRevision=()=>0, stateGeneration=()=>"legacy", subscribeState=()=>()=>{};
+      export class StateConflictError extends Error {}
       export async function loadState() { return null; }
       export const migrate = value => value;
     ` : args.path === "desktop" ? "export const useIsDesktop = () => true;" : `

@@ -15,7 +15,7 @@ const uniqueMidi = (notes) => [...new Set(notes.map((note) => note.midi))].sort(
 test("transfer uses compatible known sources across all eight units without fabricating generic fallbacks", () => {
   assert.equal(UNITS.length, 8);
   for (const unit of UNITS) assert.ok(supported.some((exercise) => exercise.unitId === unit.id), unit.id);
-  assert.deepEqual([...new Set(variants.map(({ task }) => task.transferFamily))].sort(), ["cadence", "held-bass", "landmarks", "pulse", "subdivision", "two-to-one"]);
+  assert.deepEqual([...new Set(variants.map(({ task }) => task.transferFamily))].sort(), ["blues-sevenths", "cadence", "canon-travel", "held-bass", "landmarks", "mozart-position", "pulse", "subdivision", "two-to-one"]);
   for (const exercise of [null, {}, { id: "unknown" }, { id: "constructor" }, { id: "__proto__" }, byId.get("place-pulse"), byId.get("a4-fur-elise-opening"), byId.get("e7-switchyard-blues")]) {
     assert.equal(supportsTransfer(exercise), false);
     assert.equal(transferForExercise(exercise), null);
@@ -157,5 +157,79 @@ test("fresh chord routes reuse actual source voicings and complete dominant seve
     assert.ok([...groups.values()].some((notes) => notes[0].dur === 2));
     if (exercise.id === "a4-chord-cadence") assert.ok(score.notes.some((note) => note.midi === 68), "E7 must retain G#4");
     if (exercise.id === "e7-chords-primary") assert.ok([...groups.values()].some((notes) => JSON.stringify(uniqueMidi(notes)) === JSON.stringify([47, 54, 63, 69, 71])), "B7 must retain LH B2/F#3 and upper D#4/A4/B4");
+  }
+});
+
+test("passage-specific transfer is offered only for its three matched source preparations", () => {
+  const ids=["d-canon-minor-lh-prep","a6-mozart-key-shape","e7-blues-sevenths"];
+  for(const id of ids){
+    assert.equal(supportsTransfer(byId.get(id)),true,id);
+    assert.equal(supportsTransfer({...byId.get(id),section:"placement"}),false,id);
+    assert.equal(supportsTransfer({...byId.get(id),archived:true}),false,id);
+    assert.equal(supportsTransfer({...byId.get(id),id:`${id}-other`}),false,id);
+  }
+  for(const id of ["d-canon-bass-chords","a6-mozart-melody","e7-switchyard-blues","sc-major-a-1-r"])assert.equal(supportsTransfer(byId.get(id)),false,id);
+});
+
+test("fresh Canon routes retain both actual released minor-chord placements and quarter-note attacks", () => {
+  const source=scoreOf(byId.get("d-canon-minor-lh-prep")),sourceNotes=new Set(source.notes.map(n=>`${n.hand}:${n.midi}`));
+  for(const {task} of variants.filter(({task})=>task.transferFamily==="canon-travel")){
+    const score=scoreOf(task),shapes=new Set();
+    assert.equal(task.hands,"L");
+    assert.ok(score.notes.every(n=>n.hand==="L"&&n.dur===1&&sourceNotes.has(`${n.hand}:${n.midi}`)));
+    for(let bar=1;bar<=4;bar++){
+      const notes=score.notes.filter(n=>n.bar===bar),start=(bar-1)*4;
+      const root=notes.find(n=>n.beat===start).midi;
+      const upper=root===47?[50,54,59]:root===42?[45,49,54]:null;
+      assert.ok(upper,`${task.transferId}: wrong bass root`);shapes.add(root);
+      for(const offset of [0,2])assert.deepEqual(notes.filter(n=>n.beat===start+offset).map(n=>n.midi),[root]);
+      for(const offset of [1,3])assert.deepEqual(notes.filter(n=>n.beat===start+offset).map(n=>n.midi),upper);
+    }
+    assert.deepEqual([...shapes].sort((a,b)=>a-b),[42,47]);
+    assert.match(task.fingering,/B2 uses 5.*D3–F#3–B3 uses 5–3–1.*F#2 uses 5.*A2–C#3–F#3 uses 5–3–1.*Release/);
+  }
+});
+
+const printedFingers=(task,hand)=>{
+  const out=[];
+  for(const line of abcjs.parseOnly(task.abc)[0].lines)for(const [i,staff] of (line.staff||[]).entries()){
+    if((i===0?"R":"L")!==hand)continue;
+    for(const voice of staff.voices)for(const event of voice)if(event.el_type==="note"&&event.pitches?.length)out.push(Number(event.decoration?.find(v=>/^[1-5]$/.test(v))));
+  }
+  return out;
+};
+
+test("fresh Mozart melodies stay within A4–E5 with the same fixed fingers on every printed note", () => {
+  const fingers={69:1,71:2,73:3,74:4,76:5};
+  for(const {task} of variants.filter(({task})=>task.transferFamily==="mozart-position")){
+    const notes=scoreOf(task).notes;
+    assert.equal(task.hands,"R");assert.equal(notes.length,16);
+    assert.ok(notes.every(n=>n.hand==="R"&&n.dur===1&&Object.hasOwn(fingers,n.midi)));
+    assert.deepEqual(uniqueMidi(notes),[69,71,73,74,76]);
+    assert.deepEqual(printedFingers(task,"R"),notes.map(n=>fingers[n.midi]));
+    assert.equal(notes.at(-1).midi,69);
+  }
+});
+
+test("fresh blues routes retain E7/A7/B7 tones, familiar RH fingers and separate held roots", () => {
+  const expected=[
+    {root:40,right:[64,68,71,74],fingers:[1,2,3,5],pcs:[2,4,8,11]},
+    {root:45,right:[69,73,76,67],fingers:[1,3,5,1],pcs:[1,4,7,9]},
+    {root:47,right:[66,69,75,71],fingers:[1,2,5,3],pcs:[3,6,9,11]},
+    {root:40,right:[68,71,74,64],fingers:[2,3,5,1],pcs:[2,4,8,11]},
+  ];
+  for(const {task} of variants.filter(({task})=>task.transferFamily==="blues-sevenths")){
+    const score=scoreOf(task),fingers=printedFingers(task,"R"),used=new Set();
+    for(let bar=1;bar<=4;bar++){
+      const left=score.notes.filter(n=>n.bar===bar&&n.hand==="L"),right=score.notes.filter(n=>n.bar===bar&&n.hand==="R");
+      assert.equal(left.length,1);assert.equal(left[0].dur,4);assert.equal(left[0].beat,(bar-1)*4);
+      assert.equal(right.length,4);assert.ok(right.every(n=>n.dur===1));
+      const cell=expected.find(c=>c.root===left[0].midi&&JSON.stringify(c.right)===JSON.stringify(right.map(n=>n.midi)));
+      assert.ok(cell,`${task.transferId}: changed known chord-tone line or register`);used.add(expected.indexOf(cell));
+      assert.deepEqual(fingers.slice((bar-1)*4,bar*4),cell.fingers);
+      assert.deepEqual([...new Set([...right,left[0]].map(n=>n.midi%12))].sort((a,b)=>a-b),cell.pcs);
+    }
+    assert.equal(used.size,4,"each new route reorders all four known cells");
+    assert.match(task.fingering,/release and move down to G4.*No four-note RH chord or wide span has to be held/);
   }
 });

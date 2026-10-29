@@ -8,7 +8,7 @@ import {
   minutesByInst, minutesInLastDays, freshData, withDerivedStats, progressionProposals,
   trackStatus, mergeContent,
 } from "./engine.js";
-import { loadState, saveState, migrate } from "./storage.js";
+import { loadState, mutateState, replaceState, migrate, stateRevision, stateGeneration, StateConflictError, subscribeState } from "./storage.js";
 import { useDialog } from "./useDialog.js";
 import { PracticeProvider } from "./PracticeProvider.jsx";
 import { PracticeSheet, ListenSheet } from "./PracticeSheet.jsx";
@@ -90,7 +90,44 @@ export default function Woodshed() {
   const [recovery, setRecovery] = useState(null), [recoveryLoading, setRecoveryLoading] = useState(true);
   const desktop = useIsDesktop();
   const loaded = useRef(false);
-  const loadGate = useRef(false), replacementGate = useRef(false);
+  const loadGate = useRef(false), replacementGate = useRef(false), logGate = useRef(false);
+  const dataRef = useRef(data); dataRef.current = data;
+  const adoptState = (next, force = false, discardUnfinished = false) => {
+    const previous = dataRef.current;
+    if (!force && previous && stateRevision(previous) > stateRevision(next)) return;
+    if (discardUnfinished || previous && stateRevision(previous) > 0 && stateGeneration(previous) !== stateGeneration(next)) {
+      clearAllPracticeDrafts(); setProgramEpoch((epoch) => epoch + 1);
+      setItemForm(null); setEditSession(null); setLogging(false);
+      setLessonFor(null); setShowScore(false); setCoachResults({}); setShowProposals(false);
+    }
+    dataRef.current = next; setData(next);
+  };
+  const persistenceFailure = async (error) => {
+    setSaveError(error?.code === "locking-unavailable"
+      ? "Saving needs a browser with Web Locks. Your existing saved practice has not been replaced."
+      : error instanceof StateConflictError ? error.message : "Couldn't save your latest change. Your previous saved history is unchanged.");
+    if (error instanceof StateConflictError) {
+      try { const latest = await loadState(); if (latest) adoptState(latest); } catch { /* Preserve the current view and unsaved draft. */ }
+    }
+  };
+  const commitMutation = async (base, updater, message) => {
+    if (replacementGate.current) throw new StateConflictError("replaced");
+    const result = await mutateState(base, updater);
+    if (!result.ok) {
+      await persistenceFailure(result.error);
+      if (message && !(result.error instanceof StateConflictError)) {
+        const error = new Error(message, { cause: result.error });
+        if (result.error?.code) error.code = result.error.code;
+        throw error;
+      }
+      throw result.error;
+    }
+    adoptState(result.state); setSaveError(false);
+    return result.state;
+  };
+  // Persist the action, rather than a render's stale full-profile snapshot.
+  // Every action is re-run against the latest profile under the shared lock.
+  const updateData = (updater) => commitMutation(data, updater).catch(() => null);
 
   const loadCurrent = async () => {
     if (loadGate.current || replacementGate.current) return;
@@ -98,9 +135,15 @@ export default function Woodshed() {
     try {
       let d = await loadState();
       if (!d) d = freshData();
-      if (d.items) d.items = mergeContent(d.items);
-      if (!d.currentSession || d.currentSession.date !== todayStr()) d.currentSession = gen(d);
-      loaded.current = true; setRecovery(null); setData(d);
+      const prepare = (latest) => {
+        const next = { ...latest, items: mergeContent(latest.items) };
+        if (!next.currentSession || next.currentSession.date !== todayStr()) next.currentSession = gen(next);
+        return next;
+      };
+      const result = await mutateState(d, prepare);
+      loaded.current = true; setRecovery(null);
+      adoptState(result.ok ? result.state : prepare(d), true);
+      if (!result.ok) await persistenceFailure(result.error); else setSaveError(false);
     } catch (error) {
       loaded.current = false;
       setRecovery({ code: error?.code || "migration", raw: typeof error?.raw === "string" ? error.raw : null });
@@ -111,15 +154,22 @@ export default function Woodshed() {
   // load once
   useEffect(() => { loadCurrent(); }, []);
 
-  // persist on change; surface failures instead of losing data quietly
+  // Other tabs publish only durable changes. Keep their reports and deliberate
+  // replacements visible; adopting a snapshot never triggers another write.
   useEffect(() => {
-    if (!loaded.current || !data || recovery || replacementGate.current) return;
-    saveState(data).then((ok) => setSaveError(!ok));
-  }, [data]);
+    return subscribeState(async () => {
+      if (!loaded.current || replacementGate.current) return;
+      try {
+        const latest = await loadState();
+        if (latest) adoptState(latest);
+        else setSaveError("Saved practice was cleared in another tab. Reload before saving another change.");
+      } catch { setSaveError("Another tab changed saved practice, but it could not be read. Your current work has been kept open."); }
+    });
+  }, []);
 
   // An installed app can stay open across midnight; build the new day's set when it comes back.
   useEffect(() => {
-    const roll = () => setData((d) => (d && d.currentSession?.date !== todayStr() ? { ...d, currentSession: gen(d) } : d));
+    const roll = () => { const base = dataRef.current; if (base && base.currentSession?.date !== todayStr()) commitMutation(base, (d) => ({ ...d, currentSession: gen(d) })).catch(() => {}); };
     const onVisible = () => { if (document.visibilityState === "visible") roll(); };
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("focus", roll);
@@ -145,66 +195,82 @@ export default function Woodshed() {
   function gen(d) { return generateSession({ ...d, items: derive(d) }); }
 
   /* actions */
-  const regenerate = () => setData((d) => ({ ...d, currentSession: gen(d) }));
-  const swap = (id) => setData((d) => ({ ...d, currentSession: swapInSession(d.currentSession, id, { ...d, items: derive(d) }) }));
-  const addAnother = () => setData((d) => ({ ...d, currentSession: gen(d) }));
+  const regenerate = () => updateData((d) => ({ ...d, currentSession: gen(d) }));
+  const swap = (id) => updateData((d) => ({ ...d, currentSession: swapInSession(d.currentSession, id, { ...d, items: derive(d) }) }));
+  const addAnother = () => updateData((d) => ({ ...d, currentSession: gen(d) }));
 
-  const commitLog = (entries, note) => {
-    setData((d) => {
-      const today = todayStr();
-      const sessions = [...d.sessions];
-      for (const e of entries) {
-        if (!e.done) continue;
-        const it = d.items.find((x) => x.id === e.itemId);
-        sessions.push({
-          id: `${today}-${e.itemId}-${Math.random().toString(36).slice(2, 7)}`,
-          date: today, itemId: e.itemId, inst: it ? it.inst : "piano",
-          minutes: e.minutes, rating: e.rating, bpm: e.bpm ?? null, note: note || "",
-          accuracy: e.accuracy ?? null, coached: e.accuracy != null, missed: e.missed ?? [],
-          rhythm: e.rhythm ?? null, section: e.section ?? null, hands: e.hands ?? null, mode: e.mode ?? null,
-        });
-      }
-      return { ...d, sessions, currentSession: logging === true ? { ...d.currentSession, completed: true } : d.currentSession };
-    });
-    setCoachResults((m) => {
-      const next = { ...m };
-      for (const e of entries) if (e.done) delete next[e.itemId];
-      return next;
-    });
-    setLogging(false);
+  const commitLog = async (entries, note) => {
+    if (logGate.current) return false;
+    logGate.current = true;
+    try {
+      const saved = await updateData((d) => {
+        const today = todayStr();
+        const sessions = [...d.sessions];
+        for (const e of entries) {
+          if (!e.done) continue;
+          const it = d.items.find((x) => x.id === e.itemId);
+          sessions.push({
+            id: `${today}-${e.itemId}-${Math.random().toString(36).slice(2, 7)}`,
+            date: today, itemId: e.itemId, inst: it ? it.inst : "piano",
+            minutes: e.minutes, rating: e.rating, bpm: e.bpm ?? null, note: note || "",
+            accuracy: e.accuracy ?? null, coached: e.accuracy != null, missed: e.missed ?? [],
+            rhythm: e.rhythm ?? null, section: e.section ?? null, hands: e.hands ?? null, mode: e.mode ?? null,
+          });
+        }
+        return { ...d, sessions, currentSession: logging === true ? { ...d.currentSession, completed: true } : d.currentSession };
+      });
+      if (!saved) return false;
+      setCoachResults((m) => {
+        const next = { ...m };
+        for (const e of entries) if (e.done) delete next[e.itemId];
+        return next;
+      });
+      setLogging(false);
+      return true;
+    } finally { logGate.current = false; }
   };
 
   const recordCoachResult = (itemId, res) => setCoachResults((m) => ({ ...m, [itemId]: res }));
-  const saveLadder = (itemId, key, bpm) => setData((d) => ({ ...d, ladder: { ...d.ladder, [itemId]: { ...d.ladder[itemId], [key]: bpm } } }));
-  const saveSightLevel = (itemId, level) => setData((d) => ({ ...d, sightLevel: { ...d.sightLevel, [itemId]: level } }));
-  const saveTargetClean = (itemId) => setData((d) => (d.targetClean[itemId] ? d : { ...d, targetClean: { ...d.targetClean, [itemId]: todayStr() } }));
+  const saveLadder = (itemId, key, bpm) => updateData((d) => ({ ...d, ladder: { ...d.ladder, [itemId]: { ...d.ladder[itemId], [key]: bpm } } }));
+  const saveSightLevel = (itemId, level) => updateData((d) => ({ ...d, sightLevel: { ...d.sightLevel, [itemId]: level } }));
+  const saveTargetClean = (itemId) => updateData((d) => (d.targetClean[itemId] ? d : { ...d, targetClean: { ...d.targetClean, [itemId]: todayStr() } }));
+  const changeSongs = (songs, expectedSongs = data.songs) => updateData((d) => {
+    if (JSON.stringify(d.songs) !== JSON.stringify(expectedSongs)) throw new StateConflictError();
+    return { ...d, songs };
+  });
 
   // session length and instruments shape today's set, so rebuild it unless it's already been logged
   const rebuildIfOpen = (d) => (d.currentSession.completed ? d : { ...d, currentSession: gen(d) });
-  const updateSettings = (patch) => setData((d) => {
+  const updateSettings = (patch) => updateData((d) => {
     const next = { ...d, settings: { ...d.settings, ...patch } };
     return "target" in patch && patch.target !== d.settings.target ? rebuildIfOpen(next) : next;
   });
   const toggleInstrument = (inst) =>
-    setData((d) => rebuildIfOpen({ ...d, settings: { ...d.settings, enabled: { ...d.settings.enabled, [inst]: !d.settings.enabled[inst] } } }));
+    updateData((d) => rebuildIfOpen({ ...d, settings: { ...d.settings, enabled: { ...d.settings.enabled, [inst]: !data.settings.enabled[inst] } } }));
 
   const addCustom = (fields) =>
-    setData((d) => ({ ...d, items: [...d.items, { ...fields, id: `custom-${Date.now()}`, hidden: false, custom: true }] }));
-  const saveItem = (id, fields) =>
-    setData((d) => ({ ...d, items: d.items.map((it) => (it.id === id ? { ...it, ...fields } : it)) }));
+    updateData((d) => ({ ...d, items: [...d.items, { ...fields, id: `custom-${Date.now()}`, hidden: false, custom: true }] }));
+  const saveItem = (id, fields) => updateData((d) => {
+    const current = d.items.find((it) => it.id === id), expected = data.items.find((it) => it.id === id);
+    if (!current || JSON.stringify(current) !== JSON.stringify(expected)) throw new StateConflictError();
+    return { ...d, items: d.items.map((it) => (it.id === id ? { ...it, ...fields } : it)) };
+  });
   const deleteItem = (id) =>
-    setData((d) => ({
+    updateData((d) => ({
       ...d,
       items: d.items.filter((it) => it.id !== id),
       currentSession: { ...d.currentSession, items: d.currentSession.items.filter((x) => x.itemId !== id) },
     }));
   const toggleHidden = (id) =>
-    setData((d) => ({ ...d, items: d.items.map((it) => (it.id === id ? { ...it, hidden: !it.hidden, mastered: it.hidden ? false : it.mastered } : it)) }));
+    updateData((d) => ({ ...d, items: d.items.map((it) => (it.id === id ? { ...it, hidden: !data.items.find((item) => item.id === id)?.hidden, mastered: data.items.find((item) => item.id === id)?.hidden ? false : it.mastered } : it)) }));
 
-  const editSessionSave = (id, patch) =>
-    setData((d) => ({ ...d, sessions: d.sessions.map((s) => (s.id === id ? { ...s, ...patch } : s)) }));
+  const editSessionSave = (id, patch) => updateData((d) => {
+    const current = d.sessions.find((s) => s.id === id), expected = data.sessions.find((s) => s.id === id);
+    if (!current || JSON.stringify(current) !== JSON.stringify(expected)) throw new StateConflictError();
+    return { ...d, sessions: d.sessions.map((s) => (s.id === id ? { ...s, ...patch } : s)) };
+  });
   const deleteSession = (id) =>
-    setData((d) => ({ ...d, sessions: d.sessions.filter((s) => s.id !== id) }));
+    updateData((d) => ({ ...d, sessions: d.sessions.filter((s) => s.id !== id) }));
 
   // record that a suggestion was handled (at the current practice count) so it
   // doesn't reappear until the exercise is practiced more
@@ -214,34 +280,38 @@ export default function Woodshed() {
     return { ...progress, acked: { ...progress.acked, [p.itemId]: times } };
   };
   const applyProposal = (p) =>
-    setData((d) => ({
+    updateData((d) => ({
       ...d,
       items: d.items.map((it) => (it.id === p.itemId ? { ...it, mastered: true, hidden: true } : it)),
       progress: ackProposal(d, p),
     }));
-  const dismissProposal = (p) => setData((d) => ({ ...d, progress: ackProposal(d, p) }));
+  const dismissProposal = (p) => updateData((d) => ({ ...d, progress: ackProposal(d, p) }));
 
   // mark a track stage complete from the Tracks view (unlocks the next stage)
   const completeStage = (id) =>
-    setData((d) => ({ ...d, items: d.items.map((it) => (it.id === id ? { ...it, mastered: true, hidden: true } : it)) }));
+    updateData((d) => ({ ...d, items: d.items.map((it) => (it.id === id ? { ...it, mastered: true, hidden: true } : it)) }));
   const reopenStage = (id) =>
-    setData((d) => ({ ...d, items: d.items.map((it) => (it.id === id ? { ...it, mastered: false, hidden: false } : it)) }));
+    updateData((d) => ({ ...d, items: d.items.map((it) => (it.id === id ? { ...it, mastered: false, hidden: false } : it)) }));
 
   async function resetAll() {
     if (replacementGate.current) return false;
     replacementGate.current = true;
     try {
       const d = freshData(); d.currentSession = gen(d);
-      if (!(await saveState(d))) { setSaveError(true); return false; }
-      clearAllPracticeDrafts(); setProgramEpoch((epoch) => epoch + 1);
-      setData(d); setSaveError(false); setShowSettings(false);
+      const result = await replaceState(data, d);
+      if (!result.ok) { await persistenceFailure(result.error); return false; }
+      adoptState(result.state, false, true); setSaveError(false); setShowSettings(false);
       return true;
     } catch { setSaveError(true); return false; }
     finally { replacementGate.current = false; }
   }
 
-  const exportData = () => {
-    downloadText(JSON.stringify(data, null, 2), `woodshed-backup-${todayStr()}.json`);
+  const exportData = async () => {
+    try {
+      const latest = await loadState();
+      if (latest) adoptState(latest);
+      downloadText(JSON.stringify(latest || data, null, 2), `woodshed-backup-${todayStr()}.json`);
+    } catch { setSaveError("The latest saved profile could not be read for backup. Your existing data has not been replaced."); }
   };
   async function importData(raw) {
     if (replacementGate.current || loadGate.current) return false;
@@ -251,39 +321,35 @@ export default function Woodshed() {
       const parsed = migrate(raw);
       parsed.items = mergeContent(parsed.items);
       if (!parsed.currentSession || parsed.currentSession.date !== todayStr()) parsed.currentSession = gen(parsed);
-      if (!(await saveState(parsed))) { setSaveError(true); return false; }
-      clearAllPracticeDrafts(); setProgramEpoch((epoch) => epoch + 1);
-      loaded.current = true; setRecovery(null); setData(parsed); setSaveError(false);
+      const result = await replaceState(data, parsed, recovery ? { expectedRaw: recovery.raw } : {});
+      if (!result.ok) { await persistenceFailure(result.error); return false; }
+      loaded.current = true; setRecovery(null); adoptState(result.state, true, true); setSaveError(false);
       return true;
     } catch { return false; }
     finally { replacementGate.current = false; }
   }
 
-  const courseAttempts = normalizeProgress(data.programProgress).attempts.filter((a) => a.section !== "placement");
+  const courseAttempts = normalizeProgress(data.programProgress).attempts.filter((a) => a.section !== "placement" && a.section !== "knowledge");
   const streak = streakInfo([...data.sessions, ...courseAttempts]);
   const onProgramAttempt = async (entry) => {
-    const progress = normalizeProgress(data.programProgress);
-    const unitId = EXERCISES.find((exercise) => exercise.id === entry.exerciseId)?.unitId || data.programUnitId;
-    const context = entry.section === "placement" || entry.section === "review" || entry.section === "transfer" || entry.sessionId ? {} : contextForExercise(progress, sessionsForUnit(unitId), entry.exerciseId);
-    const programProgress = recordAttempt(progress, { ...context, ...entry });
-    // Confirm durability before the lesson says it was saved or advances.
-    if (!(await saveState({ ...data, programProgress }))) {
-      setSaveError(true);
-      throw new Error("Practice could not be saved in this browser.");
-    }
-    setData((d) => ({ ...d, programProgress }));
-    setSaveError(false);
+    const latest = await commitMutation(data, (current) => {
+      const progress = normalizeProgress(current.programProgress);
+      const unitId = EXERCISES.find((exercise) => exercise.id === entry.exerciseId)?.unitId || current.programUnitId;
+      const context = ["placement", "review", "transfer", "knowledge"].includes(entry.section) || entry.sessionId ? {} : contextForExercise(progress, sessionsForUnit(unitId, progress), entry.exerciseId);
+      return { ...current, programProgress: recordAttempt(progress, { ...context, ...entry }) };
+    }, "Practice could not be saved in this browser.");
+    return latest.programProgress;
   };
   const changeProgramProgress = async (value) => {
-    const programProgress = normalizeProgress(value);
-    if (!(await saveState({ ...data, programProgress }))) {
-      setSaveError(true);
-      throw new Error("Your practice correction could not be saved.");
-    }
-    setData((d) => ({ ...d, programProgress })); setSaveError(false);
+    const before = JSON.stringify(normalizeProgress(data.programProgress));
+    const latest = await commitMutation(data, (current) => {
+      if (JSON.stringify(normalizeProgress(current.programProgress)) !== before) throw new StateConflictError();
+      return { ...current, programProgress: normalizeProgress(value) };
+    }, "Your practice correction could not be saved.");
+    return latest.programProgress;
   };
   const chooseProgramUnit = (unitId) => {
-    if (UNITS.some((unit) => unit.id === unitId)) setData((d) => ({ ...d, programUnitId: unitId }));
+    if (UNITS.some((unit) => unit.id === unitId)) return updateData((d) => ({ ...d, programUnitId: unitId }));
   };
   const openLesson = (it) => { setTunerOpen(false); setLessonFor(it); if (hasScore(getLesson(it.id))) setShowScore(true); };
   const closeLesson = () => { setLessonFor(null); setShowScore(false); };
@@ -308,7 +374,7 @@ export default function Woodshed() {
   const selectedId = desktop && lessonFor ? lessonFor.id : null;
   const isScored = desktop && lessonFor && hasScore(getLesson(lessonFor.id));
 
-  const saveErr = saveError && <div className="ws-saveerr">Couldn't save your latest change to this browser — your history may not persist.</div>;
+  const saveErr = saveError && <div className="ws-saveerr" role="alert">{typeof saveError === "string" ? saveError : "Couldn't save your latest change to this browser — your history may not persist."}</div>;
   const views = (
     <div className="ws-main">
       {["guided", "chords", "scales", "progress"].includes(view) && <Program key={`${view}:${programEpoch}`} section={view} progress={data.programProgress} onAttempt={onProgramAttempt} unitId={data.programUnitId} onUnitChange={chooseProgramUnit} onChangeProgress={changeProgramProgress} />}
@@ -357,7 +423,7 @@ export default function Woodshed() {
           sessions={data.sessions}
           hidden={itemForm.item ? !!data.items.find((i) => i.id === itemForm.item.id)?.hidden : false}
           onSave={(fields) => (itemForm.item ? saveItem(itemForm.item.id, fields) : addCustom(fields))}
-          onDelete={itemForm.item && itemForm.item.custom ? () => { deleteItem(itemForm.item.id); setItemForm(null); } : null}
+          onDelete={itemForm.item && itemForm.item.custom ? () => deleteItem(itemForm.item.id) : null}
           onToggleHidden={itemForm.item ? () => toggleHidden(itemForm.item.id) : null}
           onClose={() => setItemForm(null)}
           onLearn={(it) => { setItemForm(null); openLesson(it); }}
@@ -376,16 +442,28 @@ export default function Woodshed() {
     <PracticeProvider onTempo={setLastTempo}>
       <MidiProvider enabled={desktop && !!data.settings.enabled.piano}>
         <a className="ws-skip" href="#ws-main">Skip to practice</a>
-        {desktop ? (
-          <div className="ws-desk">
-            <Sidebar view={view} onView={showView} scoreOpen={showScore && isScored} onScore={isScored ? () => setShowScore(true) : null} onSettings={() => setShowSettings(true)} onHelp={() => setShowKeys(true)}><Streak streak={streak} /></Sidebar>
-            <main id="ws-main" tabIndex={-1} className="ws-desk-main">{saveErr}{showScore && isScored ? <ScoreStage key={lessonFor.id} item={lessonFor} lesson={getLesson(lessonFor.id)} /> : views}</main>
-            <PracticeRail
+        {/* Keep the lesson at the same React position across layout changes.
+            Replacing its parent would discard the active lesson and local take. */}
+        <div className={desktop ? "ws-desk" : "ws-root"}>
+          <div className={desktop ? undefined : "ws-col"} style={desktop ? { display: "contents" } : undefined}>
+            {desktop && <Sidebar view={view} onView={showView} scoreOpen={showScore && isScored} onScore={isScored ? () => setShowScore(true) : null} onSettings={() => setShowSettings(true)} onHelp={() => setShowKeys(true)}><Streak streak={streak} /></Sidebar>}
+            {!desktop && <header className="ws-head">
+              <div className="ws-head-row">
+                <div className="ws-brand"><span className="ws-logo">◐</span> Woodshed</div>
+                <div className="ws-head-actions">
+                  <button className="ws-gear" onClick={() => setPracticeOpen(true)} aria-label="Metronome and timer" title="Metronome & timer">♩</button>
+                  <button className="ws-gear" onClick={() => setShowSettings(true)} aria-label="Settings">⚙</button>
+                </div>
+              </div>
+              <Streak streak={streak} />
+            </header>}
+            <main id="ws-main" tabIndex={-1} className={desktop ? "ws-desk-main" : undefined}>{saveErr}{showScore && isScored ? <ScoreStage key={lessonFor.id} item={lessonFor} lesson={getLesson(lessonFor.id)} /> : views}</main>
+            {desktop && <PracticeRail
               lesson={lessonProps && (isScored ? (
                 <ScorePanel
                   key={lessonFor.id} item={lessonFor} lesson={getLesson(lessonFor.id)} ladder={data.ladder[lessonFor.id]}
                   sightLevel={data.sightLevel[lessonFor.id] ?? getLesson(lessonFor.id).sightread?.defaultLevel}
-                  songs={data.songs} onSongs={(songs) => setData((d) => ({ ...d, songs }))}
+                  songs={data.songs} onSongs={changeSongs}
                   onLadder={(key, bpm) => saveLadder(lessonFor.id, key, bpm)} onSightLevel={(level) => saveSightLevel(lessonFor.id, level)}
                   onResult={(res) => recordCoachResult(lessonFor.id, res)} onRequestLog={requestLog}
                   onTargetClean={() => saveTargetClean(lessonFor.id)}
@@ -395,37 +473,22 @@ export default function Woodshed() {
               tunerOpen={tunerOpen}
               onOpenTuner={() => { closeLesson(); setTunerOpen(true); }}
               onCloseSlot={() => { closeLesson(); setTunerOpen(false); }}
-            />
-            {showKeys && <ShortcutHelp onClose={() => setShowKeys(false)} />}
-            <ShortcutBridge onAction={onShortcut} />
-            <MidiBand />
-          </div>
-        ) : (
-          <Shell>
-            {saveErr}
-            <header className="ws-head">
-              <div className="ws-head-row">
-                <div className="ws-brand"><span className="ws-logo">◐</span> Woodshed</div>
-                <div className="ws-head-actions">
-                  <button className="ws-gear" onClick={() => setPracticeOpen(true)} aria-label="Metronome and timer" title="Metronome & timer">♩</button>
-                  <button className="ws-gear" onClick={() => setShowSettings(true)} aria-label="Settings">⚙</button>
-                </div>
-              </div>
-              <Streak streak={streak} />
-            </header>
-            <main id="ws-main" tabIndex={-1}>{views}</main>
-            <nav className="ws-nav">
+            />}
+            {!desktop && <nav className="ws-nav">
               {VIEWS.map(([k, label, icon]) => (
                 <button key={k} className={`ws-tab ${view === k ? "on" : ""}`} aria-current={view === k ? "page" : undefined} onClick={() => showView(k)}>
                   <span className="ws-tab-icon" aria-hidden="true">{icon}</span>{label}
                 </button>
               ))}
-            </nav>
-            {practiceOpen && <PracticeSheet onClose={() => setPracticeOpen(false)} onOpenListen={() => { setPracticeOpen(false); setListenOpen(true); }} />}
-            {listenOpen && <ListenSheet onClose={() => setListenOpen(false)} />}
-            {lessonProps && <LessonSheet {...lessonProps} onClose={closeLesson} />}
-          </Shell>
-        )}
+            </nav>}
+            {desktop && showKeys && <ShortcutHelp onClose={() => setShowKeys(false)} />}
+            {desktop && <ShortcutBridge onAction={onShortcut} />}
+            {desktop && <MidiBand />}
+            {!desktop && practiceOpen && <PracticeSheet onClose={() => setPracticeOpen(false)} onOpenListen={() => { setPracticeOpen(false); setListenOpen(true); }} />}
+            {!desktop && listenOpen && <ListenSheet onClose={() => setListenOpen(false)} />}
+            {!desktop && lessonProps && <LessonSheet {...lessonProps} onClose={closeLesson} />}
+          </div>
+        </div>
         {dialogs}
       </MidiProvider>
     </PracticeProvider>
@@ -1015,10 +1078,21 @@ function SessionEdit({ session, itemById, onSave, onDelete, onClose }) {
   const it = itemById(session.itemId);
   const [minutes, setMinutes] = useState(session.minutes);
   const [rating, setRating] = useState(session.rating);
-  const dlgRef = useDialog(onClose);
+  const [busy, setBusy] = useState(false), [error, setError] = useState(""), gate = useRef(false);
+  const close = () => { if (!gate.current) onClose(); };
+  const dlgRef = useDialog(close);
+  const persist = async (action) => {
+    if (gate.current) return false;
+    gate.current = true; setBusy(true); setError("");
+    try {
+      if (!(await action())) { setError("Your session change could not be saved. Your edits are kept here; try again."); return false; }
+      onClose(); return true;
+    } catch { setError("Your session change could not be saved. Your edits are kept here; try again."); return false; }
+    finally { gate.current = false; setBusy(false); }
+  };
   return (
-    <div className="ws-sheet-wrap" onClick={onClose}>
-      <div className="ws-sheet" onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label="Edit session" tabIndex={-1}>
+    <div className="ws-sheet-wrap" onClick={close}>
+      <div className="ws-sheet" onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label="Edit session" aria-busy={busy} tabIndex={-1}>
         <div className="ws-sheet-grip" />
         <h2 className="ws-sheet-title">Edit session</h2>
         <p className="ws-sheet-sub">{it ? it.title : "Deleted exercise"} · {prettyAgo(session.date, todayStr())}</p>
@@ -1026,22 +1100,23 @@ function SessionEdit({ session, itemById, onSave, onDelete, onClose }) {
         <div className="ws-field">
           <label>How it felt</label>
           <div className="ws-felt">
-            {FELT.map((f) => <button key={f.key} className={`ws-felt-btn ${rating === f.key ? "on" : ""}`} aria-pressed={rating === f.key} onClick={() => setRating(f.key)}>{f.label}</button>)}
+            {FELT.map((f) => <button key={f.key} disabled={busy} className={`ws-felt-btn ${rating === f.key ? "on" : ""}`} aria-pressed={rating === f.key} onClick={() => setRating(f.key)}>{f.label}</button>)}
           </div>
         </div>
         <div className="ws-field">
           <label>Minutes</label>
           <div className="ws-min-step solo">
-            <button onClick={() => setMinutes((m) => Math.max(1, m - 5))}>−</button>
+            <button disabled={busy} onClick={() => setMinutes((m) => Math.max(1, m - 5))}>−</button>
             <span className="mono">{minutes}m</span>
-            <button onClick={() => setMinutes((m) => m + 5)}>+</button>
+            <button disabled={busy} onClick={() => setMinutes((m) => m + 5)}>+</button>
           </div>
         </div>
 
         <div className="ws-data-row ws-edit-actions">
-          <button className="ws-btn danger sm" onClick={() => { onDelete(session.id); onClose(); }}>Delete</button>
-          <button className="ws-btn primary" onClick={() => { onSave(session.id, { minutes, rating }); onClose(); }}>Save</button>
+          <button className="ws-btn danger sm" disabled={busy} onClick={() => persist(() => onDelete(session.id))}>Delete</button>
+          <button className="ws-btn primary" disabled={busy} onClick={() => persist(() => onSave(session.id, { minutes, rating }))}>{busy ? "Saving…" : "Save"}</button>
         </div>
+        {error && <p className="ws-data-msg" role="alert">{error}</p>}
       </div>
     </div>
   );
@@ -1188,9 +1263,21 @@ function ItemForm({ initial, sessions = [], hidden, onSave, onDelete, onToggleHi
       ? { inst: initial.inst, title: initial.title, type: initial.type, diff: initial.diff, min: initial.min, desc: initial.desc, linkLabel: initial.link?.label || "", linkUrl: initial.link?.url || "" }
       : { inst: "guitar", title: "", type: "technique", diff: 1, min: 8, desc: "", linkLabel: "", linkUrl: "" }
   );
-  const set = (p) => setF((s) => ({ ...s, ...p }));
+  const [busy, setBusy] = useState(false), [error, setError] = useState(""), gate = useRef(false);
+  const set = (p) => { if (!gate.current) setF((s) => ({ ...s, ...p })); };
   const valid = f.title.trim().length > 0;
-  const dlgRef = useDialog(onClose);
+  const close = () => { if (!gate.current) onClose(); };
+  const dlgRef = useDialog(close);
+  const persist = async (action, closeAfter = true) => {
+    if (gate.current) return false;
+    gate.current = true; setBusy(true); setError("");
+    try {
+      if (!(await action())) { setError("Your exercise change could not be saved. Your edits are kept here; try again."); return false; }
+      if (closeAfter) onClose();
+      return true;
+    } catch { setError("Your exercise change could not be saved. Your edits are kept here; try again."); return false; }
+    finally { gate.current = false; setBusy(false); }
+  };
   const buildSave = () => {
     const url = normalizeUrl(f.linkUrl);
     return {
@@ -1201,33 +1288,33 @@ function ItemForm({ initial, sessions = [], hidden, onSave, onDelete, onToggleHi
   };
 
   return (
-    <div className="ws-sheet-wrap" onClick={onClose}>
-      <div className="ws-sheet" onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label="Exercise editor" tabIndex={-1}>
+    <div className="ws-sheet-wrap" onClick={close}>
+      <div className="ws-sheet" onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label="Exercise editor" aria-busy={busy} tabIndex={-1}>
         <div className="ws-sheet-grip" />
         <h2 className="ws-sheet-title">{editing ? "Edit exercise" : "Add to library"}</h2>
         {editing && getLesson(initial.id) && (
-          <button className="ws-btn ghost sm ws-lesson-open" onClick={() => onLearn(initial)}>◐ Show lesson</button>
+          <button className="ws-btn ghost sm ws-lesson-open" disabled={busy} onClick={() => onLearn(initial)}>◐ Show lesson</button>
         )}
 
         <div className="ws-field">
           <label>Instrument</label>
           <div className="ws-seg" role="group" aria-label="Instrument">
             {Object.keys(INSTRUMENTS).map((i) => (
-              <button key={i} className={`ws-seg-btn ${f.inst === i ? "on" : ""}`} aria-pressed={f.inst === i} onClick={() => set({ inst: i })}>{INSTRUMENTS[i].name}</button>
+              <button key={i} disabled={busy} className={`ws-seg-btn ${f.inst === i ? "on" : ""}`} aria-pressed={f.inst === i} onClick={() => set({ inst: i })}>{INSTRUMENTS[i].name}</button>
             ))}
           </div>
         </div>
 
         <div className="ws-field">
           <label>What to practice</label>
-          <input className="ws-input" value={f.title} placeholder="e.g. Drop-D riff" onChange={(e) => set({ title: e.target.value })} />
+          <input className="ws-input" disabled={busy} value={f.title} placeholder="e.g. Drop-D riff" onChange={(e) => set({ title: e.target.value })} />
         </div>
 
         <div className="ws-field">
           <label>Type</label>
           <div className="ws-seg" role="group" aria-label="Exercise type">
             {Object.keys(TYPE_LABEL).map((t) => (
-              <button key={t} className={`ws-seg-btn ${f.type === t ? "on" : ""}`} aria-pressed={f.type === t} onClick={() => set({ type: t })}>{TYPE_LABEL[t]}</button>
+              <button key={t} disabled={busy} className={`ws-seg-btn ${f.type === t ? "on" : ""}`} aria-pressed={f.type === t} onClick={() => set({ type: t })}>{TYPE_LABEL[t]}</button>
             ))}
           </div>
         </div>
@@ -1237,29 +1324,29 @@ function ItemForm({ initial, sessions = [], hidden, onSave, onDelete, onToggleHi
             <label>Difficulty</label>
             <div className="ws-seg" role="group" aria-label="Difficulty 1 to 5">
               {[1, 2, 3, 4, 5].map((d) => (
-                <button key={d} className={`ws-seg-btn ${f.diff === d ? "on" : ""}`} aria-pressed={f.diff === d} aria-label={`Difficulty ${d}`} onClick={() => set({ diff: d })}><span className="mono">{d}</span></button>
+                <button key={d} disabled={busy} className={`ws-seg-btn ${f.diff === d ? "on" : ""}`} aria-pressed={f.diff === d} aria-label={`Difficulty ${d}`} onClick={() => set({ diff: d })}><span className="mono">{d}</span></button>
               ))}
             </div>
           </div>
           <div className="ws-field ws-field-min">
             <label>Minutes</label>
             <div className="ws-min-step solo">
-              <button onClick={() => set({ min: Math.max(2, f.min - 2) })}>−</button>
+              <button disabled={busy} onClick={() => set({ min: Math.max(2, f.min - 2) })}>−</button>
               <span className="mono">{f.min}</span>
-              <button onClick={() => set({ min: f.min + 2 })}>+</button>
+              <button disabled={busy} onClick={() => set({ min: f.min + 2 })}>+</button>
             </div>
           </div>
         </div>
 
         <div className="ws-field">
           <label>Notes (optional)</label>
-          <textarea className="ws-input" rows={2} value={f.desc} placeholder="How to approach it" onChange={(e) => set({ desc: e.target.value })} />
+          <textarea className="ws-input" disabled={busy} rows={2} value={f.desc} placeholder="How to approach it" onChange={(e) => set({ desc: e.target.value })} />
         </div>
 
         <div className="ws-field">
           <label>Resource link (optional)</label>
-          <input className="ws-input ws-input-link" value={f.linkLabel} placeholder="Label, e.g. JustinGuitar lesson" onChange={(e) => set({ linkLabel: e.target.value })} />
-          <input className="ws-input" type="url" value={f.linkUrl} placeholder="https://…" onChange={(e) => set({ linkUrl: e.target.value })} />
+          <input className="ws-input ws-input-link" disabled={busy} value={f.linkLabel} placeholder="Label, e.g. JustinGuitar lesson" onChange={(e) => set({ linkLabel: e.target.value })} />
+          <input className="ws-input" disabled={busy} type="url" value={f.linkUrl} placeholder="https://…" onChange={(e) => set({ linkUrl: e.target.value })} />
         </div>
 
         {editing && (() => {
@@ -1283,15 +1370,16 @@ function ItemForm({ initial, sessions = [], hidden, onSave, onDelete, onToggleHi
 
         {editing && (
           <div className="ws-data-row ws-manage-row">
-            <button className="ws-btn ghost sm" onClick={onToggleHidden}>{hidden ? "Unhide" : "Hide from rotation"}</button>
-            {onDelete && <button className="ws-btn danger sm" onClick={onDelete}>Delete</button>}
+            <button className="ws-btn ghost sm" disabled={busy} onClick={() => persist(onToggleHidden, false)}>{hidden ? "Unhide" : "Hide from rotation"}</button>
+            {onDelete && <button className="ws-btn danger sm" disabled={busy} onClick={() => persist(onDelete)}>Delete</button>}
           </div>
         )}
 
         <div className="ws-sheet-actions">
-          <button className="ws-btn ghost" onClick={onClose}>Cancel</button>
-          <button className="ws-btn primary" disabled={!valid} onClick={() => { onSave(buildSave()); onClose(); }}>{editing ? "Save" : "Add"}</button>
+          <button className="ws-btn ghost" disabled={busy} onClick={close}>Cancel</button>
+          <button className="ws-btn primary" disabled={busy || !valid} onClick={() => persist(() => onSave(buildSave()))}>{busy ? "Saving…" : editing ? "Save" : "Add"}</button>
         </div>
+        {error && <p className="ws-data-msg" role="alert">{error}</p>}
       </div>
     </div>
   );

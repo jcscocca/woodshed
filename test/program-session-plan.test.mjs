@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { SESSIONS } from "../src/program/curriculum.js";
 import { normalizeProgress, recordAttempt, removeAttempt, sessionProgress } from "../src/program/progress.js";
 import { guidedSessionPlan } from "../src/program/sessionPlan.js";
+import { clearAllPracticeDrafts, findPracticeDraftForSession, readPracticeDraft, writePracticeDraft } from "../src/program/drafts.js";
 
 const today = "2026-10-28";
 const session = SESSIONS[0];
@@ -147,4 +148,43 @@ test("future review candidates and invalid planning dates do not introduce revie
   assert.equal(plan({}, session, [{ ...due, dueDate: "bad" }]).reviewMinutes, 0);
   assert.equal(plan({}, session, [due], { today: "bad" }).reviewMinutes, 0);
   assert.equal(plan({}, session, null).reviewMinutes, 0);
+});
+
+test("an unfinished return resumes its exact source after the due queue changes or empties", () => {
+  clearAllPracticeDrafts();
+  try {
+    const abc = "X:1\nK:C\nC4|]", draftKey = `earlier-study:review:${session.id}:`;
+    const draft = { note: "Keep my first check and chosen passage", range: { from: 1, to: 1 }, reviewCheck: { assessment: "unsure", beforeDemo: true } };
+    writePracticeDraft(draftKey, abc, draft);
+    const descriptor = findPracticeDraftForSession(session);
+    assert.equal(descriptor.exerciseId, "earlier-study");
+    assert.equal(descriptor.draftKey, draftKey);
+    const resumeReview = { exercise: { id: "earlier-study", section: "guided", abc }, previousAttempt: { date: "2026-10-01", minutes: 3 } };
+    for (const reviews of [[], [due]]) {
+      const result = plan({}, session, reviews, { resumeReview });
+      assert.equal(result.review, resumeReview);
+      assert.equal(result.reviewMinutes, 3);
+      assert.equal(minuteTotal(result), 20);
+    }
+    assert.deepEqual(readPracticeDraft(draftKey, abc), draft);
+    assert.equal(plan({}, session, [due], { resumeReview: { ...resumeReview, exercise: { ...resumeReview.exercise, abc: "changed score" } } }).review, due, "a changed score cannot silently claim the saved draft");
+    assert.equal(plan(recordAttempt({}, core()), session, [due], { resumeReview }).review, null, "core work already begun keeps its existing plan");
+  } finally { clearAllPracticeDrafts(); }
+});
+
+test("an unfinished fresh check resumes only the exact transfer identity and score", () => {
+  clearAllPracticeDrafts();
+  try {
+    const transferId = "transfer-v1:pulse:c:0", abc = "X:1\nK:C\nD4|]";
+    writePracticeDraft(`earlier-study:${transferId}:${session.id}:`, abc, { reviewCheck: { assessment: "practising", beforeDemo: true } });
+    const descriptor = findPracticeDraftForSession(session);
+    assert.equal(descriptor.transferId, transferId);
+    const resumeReview = { exercise: { id: "earlier-study", section: "guided" }, transferExercise: { transferId, abc } };
+    assert.equal(plan({}, session, [], { resumeReview }).review, resumeReview);
+    for (const transferExercise of [{ transferId: "another", abc }, { transferId, abc: "changed" }]) {
+      assert.equal(plan({}, session, [due], { resumeReview: { ...resumeReview, transferExercise } }).review, due);
+    }
+    const saved = recordAttempt({}, integrated());
+    assert.equal(plan(saved, session, [due], { resumeReview }).review, null, "a durably saved return cannot be replaced by an old draft");
+  } finally { clearAllPracticeDrafts(); }
 });

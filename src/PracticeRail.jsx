@@ -9,7 +9,7 @@ export default function PracticeRail({ lesson, scored, tunerOpen, onOpenTuner, o
     <aside className="ws-rail" aria-label="Practice">
       <section className="ws-rail-tools">
         <PracticeTools hints compact stopwatchExtra={!tunerOpen && (
-          <button className="ws-listen-open" disabled={activeLesson?.disabled} onClick={() => { activeLesson?.stop(); metro.stop(); onOpenTuner(); }}>
+          <button className="ws-listen-open" disabled={activeLesson?.disabled} onClick={() => { if (activeLesson?.disabled) return; activeLesson?.stop(); metro.stop(); onOpenTuner(); }}>
             <span className="ws-listen-dot" /> Tuner <span className="ws-beta">beta</span>
           </button>
         )} />

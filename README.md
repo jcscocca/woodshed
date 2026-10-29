@@ -6,16 +6,29 @@ and return to it later. No account or application server is required. Practice
 history stays in the browser, with JSON export/import for backups and moving it.
 
 The v1 core is **Guided Practice, Chords, Scales, Catalogue and Progress** across
-**eight units, 193 self-contained exercises and 80 guided sessions**. A MIDI
+**eight units, 196 self-contained exercises and 80 guided sessions**. A MIDI
 keyboard and microphone are optional. Earlier piano/guitar tools remain available
 through Catalogue; guitar is outside the guided piano course.
 
+The Scales tab also offers an optional [all-key reference](docs/continuing-scales.md):
+all twelve major and minor tonics, natural/harmonic/classical melodic minor,
+one- and two-octave work, arpeggios, contrary motion and chromatic scales.
+Choose a key and pattern when a musical project needs them. Its 441 setups join
+shared Progress and cumulative review; they are not a completion checklist.
+
+[Integrated lessons](docs/integrated-lessons.md) connect preparation to the
+existing music in 23 revised visits, adding only three focused exercises. The
+course retains eight units and 80 visits; there are 637 active exercises across
+the course and optional reference. Earlier started plans and saved reports remain
+readable, without awarding old block credit to a different task.
+
 [Product direction](docs/DIRECTION.md) · [Release readiness](docs/release-readiness.md)
 · [Teacher review and learner pilot](docs/teacher-review-pilot.md)
+· [Critical audit fixes](docs/audit-fixes.md)
 
 ## The guided course
 
-Each unit has five rolling practice days with two planned 20-minute visits:
+Each foundation unit has five rolling practice days with two planned 20-minute visits:
 **A — foundations**, then **B — musical application**. Days are a sequence, not
 calendar deadlines. Repeat a lesson or day whenever useful. The default weekly
 goal is five practice days and 200 minutes; all 80 sessions total 1,600 planned
@@ -40,6 +53,21 @@ access. The **Piano unit** selector keeps progress separate for each unit.
 can satisfy a matching block in the current guided session. Revisit walks through
 an already completed session without clearing earlier reports.
 
+Changed visits have a new plan identity. Saved blocks, session review or an
+unfinished lesson/review draft normally retain the original plan; untouched
+visits use the revised plan. **Preview updated preparation** lets you try the
+revision separately. Completing it counts the visit once and keeps any earlier
+unfinished plan accessible through **Resume earlier Day … · Session …**. Partial
+plans never combine into completion. Unfinished review/fresh-example drafts
+restore their exact passage and variant even when the due queue changes.
+Old reports and removed experimental-unit titles remain in history.
+[The integration guide](docs/integrated-lessons.md) explains compatibility details.
+
+Technical lessons ask what was actually played: a chunk, the complete ascent,
+or the ascent and return. Full-range and delayed-return labels require an
+explicit scope report with matching bars, hands and tempo. Earlier logs do not
+gain invented scope evidence, and all lessons remain open.
+
 Every core exercise includes a score, fingering, counting/practice steps,
 listening goals and self-checks. **Hear slowly**, **Hear reference** and **Play
 along** use the displayed score's notes and timing. Choose hands, tempo and a bar
@@ -49,13 +77,17 @@ The synthesized model does not demonstrate a pianist's phrasing or assess touch.
 
 The lesson and desktop practice rail share one tempo and playback controller.
 The rail returns to its standalone metronome after the lesson closes. Playback
-stops when the lesson is left. At 1024px and wider, navigation, the main view and
+stops when the lesson is left. Changing between desktop and compact layouts keeps
+the same lesson, draft and in-memory take mounted. Mobile Tuner follows the same
+recording/save locks as the desktop rail and stops owned lesson playback before
+opening. At 1024px and wider, navigation, the main view and
 the practice rail form three panes; narrower windows use the compact layout.
 **Score size** offers Fit width, 125% and 150%; the enlarged score is a focusable
 region that can be scrolled with arrow keys. A **Skip to practice** link bypasses
 navigation. With the system's reduced-motion preference, new lessons start with
 follow-score off and decorative motion is suppressed; follow-score remains an
 explicit learner choice.
+Passage controls keep **From bar** and **Through bar** in their accessible names.
 
 **Save practice** records minutes, assessment, hands, tempo, passage, goal,
 observed criteria and a next-step note. Progress supports corrections/removal.
@@ -69,8 +101,9 @@ successful save or when importing/resetting the profile.
 ## Cumulative review and fresh examples
 
 The review queue draws from practised lessons across every unit, preserving the
-previous hands, tempo, passage and next-step note. Up to three due options are
-shown. Try once with the written score **before app playback**, report that first
+previous hands, tempo, passage and next-step note. Up to three recommended skill
+checks are shown alongside the raw number of passages available for return and
+their oldest overdue date. Try once with the written score **before app playback**, report that first
 attempt, then listen and repair. The first result and its scope remain separate
 from the final assessment. Skipping that report records practice without
 inventing retention evidence.
@@ -88,19 +121,41 @@ days. Difficulty brings next-day practice, followed by a three-day rebuilding
 gap after a successful return. Same-day repetition cannot extend spacing.
 Comparability includes the earlier passage, hands and tempo.
 
+Related preparations and versions of the same named project can rotate through
+one recommendation family. This chooses what to practise next; it does not
+create a report, readiness, completion or spacing credit for another passage.
+Only an actual comparable, steady before-playback return can trigger a short
+three-day family scheduling pause. Ordinary practice cannot do so, difficult
+passages retain their own repair, and a passage seven days overdue bypasses
+that pause. Scale forms, hands and ranges remain independent.
+
+When at least five representative checks are due, or three are due with the
+oldest a week overdue, the app can recommend a resumable **20-minute consolidation
+visit** for up to five passages. At most one new consolidation is recommended
+per day once a check is saved; an unfinished visit can still resume. This is a
+choice of practice visit, with regular lessons always available. It can extend
+the number of days or visits needed for the course. The raw backlog remains
+visible, and this schedule does not promise every passage is checked on time.
+[The audit guide](docs/audit-fixes.md) records the synthetic workload comparison.
+
 After two qualifying steady returns since the last setback or transfer,
 supported skills can receive a **fresh example** in an already taught key.
-Six bounded families vary pulse, subdivision, landmark reading, held bass,
-two-to-one coordination and a chord route. Examples have stable IDs; used ones
+Nine bounded families vary pulse, subdivision, landmark reading, held bass,
+two-to-one coordination, chord routes, Canon's released minor-chord travel,
+Mozart's fixed position and blues seventh-chord colours. The bank has 200 studies:
+176 previous examples plus 24 for the three focused preparations. Examples have stable IDs; used ones
 are skipped and an exhausted bank falls back to ordinary review. Fresh-example
 reports are separate transfer evidence; they do not raise the original passage's
 readiness or spacing. A difficult fresh attempt carries its repair note forward.
 These intervals and eligibility rules are product defaults, **not a validated
 mastery model or a promise of learning outcomes**.
 
-Relevant lessons also offer **46 written/listening understanding questions** with
+Relevant lessons also offer **50 written/listening understanding questions** with
 staff examples, audio and explanations. Answers are saved separately from piano
-self-assessment and never lock lessons.
+self-assessment and never lock lessons. Known mistakes appear in **Revisit an
+idea**. A correction on the same date still needs a correct answer on a later
+date. These answer-only reports record zero practice minutes and cannot complete
+a piano block, advance its spacing, or add a piano practice day.
 
 ## Optional tools and material limits
 
@@ -141,6 +196,30 @@ import/reset leaves existing history and unfinished drafts intact; they are
 replaced/cleared only once the replacement profile is saved. Current C-major IDs
 and completed blocks remain compatible when later units are added.
 
+Current builds serialize same-origin profile changes with the browser's
+[Web Locks API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Locks_API). A normal action applies to the latest saved profile, so two tabs can
+retain both reports without closing an open lesson. Import/reset creates a new
+profile generation; stale actions cannot bring back the replaced history.
+Corrections and replacements reject stale revisions instead of overwriting newer
+work. Backup export reads the latest durable profile. This protocol only covers
+builds that follow it: older already-open app versions and external storage edits
+are outside the guarantee. Close or reload older versions before editing.
+
+When Web Locks is unavailable, saved-profile writes are refused with an explicit
+warning. Existing history can be read and backed up; the app does not use an
+unsafe concurrent-write fallback. Drafts and audio remain separate from durable
+history. Use a current browser on HTTPS or localhost for saving.
+
+Earlier exercise/session forms close only after durable success and retain edits
+when a save fails. **Your song** saves typing in order, coalescing newer edits
+while a write is pending. Failed changes retain the exact draft, selected song
+and uncommitted tempo text in the current tab. **Retry save** checks the accepted
+saved-song base again; it does not overwrite another tab's newer songs. **Use
+saved songs** asks before discarding local changes. Song drafts, like lesson
+drafts, are not part of exported history and are cleared by successful
+import/reset. Draft-generation invalidation prevents an older pending editor
+callback from recreating a discarded draft after that replacement.
+
 ### When saved practice cannot be opened
 
 Woodshed shows **Your saved practice needs attention** rather than silently
@@ -171,6 +250,12 @@ Optional earlier scored tools expose their own additional shortcuts.
 ## Develop and deploy
 
 Use Node.js 22 to match deployment CI.
+Vite 6.4.5 is the supported security branch used here. Node 22 and Node 26 builds
+have been checked; runtime dependency versions remain unchanged by the tooling
+update. Runtime audit reports zero findings. The full audit retains four low
+entries from one [unpatched deepmerge advisory](https://github.com/advisories/GHSA-gcqx-w48m-w2h4)
+in the Workbox build chain, with no high or moderate findings. No audit exclusions
+or forced dependency overrides are used.
 
 ```bash
 npm ci

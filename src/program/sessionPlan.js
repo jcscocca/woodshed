@@ -1,5 +1,6 @@
 import { todayStr } from "../dateUtils.js";
 import { normalizeProgress, sessionProgress } from "./progress.js";
+import { findPracticeDraftForSession } from "./drafts.js";
 
 const REVIEW_MINUTES = 3;
 const validDay = (value) => {
@@ -24,7 +25,7 @@ function allocateMinutes(blocks, budget) {
     }
   }
   // Only unusually small custom budgets need this minimum-one correction.
-  // Built-in sessions use three or four substantial blocks and twenty minutes.
+  // Built-in sessions use a few substantial blocks and twenty minutes.
   while (remaining < 0) {
     const donor = [...order].reverse().find(({ index }) => allocations[index] > 1);
     if (!donor) break;
@@ -33,7 +34,7 @@ function allocateMinutes(blocks, budget) {
   return blocks.map((block, index) => ({ ...block, minutes: allocations[index] }));
 }
 
-export function guidedSessionPlan(progress, session, reviewItems = [], { today = todayStr() } = {}) {
+export function guidedSessionPlan(progress, session, reviewItems = [], { today = todayStr(), resumeReview } = {}) {
   const blocks = (Array.isArray(session?.blocks) ? session.blocks : []).map((block, blockIndex) => ({ ...block, blockIndex }));
   const totalMinutes = blocks.reduce((sum, block) => sum + (Number.isFinite(block.minutes) && block.minutes > 0 ? block.minutes : 0), 0);
   const original = { review: null, reviewDone: false, blocks, reviewMinutes: 0, totalMinutes };
@@ -50,8 +51,15 @@ export function guidedSessionPlan(progress, session, reviewItems = [], { today =
     && validDay(attempt.date) && attempt.date <= today);
   // Preserve partial sessions that were started before integrated review,
   // including completion-only imports with no individual reports.
-  if (!reviewDone && (state.completed > 0 || state.attempts.length > 0)) return original;
-  const review = reviewDone ? null : (Array.isArray(reviewItems) ? reviewItems : []).find((item) => item?.exercise?.id
+  const draft = findPracticeDraftForSession(session);
+  if (!reviewDone && (state.completed > 0 || state.attempts.length > 0 || draft?.kind === "lesson")) return original;
+  // An unfinished return belongs to the exact source/variant already opened,
+  // even if another tab has since changed which exercise is due first.
+  const exactDraft = draft?.kind === "review" && resumeReview?.exercise?.id === draft.exerciseId
+    && (draft.transferId
+      ? resumeReview.transferExercise?.transferId === draft.transferId && resumeReview.transferExercise.abc === draft.abc
+      : !resumeReview.transferExercise && resumeReview.exercise.abc === draft.abc);
+  const review = reviewDone ? null : exactDraft ? resumeReview : (Array.isArray(reviewItems) ? reviewItems : []).find((item) => item?.exercise?.id
     && item.exercise.section !== "placement"
     && (!item.dueDate || (validDay(item.dueDate) && item.dueDate <= today))) || null;
   if (!reviewDone && !review) return original;

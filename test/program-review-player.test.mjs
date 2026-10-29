@@ -180,8 +180,8 @@ await test("the first check keeps its original passage, tempo and hands during a
   button(h.tree,"Felt steady").props.onClick();h.render();
   button(h.tree,"Left hand").props.onClick();h.render();
   find(h.tree,node=>node.type==="input"&&node.props.type==="range").props.onChange({target:{value:"48"}});h.render();
-  find(h.tree,node=>node.type==="select"&&node.props["aria-label"]==="First bar").props.onChange({target:{value:"2"}});h.render();
-  find(h.tree,node=>node.type==="select"&&node.props["aria-label"]==="Last bar").props.onChange({target:{value:"3"}});h.render();
+  find(h.tree,node=>node.type==="select"&&node.props["aria-label"]==="From bar").props.onChange({target:{value:"2"}});h.render();
+  find(h.tree,node=>node.type==="select"&&node.props["aria-label"]==="Through bar").props.onChange({target:{value:"3"}});h.render();
   await h.save();
   assert.deepEqual(h.env.saved[0].reviewCheck,{assessment:"ready",beforeDemo:true,bpm:60,hands:"both",fromBar:1,toBar:4});
   assert.equal(h.env.saved[0].bpm,48);assert.equal(h.env.saved[0].hands,"L");
@@ -230,8 +230,8 @@ await test("unfinished notes, minutes, passage, tempo, hands and self-assessment
   find(h.tree,node=>node.type==="input"&&node.props.type==="number").props.onChange({target:{value:"7"}});
   find(h.tree,node=>node.type==="input"&&node.props.type==="range").props.onChange({target:{value:"72"}});h.render();
   button(h.tree,"Left hand").props.onClick();h.render();
-  find(h.tree,node=>node.type==="select"&&node.props["aria-label"]==="First bar").props.onChange({target:{value:"2"}});h.render();
-  find(h.tree,node=>node.type==="select"&&node.props["aria-label"]==="Last bar").props.onChange({target:{value:"3"}});
+  find(h.tree,node=>node.type==="select"&&node.props["aria-label"]==="From bar").props.onChange({target:{value:"2"}});h.render();
+  find(h.tree,node=>node.type==="select"&&node.props["aria-label"]==="Through bar").props.onChange({target:{value:"3"}});
   find(h.tree,node=>node.type==="input"&&node.props.type==="radio"&&node.props.value==="unsure").props.onChange();
   const checkLabel=find(h.tree,node=>node.type==="label"&&text(node)==="Bass stayed held");
   find(checkLabel,node=>node.type==="input").props.onChange({target:{checked:true}});h.render();
@@ -239,8 +239,8 @@ await test("unfinished notes, minutes, passage, tempo, hands and self-assessment
   assert.match(text(h.tree),/Unfinished practice restored/);
   assert.equal(find(h.tree,node=>node.type==="textarea").props.value,"Keep the bass held through beat four.");
   assert.equal(find(h.tree,node=>node.type==="input"&&node.props.type==="number").props.value,"7");
-  assert.equal(find(h.tree,node=>node.type==="select"&&node.props["aria-label"]==="First bar").props.value,2);
-  assert.equal(find(h.tree,node=>node.type==="select"&&node.props["aria-label"]==="Last bar").props.value,3);
+  assert.equal(find(h.tree,node=>node.type==="select"&&node.props["aria-label"]==="From bar").props.value,2);
+  assert.equal(find(h.tree,node=>node.type==="select"&&node.props["aria-label"]==="Through bar").props.value,3);
   assert.equal(button(h.tree,"Left hand").props["aria-pressed"],true);
   assert.equal(find(h.tree,node=>node.type==="input"&&node.props.type==="radio"&&node.props.value==="unsure").props.checked,true);
   assert.equal(find(find(h.tree,node=>node.type==="label"&&text(node)==="Bass stayed held"),node=>node.type==="input").props.checked,true);
@@ -435,6 +435,40 @@ await test("screen-reader playback announcements change at transport transitions
   h.env.practice.activeLesson.stop();h.render();
   assert.equal(text(announcement()),"Playback stopped. Ready to listen or play.");
 });
+
+await test("a direct scale repair reuses its saved tempo, hands and passage without claiming a return check",async h=>{
+  assert.equal(tempo(h.tree),44);
+  assert.equal(button(h.tree,"Right hand").props["aria-pressed"],true);
+  await h.save();
+  assert.equal(h.env.saved[0].bpm,44);
+  assert.equal(h.env.saved[0].hands,"R");
+  assert.equal(h.env.saved[0].fromBar,2);
+  assert.equal(h.env.saved[0].toBar,3);
+  assert.equal("reviewCheck" in h.env.saved[0],false);
+},{reviewMode:false,reusePreviousScope:true,previousAttempt:{date:"2026-10-01",minutes:5,assessment:"practising",bpm:44,hands:"R",fromBar:2,toBar:3},defaultRange:{from:2,to:3},expectedBpm:44});
+
+await test("technique scope is explicit, survives a draft and keeps the first report immutable",async h=>{
+  const scope=()=>find(h.tree,node=>node.type==="select"&&node.props["aria-label"]==="What did you actually play?");
+  assert.equal(scope().props.value,"chunk","opening a complete score cannot assert that the full range was played");
+  scope().props.onChange({target:{value:"round-trip"}});h.render();
+  button(h.tree,"Felt steady").props.onClick();h.render();
+  scope().props.onChange({target:{value:"chunk"}});h.render();
+  await h.reopen({expectedBpm:60});
+  assert.equal(scope().props.value,"chunk");
+  await h.save();
+  assert.equal(h.env.saved[0].techniqueScope,"chunk");
+  assert.equal(h.env.saved[0].reviewCheck.techniqueScope,"round-trip");
+},{exercise:{...exercise,technique:{pattern:"major",octaves:1}}});
+
+await test("passage and technique controls include their visible labels in their accessible names",async h=>{
+  for(const name of ["From bar","Through bar","What did you actually play?"]) {
+    const label=find(h.tree,node=>node.type==="label"&&!!find(node,child=>child.type==="select"&&child.props["aria-label"]===name));
+    assert.ok(label,`a visible label surrounds ${name}`);
+    const visible=label.props.children.filter(child=>typeof child==="string").join("").trim();
+    assert.ok(visible.length>0);
+    assert.ok(name.toLowerCase().includes(visible.toLowerCase()),`${name} contains the visible label ${visible}`);
+  }
+},{exercise:{...exercise,technique:{pattern:"major",octaves:1}}});
 
 if(failures)process.exitCode=1;
 else console.log("\nall first-return player checks green");

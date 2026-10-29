@@ -1,6 +1,7 @@
 // Bounded transfer studies reuse learned pitches, hand positions and chord
 // voicings while changing their order or rhythm. They are new studies, not
 // transpositions of repertoire or claims of whole-piece mastery.
+import { integratedTransferForExercise, supportsIntegratedTransfer } from "./integratedTransfer.js";
 const VERSION = "transfer-v1";
 export const TRANSFER_VARIANT_COUNT = 8;
 const VARIANTS = TRANSFER_VARIANT_COUNT;
@@ -82,9 +83,10 @@ function profileFor(exercise) {
   return cadence ? { family: "cadence", ...cadence } : null;
 }
 
-export const supportsTransfer = (exercise) => !!profileFor(exercise);
+export const supportsTransfer = (exercise) => !!profileFor(exercise) || supportsIntegratedTransfer(exercise);
 
 export function transferForExercise(exercise, variant = 0) {
+  if (supportsIntegratedTransfer(exercise)) return integratedTransferForExercise(exercise, variant);
   const profile = profileFor(exercise);
   if (!profile) return null;
   const index = normalVariant(variant), key = names[profile.key];

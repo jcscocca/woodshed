@@ -3,6 +3,53 @@
 const staff = (notes, clef = "treble", key = "C") => `X:1\nM:4/4\nL:1/4\nK:${key} clef=${clef}\n${notes}|]`;
 const question = (id, prompt, options, answer, explanation, extra = {}) => ({ id, version: 1, prompt, options, answer, explanation, ...extra });
 
+// Retain these definitions to interpret answers in earlier saved practice.
+// They are historical metadata; the removed units are not an active course.
+const ARCHIVED_QUESTIONS = [
+  question("bridge-bb-signature", "Which letters are flattened by B-flat major's key signature?", ["B and E", "B only", "B, E and A"], 0, "B-flat major has two flats: B-flat and E-flat. They apply in both clefs and every octave unless an accidental changes a particular note."),
+  question("bridge-eb-signature", "Which letters are flattened by E-flat major's key signature?", ["B and E", "B, E and A", "E, A and D"], 1, "E-flat major has B-flat, E-flat and A-flat. The order of flats begins B, E, A, D, G, C, F."),
+  question("bridge-dm-signature", "D minor has which key signature, before any harmonic-minor accidentals?", ["One flat: B-flat", "One sharp: C-sharp", "No sharps or flats"], 0, "D natural minor shares F major's one-flat signature. Harmonic minor raises C to C-sharp with an accidental; C-sharp is not part of the D-minor key signature."),
+  question("bridge-em-signature", "Which note is in E minor's key signature?", ["D-sharp", "F-sharp", "B-flat"], 1, "E minor shares G major's F-sharp signature. Harmonic minor separately raises D to D-sharp as an accidental."),
+  question("bridge-gm-signature", "Which notes belong to G minor's key signature?", ["F-sharp and C-sharp", "B-flat only", "B-flat and E-flat"], 2, "G minor shares B-flat major's two flats. Harmonic minor raises F to F-sharp with an accidental; that does not replace the two-flat signature."),
+  question("bridge-bb-cadence", "Which route is I–IV–V7–I in B-flat major?", ["Bb–Eb–F7–Bb", "Bb–D–F–Bb", "Bbm–Ebm–F7–Bbm"], 0, "The roots are B-flat, E-flat and F. F7 contains F–A–C–E-flat, including its seventh E-flat, before returning to B-flat major."),
+  question("bridge-eb-cadence", "Which route is I–IV–V7–I in E-flat major?", ["Eb–G–Bb–Eb", "Eb–Ab–Bb7–Eb", "Ebm–Abm–Bb7–Ebm"], 1, "The roots are E-flat, A-flat and B-flat. Bb7 contains B-flat–D–F–A-flat, including the A-flat seventh."),
+  question("bridge-dm-cadence", "Which dominant seventh helps lead home to D minor?", ["Am7: A–C–E–G", "A7: A–C#–E–G", "D7: D–F#–A–C"], 1, "D minor's i–iv–V7–i route is Dm–Gm–A7–Dm. C-sharp is A7's major third and leads upward by a half step to D."),
+  question("bridge-em-cadence", "Which dominant seventh helps lead home to E minor?", ["B7: B–D#–F#–A", "Bm7: B–D–F#–A", "E7: E–G#–B–D"], 0, "Em–Am–B7–Em uses D-sharp in B7. That raised seventh approaches E by a half step; F-sharp still comes from the E-minor signature."),
+  question("bridge-gm-cadence", "Which dominant seventh helps lead home to G minor?", ["Dm7: D–F–A–C", "G7: G–B–D–F", "D7: D–F#–A–C"], 2, "Gm–Cm–D7–Gm uses F-sharp in D7. Its F-sharp approaches G by a half step; the key signature keeps B-flat and E-flat."),
+  question("bridge-bb-ear", "Listen to the simultaneous tonic chord. Which quality do you hear?", ["Major triad", "Minor triad", "A single note"], 0, "B-flat3–D4–F4 is B-flat major. B-flat to D spans four semitones; lowering D to D-flat would make the triad minor.", { audio: [58, 62, 65].map((midi) => ({ midi, beat: 0, dur: 2, hand: "R" })), audioBeats: 2.5 }),
+  question("bridge-eb-ear", "Listen to the simultaneous tonic chord. Which quality do you hear?", ["Minor triad", "Major triad", "A single note"], 1, "E-flat4–G4–B-flat4 is E-flat major. E-flat to G spans four semitones; lowering G to G-flat would make the triad minor.", { audio: [63, 67, 70].map((midi) => ({ midi, beat: 0, dur: 2, hand: "R" })), audioBeats: 2.5 }),
+  ...[
+    ["dm", "D", "C", "C-sharp", 72, 73, 74],
+    ["em", "E", "D", "D-sharp", 74, 75, 76],
+    ["gm", "G", "F", "F-sharp", 77, 78, 79],
+  ].map(([id, tonic, seventh, raised, naturalMidi, raisedMidi, tonicMidi]) => question(`bridge-${id}-ear`, "Listen to the two approaches to the same upper tonic. How far below the tonic is the first note of the second pair?", ["A half step", "A whole step", "A perfect fifth"], 0, `The first pair is ${seventh}–${tonic}, a whole step. The second pair raises ${seventh} to ${raised}, making the final approach to ${tonic} a half step. Sing both pairs before finding them on the piano.`, { audio: [[naturalMidi, 0], [tonicMidi, 1.25], [raisedMidi, 3], [tonicMidi, 4.25]].map(([midi, beat]) => ({ midi, beat, dur: 0.75, hand: "R" })), audioBeats: 5.5 })),
+];
+
+const INTEGRATION_QUESTIONS = [
+  question("canon-minor-travel", "Which two released LH moves match these Canon preparations?", [
+    "B2 to D3–F#3–B3; F#2 to A2–C#3–F#3",
+    "B2 to D3–F3–B3; F#2 to A2–C3–F#3",
+    "B3 to D4–F#4–B4; F#3 to A3–C#4–F#4",
+  ], 0, "The low B2 moves to the upper B-minor shape D3–F#3–B3. The low F#2 moves to A2–C#3–F#3, the F#-minor shape. Release each bass before travelling; the low root and upper chord are separate placements.", { abc: staff("B,, [D,F,B,] F,, [A,,C,F,]", "bass", "D") }),
+  question("mozart-opening-position", "Which RH fingers keep this opening pitch gesture in its prepared A4–E5 position?", [
+    "3–1–3–5, crossing the thumb onto D5",
+    "3–4–3–5, with no thumb crossing",
+    "1–2–1–3, moving the thumb onto C#5",
+  ], 1, "Keep A4–B4–C#5–D5–E5 under fingers 1–2–3–4–5. C#5–D5–C#5–E5 therefore uses 3–4–3–5. This shows the pitches only; preserve Mozart's already-prepared dotted rhythm when applying them to the melody.", { abc: staff("c d c e", "treble", "A") }),
+  question("switchyard-sevenths", "Which notes match E7's seventh, A7's seventh and B7's third in Switchyard?", [
+    "D natural, G natural, D#",
+    "D#, G#, D natural",
+    "D natural, G#, D natural",
+  ], 0, "E7 is E–G#–B–D, so its seventh is D natural. A7 is A–C#–E–G, with G natural as its seventh. B7 is B–D#–F#–A: D# is its third, while A is its seventh. The written naturals and sharps follow the current harmony.", { abc: staff("=d2 =G ^d", "treble", "E") }),
+  question("switchyard-tone-listening", "Listen to the highest note of two chords: E7, then B7. How does that note change?", [
+    "D5 stays natural in both chords",
+    "D5 falls a whole step to C5",
+    "D5 rises a half step to D#5",
+  ], 2, "The highest voice moves from D5 in E7 to D#5 in B7. Sing that half-step rise, then find the written D natural in Switchyard's E7 call and D# in its B7 turn. These are seventh and third chord tones respectively; both choices belong to the printed blues harmony.", {
+    audio: [[64, 0], [68, 0], [71, 0], [74, 0], [59, 3], [66, 3], [69, 3], [75, 3]].map(([midi, beat]) => ({ midi, beat, dur: 1.75, hand: "R" })), audioBeats: 5.5,
+  }),
+];
+
 export const QUESTIONS = [
   question("half-step", "Which pair of white keys is a half step apart?", ["E–F", "C–D", "F–G"], 0, "E–F are adjacent piano keys with no black key between. C–D and F–G each contain two semitones, a whole step."),
   question("whole-step", "Starting on C, a whole step upward reaches…", ["C#", "D", "E"], 1, "C–C# is one semitone; C#–D is another. Two semitones make a whole step."),
@@ -50,7 +97,10 @@ export const QUESTIONS = [
   question("ear-sixth", "Listen to the two successive notes. Which interval number do you hear?", ["Fourth", "Sixth", "Octave"], 1, "The example is C4 up to A4, a sixth. Sing the two notes and then compare the letter span C–D–E–F–G–A.", { audio: [{ midi: 60, beat: 0, dur: 0.75, hand: "R" }, { midi: 69, beat: 1.25, dur: 0.75, hand: "R" }], audioBeats: 2.5 }),
   question("ear-seventh", "Listen to the two successive notes. Which interval number do you hear?", ["Fifth", "Sixth", "Seventh"], 2, "The example is C4 up to B4, a seventh. Compare it with C4–C5: the upper B lies one half step below that octave.", { audio: [{ midi: 60, beat: 0, dur: 0.75, hand: "R" }, { midi: 71, beat: 1.25, dur: 0.75, hand: "R" }], audioBeats: 2.5 }),
   question("ear-minor", "Listen to the simultaneous chord. Which quality is it?", ["Major triad", "Minor triad", "A single note"], 1, "A3–C4–E4 is an A-minor triad. Its root-to-third distance is three semitones; compare A–C#–E to hear major.", { audio: [57, 60, 64].map((midi) => ({ midi, beat: 0, dur: 2, hand: "R" })), audioBeats: 2.5 }),
+  ...INTEGRATION_QUESTIONS,
+  ...ARCHIVED_QUESTIONS.map((question) => ({ ...question, archived: true })),
 ];
+export const ACTIVE_QUESTIONS = QUESTIONS.filter((question) => !question.archived);
 
 export const QUESTION_BY_ID = Object.freeze(Object.assign(Object.create(null), Object.fromEntries(QUESTIONS.map((q) => [q.id, q]))));
 const LINKS = {
@@ -73,7 +123,7 @@ const LINKS = {
 
 export function knowledgeForExercise(exercise) {
   const ids = [...new Set([...(Object.hasOwn(LINKS, exercise.id) ? LINKS[exercise.id] : []), ...(exercise.knowledgeIds || [])])];
-  return ids.map((id) => QUESTION_BY_ID[id]).filter(Boolean);
+  return ids.map((id) => QUESTION_BY_ID[id]).filter((question) => question && !question.archived);
 }
 
 export function normalizeKnowledge(raw) {

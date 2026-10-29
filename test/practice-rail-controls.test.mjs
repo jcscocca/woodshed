@@ -8,13 +8,16 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 const bundle = await build({
   stdin: { contents: `export { PracticeProvider } from './src/PracticeProvider.jsx';
     export { default as Tools } from './src/PracticeTools.jsx';
-    export { default as Rail } from './src/PracticeRail.jsx';`, resolveDir: root, loader: "js" },
+    export { default as Rail } from './src/PracticeRail.jsx';
+    export { PracticeSheet as MobileSheet } from './src/PracticeSheet.jsx';`, resolveDir: root, loader: "js" },
   bundle: true, write: false, format: "esm", platform: "node",
   plugins: [{ name: "rail-boundaries", setup(b) {
     b.onResolve({ filter: /^react$/ }, () => ({ path: "react", namespace: "boundary" }));
     b.onResolve({ filter: /useMetronome\.js$/ }, () => ({ path: "metro", namespace: "boundary" }));
     b.onResolve({ filter: /useRun\.js$/ }, () => ({ path: "run", namespace: "boundary" }));
-    b.onResolve({ filter: /PracticeSheet\.jsx$/ }, () => ({ path: "sheet", namespace: "boundary" }));
+    b.onResolve({ filter: /PracticeSheet\.jsx$/ }, args => args.importer.endsWith("PracticeRail.jsx") ? { path: "sheet", namespace: "boundary" } : null);
+    b.onResolve({ filter: /useDialog\.js$/ }, () => ({ path: "dialog", namespace: "boundary" }));
+    b.onResolve({ filter: /useListener\.js$/ }, () => ({ path: "listener", namespace: "boundary" }));
     b.onLoad({ filter: /.*/, namespace: "boundary" }, ({ path }) => ({ contents: {
       react: `const current = () => globalThis.__railHooks;
         const same = (a, b) => a && b && a.length === b.length && a.every((v, i) => Object.is(v, b[i]));
@@ -35,10 +38,12 @@ const bundle = await build({
       metro: "export const useMetronome = () => globalThis.__railEnvironment.metro;",
       run: "export const useRun = () => ({ run: globalThis.__railEnvironment.run });",
       sheet: "export function ListenPanel() {}",
+      dialog: "export const useDialog = () => ({ current: null });",
+      listener: "export const useListener = () => ({});",
     }[path] }));
   } }],
 });
-const { PracticeProvider, Tools, Rail } = await import(`data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString("base64")}`);
+const { PracticeProvider, Tools, Rail, MobileSheet } = await import(`data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString("base64")}`);
 const content = node => Array.isArray(node) ? node.map(content).join("") : node && typeof node === "object" ? content(node.props?.children) : node == null || typeof node === "boolean" ? "" : String(node);
 const all = (node, predicate) => Array.isArray(node) ? node.flatMap(item => all(item, predicate)) : !node || typeof node !== "object" ? [] : [...(predicate(node) ? [node] : []), ...all(node.props?.children, predicate)];
 const find = (tree, predicate) => all(tree, predicate)[0];
@@ -63,10 +68,11 @@ function harness() {
     setBpm(value) { env.lesson = { ...env.lesson, bpm: value }; },
     start() { env.lessonStarts++; }, stop() { env.lessonStops++; }, tap() { env.lessonTaps++; } };
   const provider = runner(PracticeProvider), tools = runner(Tools, { hints: true }), rail = runner(Rail, { onOpenTuner() { env.tunerOpens++; } });
-  const sync = () => { provider.render(); tools.render(); rail.render(); };
+  const mobile = runner(MobileSheet, { onClose() {}, onOpenListen() { env.tunerOpens++; } });
+  const sync = () => { provider.render(); tools.render(); rail.render(); mobile.render(); };
   sync();
   const setLesson = (value = env.lesson) => { provider.tree.props.value.setActiveLesson(value); sync(); };
-  return { env, provider, tools, rail, sync, setLesson, close() { provider.close(); tools.close(); rail.close(); delete globalThis.__railEnvironment; delete globalThis.__railHooks; } };
+  return { env, provider, tools, rail, mobile, sync, setLesson, close() { provider.close(); tools.close(); rail.close(); mobile.close(); delete globalThis.__railEnvironment; delete globalThis.__railHooks; } };
 }
 let failures = 0;
 function test(name, fn) { const h = harness(); try { fn(h); console.log(`ok   ${name}`); } catch (error) { failures++; console.error(`FAIL ${name}\n${error.stack}`); } finally { h.close(); } }
@@ -77,10 +83,16 @@ test("standalone controls retain their tempo, range, and meter choices", h => {
   assert.equal(range(h.tools.tree).props.max, "240");
   button(h.tools.tree, "Faster").props.onClick(); h.sync();
   assert.equal(range(h.tools.tree).props.value, 91);
-  button(h.tools.tree, "3 beats per bar").props.onClick(); h.sync();
+  button(h.tools.tree, "3/4 · 3 beats per bar").props.onClick(); h.sync();
   assert.equal(h.env.metro.beatsPer, 3);
   button(h.tools.tree, "Start").props.onClick();
   assert.equal(h.env.metroStarts, 1);
+});
+
+test("meter buttons keep their visible time signature in the accessible name", h => {
+  const buttons = all(h.tools.tree, node => node.type === "button" && node.props.className?.includes("ws-sig-btn"));
+  assert.equal(buttons.length, 3);
+  for (const current of buttons) assert.ok(current.props["aria-label"].startsWith(content(current)));
 });
 
 test("an open lesson supplies the rail tempo, transport, tap and hint", h => {
@@ -92,7 +104,7 @@ test("an open lesson supplies the rail tempo, transport, tap and hint", h => {
   assert.match(content(h.rail.tree), /Controls for Long and short notes/);
   assert.doesNotMatch(content(h.rail.tree), /Open a lesson/);
   assert.match(content(h.tools.tree), /Lesson meter · 3 beats/);
-  assert.equal(button(h.tools.tree, "3 beats per bar"), undefined);
+  assert.equal(button(h.tools.tree, "3/4 · 3 beats per bar"), undefined);
   button(h.tools.tree, "Faster").props.onClick(); h.setLesson();
   assert.equal(range(h.tools.tree).props.value, 57);
   assert.equal(h.env.metro.bpm, 90, "lesson controls never mutate the unrelated standalone tempo");
@@ -131,7 +143,7 @@ test("lesson tempo nudges respect 20–160 and close restores standalone control
   h.setLesson(null);
   assert.equal(range(h.tools.tree).props.value, 90);
   assert.match(content(h.rail.tree), /Open a lesson/);
-  assert.ok(button(h.tools.tree, "4 beats per bar"));
+  assert.ok(button(h.tools.tree, "4/4 · 4 beats per bar"));
 });
 
 test("opening the tuner stops both lesson and standalone audio owners", h => {
@@ -141,6 +153,23 @@ test("opening the tuner stops both lesson and standalone audio owners", h => {
   assert.equal(h.env.lessonStops, 1);
   assert.equal(h.env.metroStops, 2);
   assert.equal(h.env.tunerOpens, 1);
+});
+
+test("mobile tuner respects the recording/saving lock even if a stale handler is invoked", h => {
+  h.env.lesson = { ...h.env.lesson, disabled: true }; h.setLesson();
+  const tuner = find(h.mobile.tree, node => node.type === "button" && node.props.className === "ws-listen-open");
+  assert.equal(tuner.props.disabled, true);
+  const stops = h.env.metroStops;
+  tuner.props.onClick();
+  assert.equal(h.env.tunerOpens, 0); assert.equal(h.env.lessonStops, 0); assert.equal(h.env.metroStops, stops);
+});
+
+test("mobile tuner stops the owned lesson playback before opening another microphone tool", h => {
+  h.env.lesson = { ...h.env.lesson, playing: true }; h.setLesson();
+  const tuner = find(h.mobile.tree, node => node.type === "button" && node.props.className === "ws-listen-open");
+  assert.equal(tuner.props.disabled, false);
+  tuner.props.onClick();
+  assert.equal(h.env.lessonStops, 1); assert.equal(h.env.metroStops, 2); assert.equal(h.env.tunerOpens, 1);
 });
 
 test("a scored play-along retains its metronome lock", h => {

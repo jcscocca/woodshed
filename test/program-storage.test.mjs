@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { freshData } from "../src/engine.js";
-import { migrate, saveState, loadState, SavedStateError } from "../src/storage.js";
+import { migrate, saveState, loadState, mutateState, replaceState, stateRevision, stateGeneration, SavedStateError } from "../src/storage.js";
+import { installWebLocks } from "./web-locks-harness.mjs";
 import { normalizeProgress, recordAttempt, exerciseProgress, sessionProgress } from "../src/program/progress.js";
 import { todayStr } from "../src/dateUtils.js";
 
@@ -11,6 +12,7 @@ const entry = { exerciseId: "scale-c", skillIds: ["key-c", "steady-pulse"], asse
 const clone = (x) => JSON.parse(JSON.stringify(x));
 
 async function withStorage(fn) {
+  const restoreLocks = installWebLocks();
   const previous = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
   const values = new Map();
   const storage = {
@@ -21,6 +23,7 @@ async function withStorage(fn) {
   Object.defineProperty(globalThis, "localStorage", { configurable: true, value: storage });
   try { await fn(storage, values); }
   finally {
+    restoreLocks();
     if (previous) Object.defineProperty(globalThis, "localStorage", previous);
     else delete globalThis.localStorage;
   }
@@ -145,7 +148,7 @@ test("selected G and F units survive save/load without resetting existing C prog
         section: "placement", date: "2026-10-27",
       });
       const expected = clone(state[FIELD]);
-      assert.equal(await saveState(state), true);
+      assert.equal((await replaceState(await loadState(), state)).ok, true);
       const loaded = await loadState();
       assert.equal(loaded.programUnitId, unitId);
       assert.deepEqual(loaded[FIELD], expected);
@@ -215,3 +218,63 @@ test("integrated return and transfer evidence survives reload and backup without
     assert.equal(fresh.sessionId, undefined); assert.equal(fresh.blockIndex, undefined);
   });
 });
+
+test("serialized mutations from two stale snapshots retain both reports and unrelated selection changes", async () => withStorage(async () => {
+  const initial=freshData();assert.equal(await saveState(initial),true);
+  const a=await loadState(),b=await loadState();
+  const append=(note)=>(current)=>({...current,programProgress:recordAttempt(current.programProgress,{...entry,note})});
+  const results=await Promise.all([mutateState(a,append("Tab A")),mutateState(b,append("Tab B"))]);
+  assert.ok(results.every(result=>result.ok));
+  assert.equal((await mutateState(b,current=>({...current,programUnitId:"g-major-foundations-2"}))).ok,true);
+  const saved=await loadState();
+  assert.deepEqual(saved.programProgress.attempts.map(a=>a.note),["Tab A","Tab B"]);
+  assert.equal(saved.programUnitId,"g-major-foundations-2");
+  assert.equal(stateGeneration(saved),stateGeneration(initial));
+  assert.equal(stateRevision(saved),stateRevision(initial)+3);
+}));
+
+test("a stale complete-snapshot save cannot overwrite a newer durable revision", async () => withStorage(async () => {
+  const initial=freshData();assert.equal(await saveState(initial),true);
+  const a=await loadState(),b=await loadState();
+  assert.equal((await mutateState(a,current=>({...current,programProgress:recordAttempt(current.programProgress,entry)}))).ok,true);
+  b.programUnitId="g-major-foundations-2";
+  const warn=console.warn;console.warn=()=>{};
+  try{assert.equal(await saveState(b),false);}finally{console.warn=warn;}
+  assert.equal((await loadState()).programProgress.attempts.length,1);
+}));
+
+test("intentional deletion is retained and reset/import reject earlier-generation actions", async () => withStorage(async () => {
+  const initial=freshData();initial.programProgress=recordAttempt({},entry);assert.equal(await saveState(initial),true);
+  const a=await loadState(),stale=await loadState();
+  assert.equal((await mutateState(a,current=>({...current,programProgress:normalizeProgress()}))).ok,true);
+  assert.equal((await mutateState(stale,current=>({...current,settings:{...current.settings,target:30}}))).ok,true);
+  assert.deepEqual((await loadState()).programProgress.attempts,[],"a stale settings action must not resurrect deleted reports");
+  assert.equal((await replaceState(stale,freshData())).ok,false,"stale destructive replacement cannot discard intervening changes");
+  const beforeReset=await loadState(),reset=await replaceState(beforeReset,freshData());
+  assert.equal(reset.ok,true);assert.notEqual(stateGeneration(reset.state),stateGeneration(beforeReset));
+  const replay=await mutateState(beforeReset,current=>({...current,programProgress:recordAttempt(current.programProgress,entry)}));
+  assert.equal(replay.ok,false);assert.equal(replay.error.code,"replaced");
+  assert.deepEqual((await loadState()).programProgress.attempts,[]);
+  const imported=freshData();imported.programProgress=recordAttempt({}, {...entry,note:"Backup history"});
+  const restored=await replaceState(reset.state,imported);assert.equal(restored.ok,true);
+  assert.equal((await mutateState(reset.state,current=>({...current,programUnitId:"g-major-foundations-2"}))).ok,false);
+  assert.equal((await loadState()).programProgress.attempts[0].note,"Backup history");
+}));
+
+test("transaction quota failure leaves the prior bytes and revision intact", async () => withStorage(async (storage,values) => {
+  const state=freshData();assert.equal(await saveState(state),true);
+  const raw=values.get("woodshed-state-v1");
+  storage.setItem=()=>{throw new Error("QuotaExceededError");};
+  const result=await mutateState(state,current=>({...current,programProgress:recordAttempt(current.programProgress,entry)}));
+  assert.equal(result.ok,false);assert.equal(values.get("woodshed-state-v1"),raw);
+  assert.equal(stateRevision(await loadState()),stateRevision(state));
+}));
+
+test("unsupported locking refuses writes while keeping existing history readable", async () => withStorage(async (_storage,values) => {
+  const state=freshData();assert.equal(await saveState(state),true);
+  const raw=values.get("woodshed-state-v1");
+  navigator.locks=undefined;
+  const result=await mutateState(state,current=>({...current,programUnitId:"g-major-foundations-2"}));
+  assert.equal(result.ok,false);assert.equal(result.error.code,"locking-unavailable");
+  assert.equal(values.get("woodshed-state-v1"),raw);assert.equal((await loadState()).programUnitId,state.programUnitId);
+}));
