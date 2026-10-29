@@ -1,159 +1,155 @@
 # v1 release readiness
 
-This is a release record, not a claim that the gates have passed. **PASS** means
-the named check has evidence for the recorded candidate/environment. **PENDING**
-means it has not been demonstrated. **BLOCKED** means a recorded finding prevents
-acceptance. An automated or simulated result must not be relabeled as a physical
-browser, instrument, teacher or learner result.
+**PASS** means the named check has evidence for the recorded application code and
+environment. **PENDING** means it has not been demonstrated. An automated or
+simulated result is not physical-browser, instrument, teacher or learner evidence.
 
-Release candidate commit: **PENDING — fill after committing the candidate**.
-Final v1 tag: **HOLD — human and environment gates below are pending**.
+Tested application-code commit:
+[`74097c37f1d8d2db58441c6d7c2f4fdce3f8e1e0`](https://github.com/jcscocca/woodshed/commit/74097c37f1d8d2db58441c6d7c2f4fdce3f8e1e0).
+Candidate changes: [PR #4](https://github.com/jcscocca/woodshed/pull/4).
+A later documentation-only commit does not change the tested application code.
+Candidate tag: **PENDING — record after merge and deployment verification**.
+Final v1 tag: **HOLD — native/device and human gates remain pending**.
 
 ## Current evidence
 
-| Gate | Status | Evidence / remaining work |
+| Gate | Status | Evidence / limits |
 |---|---|---|
-| Core inventory and scope | PASS | Source inventory: 8 units, 193 exercises including 3 placement checks, 80 sessions, 1,600 original planned minutes. README and DIRECTION distinguish the guided core from retained tools. |
-| Candidate Node suite and build | PASS — local worktree | `npm test` (including app recovery) and `npm run build` passed on 2026-10-28 local time, Node 26.8.1. Seven targeted recovery checks also passed. Candidate commit and Node-22 CI rerun remain pending. |
-| Runtime dependency audit | PASS — local worktree | `npm audit --omit=dev` reported zero runtime vulnerabilities. This does not mean the full development dependency audit is clean; see known follow-up below. |
-| Production browser suite | PENDING | `npm run test:browser` builds the app, then runs Playwright desktop Chromium, narrow Chromium and desktop WebKit. Record actual passes/skips and evidence; PWA upgrade coverage is intentionally limited to its supported test project. |
-| Candidate live UI pass | PENDING | Complete the scenario pass below. Earlier testing used the Codex in-app browser and found tempo, draft, completion-scroll and settings issues; fixes require candidate evidence. |
-| Desktop/compact keyboard access | PENDING | Record viewport, keyboard-only result and assistive-technology check, including focus after saves/errors. |
-| Recovery/import/export | PENDING — real-browser acceptance | Seven targeted component-boundary recovery checks pass locally. Run the real-browser failure/round-trip scenarios below against a disposable profile. |
-| PWA offline/update | PENDING | Test a built, installed HTTPS app across two versions. A Vite dev run does not exercise the production service worker. |
-| Browser/device matrix | PENDING | No native Chrome, Edge, Safari or physical mobile-device acceptance is established by the in-app-browser run. |
-| Teacher spot-check | PENDING | Complete the eight-unit review in [teacher-review-pilot.md](teacher-review-pilot.md). Source/notation tests are not an independent teaching review. |
-| Learner pilot and delayed returns | PENDING | Seven-day usability pilot plus the Day-10 return follow-up; record actual elapsed days and eligibility. |
-| CI and deployment | PENDING | Candidate push, successful Pages workflow, live asset/version check and a short deployed-origin save/reload pass. |
-| Final release decision | PENDING | Resolve release blockers, record any explicitly deferred optional-tool issue, then approve/tag v1. |
+| Core inventory and scope | PASS | 8 units, 193 exercises including 3 placement checks, 80 sessions and 1,600 original planned minutes. Guided piano and retained optional tools are distinguished in the docs. |
+| Node suite and production build | PASS | Full Node-22 suite and build in [release-check run 40805391869](https://github.com/jcscocca/woodshed/actions/runs/40805391869). Also passed locally on 2026-10-28, Node 26.8.1; seven targeted recovery checks pass. |
+| Runtime dependency audit | PASS | Runtime audit passes in the same CI run; local `npm audit --omit=dev` reported zero runtime vulnerabilities. Full development-toolchain advisories remain a bounded follow-up below. |
+| Production browser suite | PASS — engine coverage | 18 scheduled: **16 passed, 2 intentionally skipped**. Five application cases pass in desktop Chromium, narrow Chromium and desktop WebKit. The real service-worker upgrade case runs once in desktop Chromium and is intentionally skipped in the other two projects. |
+| Live UI checks | PASS — observed IAB scope | Wide and compact in-app-browser checks confirm skip/main focus, enlarged-score keyboard scrolling without tempo changes or body overflow, and isolated corrupt-profile recovery. This is not native Safari/Chrome/Edge acceptance or an audible piano test. |
+| Keyboard and automated accessibility | PASS — tested screens | Skip link, main focus, enlarged-score arrow keys and reduced-motion default pass in all three projects. Axe reports no WCAG 2 A/AA and 2.1 AA rule violations on the guided lesson and Settings. VoiceOver/manual accessibility and native 200% zoom remain pending. |
+| Recovery/import/export | PASS — software scenarios | All three browser projects pass export→reset→durable import, original corrupt-byte download and a quota-rejected recovery replacement followed by successful retry. Component tests cover additional failure/reset/draft cases. |
+| PWA offline/update | PASS — automated desktop Chromium | Two real builds change the hashed application entry and service-worker manifest. Settings/meta version identifiers update; offline saved history, draft restoration and a previously unopened score work. Installed native/mobile lifecycle acceptance remains pending. |
+| Native browser/device acceptance | PENDING | Native Chrome/Edge/Safari, physical phones and real audio/MIDI are not established by engine tests or IAB. A native Safari control attempt was interrupted and is not a completed acceptance pass. |
+| Teacher spot-check | PENDING | Complete all eight units using [teacher-review-pilot.md](teacher-review-pilot.md). Software/source checks are not an independent teaching review. |
+| Learner pilot and delayed returns | PENDING | Seven-day usability pilot plus the genuine seven-day-gap follow-up around Day 10. Record actual dates, assistance and natural fresh-example eligibility. |
+| Pull-request CI | PASS | [Run 40805391869](https://github.com/jcscocca/woodshed/actions/runs/40805391869) succeeded for the application-code candidate. Recheck any subsequent code change; documentation-only changes still follow the PR checks. |
+| Production deployment | PENDING | Merge, passing main acceptance/Pages workflow, deployed version/assets and deployed-origin save/reload verification still require evidence. |
+| Final v1 decision | PENDING / HOLD | Human/environment gates and deployment must be recorded before final v1 approval. |
 
-Record each result as: `commit | date/time | browser/version | OS/device |
-viewport | test/profile | observed result | evidence link | tester`.
+CI runs on an ephemeral GitHub-hosted Linux runner with Node 22 and Playwright
+1.64.1's Chromium/WebKit projects. The run retains the browser report and failure
+artifacts. Exact runner/engine details belong to that run's logs/artifacts; these
+projects do not certify branded browsers or physical devices.
+
+The initial WebKit first-Tab failure was traced to the loading shell being
+replaced during the focus check. The test now waits for the actual application
+before pressing Tab and retains its focus assertions. Native form controls use
+the dark color scheme consistently. These fixes are included in the passing run.
 
 Known dependency follow-up: the full development-toolchain audit still reports
-advisories. The runtime-only audit is clean; do not describe all dependencies as
-clean. Review the existing build/test-tool advisories and a compatible toolchain
-upgrade in a separate bounded change, then rerun the Node, production-browser
-and PWA acceptance checks. Record the full audit and explicit disposition at the
-release decision; avoid an unreviewed forced dependency upgrade during this pass.
+advisories. The runtime-only audit is clean; all dependencies are not claimed
+clean. Review those build/test-tool advisories and a compatible toolchain upgrade
+in a separate bounded change, then rerun Node, browser and PWA checks. Record the
+full audit's disposition at release; avoid an unreviewed forced upgrade.
 
-Pull-request release checks run on ephemeral GitHub-hosted runners. They install
-Chromium/WebKit, run the runtime audit, Node suites and `npm run test:browser`,
-and retain browser reports/traces/screenshots. Main's Pages workflow calls the
-same checks before building/deploying. **CI/deployment status remains PENDING**
-until the candidate's completed runs are linked here.
+## Browser and device evidence
 
-## Browser and device acceptance
+A responsive/emulated viewport checks layout, not real mobile touch, audio,
+storage or installation. Proposed native v1 environments remain pending unless
+the owner explicitly narrows the launch matrix and updates compatibility guidance.
 
-These are proposed v1 acceptance environments, not a completed support claim.
-Use the stable browser available on the test date and record its exact version.
-A responsive desktop viewport checks layout only; it does not substitute for
-mobile touch, audio, storage or installation behavior.
-
-| Environment | Core lesson/playback/save | Draft + recovery | Install/offline/update | Current evidence |
+| Environment | Core flows / data | Keyboard / layout | PWA lifecycle | Evidence / remaining human check |
 |---|---|---|---|---|
-| Codex in-app browser on macOS, wide and compact viewports | PENDING candidate retest | PENDING | Not a substitute for native install testing | Prior local UI playthrough only; no native-browser equivalence claimed. |
-| Chrome desktop on macOS or Windows | PENDING | PENDING | PENDING | Record actual OS/version. |
-| Edge desktop on Windows or macOS | PENDING | PENDING | PENDING | Record actual OS/version; do not infer from Chrome. |
-| Safari on macOS | PENDING | PENDING | PENDING where available | Verify user-initiated audio and storage/permissions explicitly. |
-| Safari on a physical iPhone/iPad | PENDING | PENDING | PENDING where available | Test touch, orientation, safe areas and return from background. |
-| Chrome on a physical Android phone | PENDING | PENDING | PENDING | Test touch, background/resume and installed launch. |
+| Playwright Chromium desktop, 1280×900 | PASS, five application cases | PASS, tested lesson/Settings axe checks | PASS, real A→B build/offline case | Linux CI engine; no physical instrument or installed desktop-window claim. |
+| Playwright Chromium narrow, 390×844 with mobile/touch emulation | PASS, five application cases | PASS, tested lesson/Settings axe checks | Intentionally skipped | Emulation does not establish Android hardware support. |
+| Playwright WebKit desktop, 1280×900 | PASS, five application cases | PASS, tested lesson/Settings axe checks | Intentionally skipped | WebKit engine is not a completed Safari-app acceptance pass. |
+| Codex IAB on macOS, 1280 wide / 390 narrow | PASS, observed UI/recovery subset | PASS, skip/main/enlarged-score checks | Not assessed as native install | Narrow client width 375; score overflow stays inside its scroll region. |
+| Native Chrome desktop on macOS or Windows | PENDING | PENDING | PENDING | Record browser/version/OS, native zoom and actual audio. |
+| Native Edge desktop on Windows or macOS | PENDING | PENDING | PENDING | Do not infer from Chromium CI. |
+| Native Safari on macOS | PENDING | PENDING | PENDING where available | Interrupted attempt supplies no completed acceptance evidence. |
+| Safari on a physical iPhone/iPad | PENDING | PENDING | PENDING where available | Touch, orientation, safe areas, background/resume and actual audio. |
+| Chrome on a physical Android phone | PENDING | PENDING | PENDING | Touch, background/resume, audio and installed launch. |
 
-Core acceptance must work with no connected keyboard and no microphone
-permission. Test optional recording/MIDI separately where the browser offers
-them. If the intended launch matrix is narrowed, record that decision and its
-visible compatibility guidance before removing a required row.
+For each human result record: `commit/version | date | browser/version | OS/device
+| viewport/zoom | scenario/profile | observed result | evidence | tester`.
 
-## Core scenario pass
+## Software scenario coverage
 
-Use a disposable profile or exported test backup, never a learner's only history.
-Separate simulated UI reports from actual piano attempts in notes.
+All PASS entries below refer to the tests' assertions, not teacher judgments or
+heard/performed music. The browser cases use explicit simulated practice notes.
 
-- [ ] Fresh start: all three placement checks can be completed or skipped; their
-  reports remain separate from practice minutes. Final feedback and the next
-  action are visible and keyboard-focusable in both layouts.
-- [ ] Complete a four-block guided visit, navigate away mid-block, resume and
-  reload. The correct unfinished block opens; report fields, passage and checked
-  understanding answers restore without gaining completion credit.
-- [ ] Close/reopen a lesson, change units and resize across 1024px. Audio stops
-  when leaving; the matching draft restores; another lesson/context is isolated.
-  A fresh transfer variant must not inherit another variant's answer/report.
-- [ ] Lesson tempo, rail tempo, arrows and tap agree. Rail Start/Stop controls
-  the active lesson; metre reflects the score. Closing the lesson restores the
-  standalone metronome. Recording/saving/playback locks prevent competing audio.
-- [ ] Select hands and a small passage; count in, loop, follow score, stop and
-  replay. Include a pickup/partial bar and a 6/8 example, not only 4/4.
-- [ ] Final Save presents completion and the next session without leaving the
-  user deep down the old lesson. Keyboard focus moves to meaningful feedback;
-  focus remains visible after dialogs, failed saves and progress corrections.
-- [ ] Skip to practice bypasses repeated navigation. Fit-width/125%/150% notation
-  remains readable without page overflow; the enlarged score is keyboard
-  scrollable. Reduced-motion preference starts follow-score off for a new
-  lesson, suppresses decorative motion and still permits the learner's choice.
-- [ ] Save a due review: 3 review + 17 core minutes stays within 20 after reload.
-  It does not complete a core block or change the selected unit. Skipping review,
-  an already-started session and a completed-session revisit keep their plan.
-- [ ] First-return result retains its original tempo/hands/passage. Hearing the
-  model first or reopening a playback-assisted draft cannot create a false
-  before-playback report. Later repair does not overwrite the first result.
-- [ ] Qualified fresh-example eligibility uses distinct delayed returns. Used
-  variants are skipped; difficulty carries its repair note forward and does not
-  inflate the original passage's progress. Exhaustion falls back to review.
-- [ ] Chords/Scales matching credit, Catalogue alternatives, history correction
-  and removal all recalculate the correct guided position and review queue.
-- [ ] Settings identifies the fixed guided plan; earlier length/goal/instrument
-  controls remain explicitly scoped to earlier tools/history.
-- [ ] Recording denied/unavailable leaves the core usable. Optional recording
-  stops/releases resources on navigation; the download/discard copy matches its
-  in-memory lifetime. Test actual speaker output/recording on a physical device.
-
-## Data and failure acceptance
-
-These cases require deliberate fixtures/fault injection in an isolated test
-profile. A pure storage test and a UI recovery pass are complementary evidence.
-
-| Case | Required observation | Status / evidence |
+| Scenario | Status and evidence | Limit |
 |---|---|---|
-| Existing C-only and current eight-unit profile | Stable IDs, completed blocks, selected unit, review association and first-check metadata survive migration/reload. | PENDING |
-| Export/import round trip | Compare saved history/settings and calculated position; import confirmation is explicit; old drafts do not leak into the replacement profile. Drafts/audio are not claimed as backed up. | PENDING |
-| Corrupt JSON / wrong-shaped saved profile | Visible recovery guidance; preserve the unreadable stored value until an explicit recovery choice. Do not silently overwrite it with a fresh profile. | PENDING |
-| Corrupt or incompatible import | Show a useful error; existing valid history/settings remain intact and usable. | PENDING |
-| Denied storage / quota failure | Failed Save does not show completion, advance the session or clear the report. The warning stays actionable; retry succeeds when storage becomes available. | PENDING |
-| Draft storage failure | In-tab fallback retains edits during navigation; communicate limits without claiming durable history. Saving still requires durable profile persistence. | PENDING |
-| Correct/remove reports | Recalculate review spacing and block completion from remaining history; no stale cached completion or first-check evidence. | PENDING |
-| Reset / import replacement | Confirmation names the data being replaced; saved data and matching drafts clear only after the chosen operation succeeds. | PENDING |
-| Separate tabs | Observe and document last-write behavior; do not promise conflict merging or sync. Export before concurrent edits in acceptance testing. | PENDING |
+| Placement, guided blocks, drafts, completion | PASS — first application case in all three projects: complete three placement checks and all four Session-A blocks, navigate/reload a draft, restore passage/loop/note, and reveal/focus the final next action. | Learner's actual piano skill is not measured. |
+| Shared lesson/rail tempo and transport | PASS — desktop browser tempo assertion and component controller/audio tests, including 6/8 pulses and pickup downbeats. | Real speaker output, latency and physical MIDI remain human checks. |
+| Passage, hands, count-in, loop and pickups | PASS — Node playback/passage/source suites plus restored browser passage/loop choices. | Not every lesson is manually played on every browser. |
+| Integrated 3+17 review and first evidence | PASS — second application case preserves first-before-playback assessment through navigation/repair and resumes the saved 17-minute core allocation. Component tests cover assistance and immutable scope. | These are product scheduling defaults, not demonstrated retention gains. |
+| Fresh-example eligibility and isolation | PASS — Node transfer/review/draft suites cover distinct returns, finite variants, setbacks, isolated reports and fallback. | No natural learner fresh-example result has been collected. |
+| Cross-section credit / history correction | PASS — full Node progress/flow/storage suites cover matching blocks, correction/removal and recalculated queue/position. | Not a claim of native-browser manual coverage for every history edit. |
+| Completion focus and navigation | PASS — placement/session completion focus and viewport visibility in all three browser projects; scroll logic also has component regressions. | Screen-reader experience still needs manual review. |
+| Skip, enlarged score, reduced motion | PASS — fifth application case: first Tab reaches skip, Enter focuses main, 150% score scroll keeps lesson tempo unchanged, reduced-motion starts follow-score off. IAB live checks corroborate wide/narrow behavior. | Manual VoiceOver and native browser 200% zoom remain pending. |
+| Guided lesson / Settings accessibility scan | PASS — axe checks with `wcag2a`, `wcag2aa`, `wcag21aa` tags in all three projects. | No claim of whole-app WCAG conformance; automated scans cover these screens/rules only. |
+| Recording ownership and resource cleanup | PASS — Node recording/audio-ownership tests. | Real permission prompts, microphone/speaker performance and take download need physical-device checks. |
 
-## Production PWA acceptance
+Local live evidence is retained at
+`/private/tmp/woodshed-release-proof/recovery-preserves-original.jpg` and
+`/private/tmp/woodshed-release-proof/narrow-enlarged-score.jpg` on the testing Mac;
+these temporary paths are not published CI artifacts. The IAB narrow test used
+a 470px score within a 313px scroll region, with no horizontal body overflow.
+In isolated profile `127.0.0.1:51906`, the original corrupt demo bytes downloaded
+exactly, Retry stayed in recovery, and a valid restored backup survived reload.
 
-Use two identifiable production builds on the same disposable HTTPS origin.
-Record old/new commit, browser version, saved-profile export and service-worker
-version evidence. Keep a rollback deployment available.
+## Data and failure evidence
 
-1. Install/open build A online. Visit a lesson whose score renderer has not yet
-   been opened, save practice and an unfinished draft, then close/relaunch.
-2. Go offline and relaunch. Open several units, a previously unopened score,
-   understanding-check audio, Progress and export. Core cached assets must work;
-   external resource links may require the network and must not block lessons.
-3. Restore the network and deploy build B. Keep a lesson open during update,
-   then exercise reload/relaunch and the platform's update lifecycle. Confirm
-   the new version appears without mixed/chunk-missing assets, lost saved
-   practice, phantom completion or stale draft data attached to changed music.
-4. Repeat offline launch on B, including after closing all app windows and
-   backgrounding/resuming on mobile. Test same-origin data across installed and
-   normal-browser launches; record actual platform behavior.
-5. Simulate an interrupted first load/update and an unavailable network. Show a
-   recoverable outcome; never repair a cache problem by silently clearing
-   practice history. A first-ever offline visit is not expected to have a cache.
+| Case | Status / evidence | Boundary |
+|---|---|---|
+| Existing C/current multi-unit saves | PASS — Node migration/storage tests preserve stable IDs, selected units, completion and first-check/review associations. | No cross-device sync promise. |
+| Export/import after reset | PASS — third application case in all three projects verifies exported guided history after durable replacement and reload. | Audio and unfinished drafts are not included in export. |
+| Unreadable profile and original-byte download | PASS — fourth application case preserves corrupt JSON, downloads exact bytes and remains in recovery after Retry. IAB live recovery corroborates. | Original raw download is available only when storage could be read. |
+| Recovery quota failure / retry | PASS — fourth browser case refuses replacement under injected quota failure, preserves the original, then succeeds when writes resume. | Deliberate fault injection in a disposable profile. |
+| Failed normal save/import/reset | PASS — targeted recovery, player and draft-reset component tests retain existing saved data, pending backup and unfinished work until successful persistence. | Every physical browser storage policy has not been exercised. |
+| Invalid backup selection | PASS — recovery component tests reject/discard invalid file selection instead of restoring a previously selected file. | Backup validation is not a general-purpose corruption repair service. |
+| Draft storage failure | PASS — draft tests retain newer in-memory work when session storage fails and clear all owned draft contexts after successful replacement. | Closing the tab can lose unfinished work; drafts are not durable history. |
+| Correct/remove reports | PASS — Node progress/review suites recalculate from remaining history. | Imported completion-only history follows its documented compatibility rules. |
+| Concurrent tabs | Not supported as synchronized editing | No conflict merge is promised; avoid concurrent edits and export important history. |
 
-Status: **PENDING**. Build output containing `sw.js` proves generation only.
+## PWA evidence and remaining native acceptance
 
-## Release decision record
+The passing desktop Chromium case serves production bundles at `/woodshed/` on a
+loopback origin eligible for service workers. It is a real service-worker cache
+and update test, not an installed native app-window/HTTPS deployment test:
 
-- Candidate commit / deployment run / live URL: **PENDING**
-- Required matrix rows passed, with evidence: **PENDING**
-- Teacher review sign-off and unresolved findings: **PENDING**
-- Pilot actual sessions, Day-3 and Day-10 results: **PENDING**
-- Release blockers fixed and retested: **PENDING**
-- Optional limitations explicitly accepted by / date: **PENDING**
-- Final v1 approval / tag / rollback commit: **PENDING — do not tag by inference**
+1. Build A exposes a version in Settings and the `woodshed-release` meta tag.
+   Its worker controls the page; the test saves history and an unfinished draft.
+2. A real Vite build B changes the release ID, hashed application entry and
+   generated worker precache. The new controller activates, then reload shows
+   B's Settings/meta version and a different hashed entry.
+3. The saved draft survives the upgrade. Offline reload restores that draft;
+   Progress shows saved history; opening a previously unopened chord lesson
+   renders its score and enabled controls without network access.
+
+This case runs once, in desktop Chromium; its other two project instances are
+the **two intentional skips**. Native install/uninstall/relaunch, closing all
+app windows, mobile background/resume, interrupted first load/update, actual
+HTTPS deployment and the rest of the native browser matrix remain human
+acceptance. First-ever offline navigation is not expected to have a cache.
+Use a disposable profile and retain a backup; never fix a cache problem by
+silently clearing practice history.
+
+## Remaining actions and release decision
+
+1. **Deployment:** merge the candidate after its checks, verify the passing main
+   acceptance and Pages workflow, compare deployed Settings/meta version and
+   assets, and perform a short deployed-origin save/reload check. Record the
+   candidate tag only after it is actually published.
+2. **Human environment checks:** finish native-browser/physical-device matrix,
+   actual audio/MIDI/recording, VoiceOver and native 200% zoom. Record any explicit
+   scope narrowing and optional limitations.
+3. **Human learning checks:** complete the eight-unit teacher spot-check and
+   learner pilot, including actual Day-3 and seven-day-gap returns and a naturally
+   eligible fresh example. Keep unobserved outcomes pending.
+4. **Decision:** resolve blocking findings, record the bounded development-tool
+   audit follow-up/accepted limitations and explicitly approve or extend the
+   candidate. Final v1 stays on hold until this record is complete.
+
+- Tested application code / PR: **74097c3 / PR #4**, linked above.
+- Passing PR checks: **run 40805391869**, linked above.
+- Main deploy run / deployed version / live verification: **PENDING**.
+- Candidate tag: **PENDING**.
+- Native/device/assistive-technology acceptance: **PENDING**.
+- Teacher review and learner pilot: **PENDING**.
+- Final v1 approval / tag / rollback record: **HOLD**.

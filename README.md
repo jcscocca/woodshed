@@ -156,8 +156,9 @@ their older history matters. Content remains in `archive/` and repository
 history.
 
 The production build includes a web-app manifest and a precached service worker
-configured for automatic updates. Installation, offline reopening and upgrade
-behavior must be checked on the actual browser/device before being claimed as
+configured for automatic updates. Settings shows an App version, also exposed
+in the page's `woodshed-release` meta tag, to identify deployed builds. Installation,
+offline reopening and upgrade behavior must be checked on the actual browser/device before being claimed as
 release support. The [readiness matrix](docs/release-readiness.md) distinguishes
 in-app-browser observations from Chrome, Edge, Safari and physical-device tests.
 
