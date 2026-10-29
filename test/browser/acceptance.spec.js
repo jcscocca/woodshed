@@ -152,6 +152,9 @@ test("unreadable data is preserved and recovery reports quota failure before rep
 test("keyboard, enlarged notation, reduced motion and automated accessibility", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("./");
+  // The loading Shell has its own skip link. Wait for the real application so
+  // its replacement cannot remove keyboard focus halfway through this check.
+  await expect(page.getByRole("button", { name: "Start 20-minute session", exact: true })).toBeVisible();
   await page.keyboard.press("Tab");
   await expect(page.getByRole("link", { name: "Skip to practice", exact: true })).toBeFocused();
   await page.keyboard.press("Enter");
