@@ -196,11 +196,13 @@ failure screenshots and traces are retained as workflow artifacts. These engine
 tests supplement native browser and physical-device acceptance.
 
 GitHub Pages deployment on `main` is gated by those same reusable checks before
-the production artifact is built/deployed. The intended site is
-[Woodshed on GitHub Pages](https://jcscocca.github.io/woodshed/). A successful push
-is not deployment evidence: record the completed workflow and live-site check in
-the release checklist. Relative asset paths support static hosting under a
-subpath.
+the production artifact is built/deployed. A separate fresh Chromium profile then
+checks the actual Pages release identifier, saves a labeled one-minute fixture,
+reloads and verifies its history. This never uses a person's existing browser
+profile. JSON evidence and screenshots are retained as deployment artifacts.
+The site is [Woodshed on GitHub Pages](https://jcscocca.github.io/woodshed/).
+Record the completed workflow in the release checklist. Relative asset paths
+support static hosting under a subpath.
 
 Core implementation lives in `src/program/` (curriculum, progress, review,
 transfer, session plans, player and drafts). `src/storage.js` owns saved-profile

@@ -8,7 +8,9 @@ Tested application-code commit:
 [`74097c37f1d8d2db58441c6d7c2f4fdce3f8e1e0`](https://github.com/jcscocca/woodshed/commit/74097c37f1d8d2db58441c6d7c2f4fdce3f8e1e0).
 Candidate changes: [PR #4](https://github.com/jcscocca/woodshed/pull/4).
 A later documentation-only commit does not change the tested application code.
-Candidate tag: **PENDING — record after merge and deployment verification**.
+Candidate tag target: [`v1.0.0-rc.1`](https://github.com/jcscocca/woodshed/tree/v1.0.0-rc.1).
+The tag is published only after the matching Pages deployment and its isolated
+production smoke check pass; the tag reference identifies the published commit.
 Final v1 tag: **HOLD — native/device and human gates remain pending**.
 
 ## Current evidence
@@ -27,13 +29,22 @@ Final v1 tag: **HOLD — native/device and human gates remain pending**.
 | Teacher spot-check | PENDING | Complete all eight units using [teacher-review-pilot.md](teacher-review-pilot.md). Software/source checks are not an independent teaching review. |
 | Learner pilot and delayed returns | PENDING | Seven-day usability pilot plus the genuine seven-day-gap follow-up around Day 10. Record actual dates, assistance and natural fresh-example eligibility. |
 | Pull-request CI | PASS | [Run 40805391869](https://github.com/jcscocca/woodshed/actions/runs/40805391869) succeeded for the application-code candidate. Recheck any subsequent code change; documentation-only changes still follow the PR checks. |
-| Production deployment | PENDING | Merge, passing main acceptance/Pages workflow, deployed version/assets and deployed-origin save/reload verification still require evidence. |
-| Final v1 decision | PENDING / HOLD | Human/environment gates and deployment must be recorded before final v1 approval. |
+| Production deployment | PASS — observed published code | [Main workflow 40806356185](https://github.com/jcscocca/woodshed/actions/runs/40806356185) published `640af30a4247`. Public HTML and the upgraded IAB Settings/meta match; the existing A-major selection and empty history remain intact. The tagged candidate additionally requires the new `verify-deployment` job described below. |
+| Final v1 decision | PENDING / HOLD | Human/environment gates must be recorded before final v1 approval. |
 
 CI runs on an ephemeral GitHub-hosted Linux runner with Node 22 and Playwright
 1.64.1's Chromium/WebKit projects. The run retains the browser report and failure
 artifacts. Exact runner/engine details belong to that run's logs/artifacts; these
 projects do not certify branded browsers or physical devices.
+
+Every Pages deployment now ends with `verify-deployment` on a fresh hosted
+Chromium context. It polls the actual HTTPS release for up to 90 seconds, matches
+Settings/meta version, saves an explicitly labeled one-minute fixture and checks
+it after reload in Progress. It uploads `evidence.json` and a success/failure
+screenshot as `deployed-smoke-<run>-<attempt>`. The context is discarded and never
+touches a person's existing profile. The [Pages workflow history](https://github.com/jcscocca/woodshed/actions/workflows/pages.yml)
+contains the matching run and evidence for each candidate commit; a deployment
+is accepted only when this final job also passes.
 
 The initial WebKit first-Tab failure was traced to the loading shell being
 replaced during the focus check. The test now waits for the actual application
@@ -132,24 +143,21 @@ silently clearing practice history.
 
 ## Remaining actions and release decision
 
-1. **Deployment:** merge the candidate after its checks, verify the passing main
-   acceptance and Pages workflow, compare deployed Settings/meta version and
-   assets, and perform a short deployed-origin save/reload check. Record the
-   candidate tag only after it is actually published.
-2. **Human environment checks:** finish native-browser/physical-device matrix,
+1. **Human environment checks:** finish native-browser/physical-device matrix,
    actual audio/MIDI/recording, VoiceOver and native 200% zoom. Record any explicit
    scope narrowing and optional limitations.
-3. **Human learning checks:** complete the eight-unit teacher spot-check and
+2. **Human learning checks:** complete the eight-unit teacher spot-check and
    learner pilot, including actual Day-3 and seven-day-gap returns and a naturally
    eligible fresh example. Keep unobserved outcomes pending.
-4. **Decision:** resolve blocking findings, record the bounded development-tool
+3. **Decision:** resolve blocking findings, record the bounded development-tool
    audit follow-up/accepted limitations and explicitly approve or extend the
    candidate. Final v1 stays on hold until this record is complete.
 
 - Tested application code / PR: **74097c3 / PR #4**, linked above.
 - Passing PR checks: **run 40805391869**, linked above.
-- Main deploy run / deployed version / live verification: **PENDING**.
-- Candidate tag: **PENDING**.
+- Published application-code evidence: **run 40806356185 / 640af30a4247**, linked above.
+- Candidate publication: **v1.0.0-rc.1**, gated by the matching green Pages run,
+  including its `verify-deployment` evidence. Resolve the tag for its final SHA.
 - Native/device/assistive-technology acceptance: **PENDING**.
 - Teacher review and learner pilot: **PENDING**.
 - Final v1 approval / tag / rollback record: **HOLD**.

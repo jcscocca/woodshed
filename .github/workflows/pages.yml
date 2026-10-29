@@ -86,9 +86,37 @@ jobs:
   deploy:
     needs: build
     runs-on: [self-hosted, Linux, thinkpad]
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  verify-deployment:
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Verify the deployed release and save/reload flow
+        env:
+          DEPLOYMENT_URL: ${{ needs.deploy.outputs.page_url }}
+        run: EXPECTED_RELEASE="${GITHUB_SHA:0:12}" node scripts/check-deployment.mjs
+      - name: Upload deployed browser evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: deployed-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+          path: test-results/deployed/
+          retention-days: 14
