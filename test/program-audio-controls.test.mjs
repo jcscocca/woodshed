@@ -98,6 +98,7 @@ const makeRunner = (Component, props) => {
   return runner;
 };
 
+let nextHarness = 0;
 async function harness() {
   const savedGlobals = new Map(["window", "document", "navigator", "performance", "requestAnimationFrame", "cancelAnimationFrame"].map(name => [name, Object.getOwnPropertyDescriptor(globalThis, name)]));
   const env = globalThis.__woodshedAudioEnvironment = { now: 0, played: [], legacyPlaying: false, legacyStops: 0, lessonRuns: [], lessonStops: 0, lessonCloses: 0, railTaps: 0, metroStops: 0 };
@@ -123,6 +124,7 @@ async function harness() {
   };
   const midi = makeRunner(components.MidiProvider, { enabled: true });
   const player = makeRunner(components.Player, {
+    draftKey: `audio-controls-harness-${++nextHarness}`,
     exercise: { id: "audio-control-test", title: "Audio control test", bpm: 60, hands: "both", section: "guided", checks: [],
       abc: "X:1\nM:4/4\nL:1/4\nK:C\nC4|]" },
     onLog: async () => {},

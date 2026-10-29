@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { freshData } from "../src/engine.js";
-import { migrate, saveState, loadState } from "../src/storage.js";
+import { migrate, saveState, loadState, SavedStateError } from "../src/storage.js";
 import { normalizeProgress, recordAttempt, exerciseProgress, sessionProgress } from "../src/program/progress.js";
 import { todayStr } from "../src/dateUtils.js";
 
@@ -25,6 +25,19 @@ async function withStorage(fn) {
     else delete globalThis.localStorage;
   }
 }
+
+test("a missing save is distinct from unreadable, malformed and unsupported saved data", async () => {
+  await withStorage(async (storage, values) => {
+    assert.equal(await loadState(), null);
+    for (const [raw, code] of [["", "parse"], ["{incomplete", "parse"], ["null", "migration"], ["[]", "migration"], [JSON.stringify({ items: "invalid" }), "migration"]]) {
+      values.set("woodshed-state-v1", raw);
+      await assert.rejects(loadState(), error => error instanceof SavedStateError && error.code === code && error.raw === raw);
+      assert.equal(values.get("woodshed-state-v1"), raw, "a failed read never changes the original saved bytes");
+    }
+    storage.getItem = () => { throw new Error("Storage access denied"); };
+    await assert.rejects(loadState(), error => error instanceof SavedStateError && error.code === "read" && error.raw === null);
+  });
+});
 
 test("fresh data and existing saves gain empty program progress without fabricated results", () => {
   const fresh = freshData();

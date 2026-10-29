@@ -94,15 +94,30 @@ export function migrate(state) {
   return s;
 }
 
-export async function loadState() {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return null;
-    return migrate(JSON.parse(raw));
-  } catch (e) {
-    console.warn("Woodshed: couldn't read saved state.", e);
-    return null;
+export class SavedStateError extends Error {
+  constructor(code, raw = null) {
+    super("Saved practice could not be loaded.");
+    this.name = "SavedStateError";
+    this.code = code;
+    this.raw = raw;
   }
+}
+
+export async function loadState() {
+  let raw;
+  try {
+    raw = localStorage.getItem(KEY);
+  } catch { throw new SavedStateError("read"); }
+  if (raw === null) return null;
+  let parsed;
+  try { parsed = JSON.parse(raw); }
+  catch { throw new SavedStateError("parse", raw); }
+  try {
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Invalid save");
+    const state = migrate(parsed);
+    if (!state) throw new Error("Invalid save");
+    return state;
+  } catch { throw new SavedStateError("migration", raw); }
 }
 
 // Returns true on success, false on failure — callers can surface a warning

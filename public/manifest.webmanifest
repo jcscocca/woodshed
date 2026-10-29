@@ -1,7 +1,7 @@
 {
   "name": "Woodshed",
   "short_name": "Woodshed",
-  "description": "Piano and guitar practice",
+  "description": "Guided piano practice with cumulative review and local history",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

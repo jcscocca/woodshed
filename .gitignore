@@ -1,6 +1,8 @@
 # dependencies / build
 node_modules/
 dist/
+playwright-report/
+test-results/
 
 # generated audio test fixtures (regenerate with: npm run fixtures)
 test/audio/fixtures/*.wav

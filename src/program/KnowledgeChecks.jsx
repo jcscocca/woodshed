@@ -20,11 +20,12 @@ function WrittenExample({ abc, label }) {
   return <><div className="pg-knowledge-score" ref={paper} />{error && <p role="alert">This written example could not load. Continue your lesson and revisit this check later.</p>}</>;
 }
 
-export default function KnowledgeChecks({ questions, onResultsChange, onEdited, onHear, disabled }) {
-  const id = useId(), [answers, setAnswers] = useState({}), [results, setResults] = useState([]);
+export default function KnowledgeChecks({ questions, onResultsChange, onAnswersChange, onEdited, onHear, disabled, initialAnswers, initialResults }) {
+  const id = useId(), [answers, setAnswers] = useState(initialAnswers || {}), [results, setResults] = useState(() => normalizeKnowledge(initialResults || []));
   if (!questions?.length) return null;
   const select = (questionId, choice) => {
-    setAnswers((previous) => ({ ...previous, [questionId]: choice }));
+    const nextAnswers = { ...answers, [questionId]: choice };
+    setAnswers(nextAnswers); onAnswersChange?.(nextAnswers);
     const next = results.filter((result) => result.questionId !== questionId);
     setResults(next); onResultsChange(next); onEdited?.();
   };

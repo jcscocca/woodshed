@@ -12,9 +12,14 @@ export function PracticeProvider({ onTempo, children }) {
   const metro = useMetronome(90, 4);
   const [watch, setWatch] = useState(RESET_WATCH);
   const [coursePlaying, setCoursePlaying] = useState(false);
+  const [activeLesson, setActiveLesson] = useState(null);
+
+  // The open course lesson owns the visible tempo and transport. Stop a
+  // standalone click when that ownership changes, before any lesson playback.
+  useEffect(() => { if (activeLesson) metro.stop(); }, [activeLesson?.id, metro.stop]);
 
   // remember the tempo while the metronome is running, to prefill the log
   useEffect(() => { if (metro.playing && onTempo) onTempo(metro.bpm); }, [metro.playing, metro.bpm, onTempo]);
 
-  return <PracticeContext.Provider value={{ metro, watch, setWatch, coursePlaying, setCoursePlaying }}>{children}</PracticeContext.Provider>;
+  return <PracticeContext.Provider value={{ metro, watch, setWatch, coursePlaying, setCoursePlaying, activeLesson, setActiveLesson }}>{children}</PracticeContext.Provider>;
 }
