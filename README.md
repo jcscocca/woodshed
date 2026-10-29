@@ -1,483 +1,209 @@
 # Woodshed
 
-A guided piano program with separate **Guided Practice**, **Chords**, **Scales**,
-**Catalogue**, and **Progress** sections. Eight self-contained units work without
-a MIDI keyboard: **C, G, F, A minor, D, A, E**, then **musicianship across keys**.
-They build rhythm, hand coordination and reading alongside scales,
-accompaniment and returning musical projects.
+Woodshed is a guided piano practice app for a returning learner: choose a small
+musical goal, work from the score, try it without the model, record what happened,
+and return to it later. No account or application server is required. Practice
+history stays in the browser, with JSON export/import for backups and moving it.
 
-Built with React + Vite. No account, no server — your history lives in your
-browser.
+The v1 core is **Guided Practice, Chords, Scales, Catalogue and Progress** across
+**eight units, 193 self-contained exercises and 80 guided sessions**. A MIDI
+keyboard and microphone are optional. Earlier piano/guitar tools remain available
+through Catalogue; guitar is outside the guided piano course.
 
----
+[Product direction](docs/DIRECTION.md) · [Release readiness](docs/release-readiness.md)
+· [Teacher review and learner pilot](docs/teacher-review-pilot.md)
 
-## The guided key units
+## The guided course
 
-Each key unit has five rolling practice days, each with two 20-minute sessions:
-**A — foundations**, then **B — applying those skills to music**. Resume at the
-first unfinished block; practice from Chords or Scales also satisfies a matching
-block in that key's current guided session. Later review blocks remain in the plan.
-Use **Piano unit** to move between keys in Guided Practice, Chords, Scales or
-Catalogue. The selection and each key's progress survive reload and backup/import.
-The units form a C → G → F → A minor → D → A → E → consolidation sequence,
-with all lessons available for preview.
+Each unit has five rolling practice days with two planned 20-minute visits:
+**A — foundations**, then **B — musical application**. Days are a sequence, not
+calendar deadlines. Repeat a lesson or day whenever useful. The default weekly
+goal is five practice days and 200 minutes; all 80 sessions total 1,600 planned
+minutes. Time logged is the learner's actual report, rather than a countdown or
+an automatic performance score.
 
-- **C major:** steady pulse, ledger-note landmarks, held and broken bass,
-  one-octave scale fingering, primary chords and simple original studies.
-- **G major:** F♯ in both clefs, G-scale crossings, G/C/D7/Em progressions,
-  close chord changes, independent rhythms and new musical applications.
-- **F major:** B♭ in both clefs, the RH four-before-thumb fingering, F/B♭/C7/Dm,
-  rhythm and accompaniment work, and contrasting original studies.
-- **A minor:** natural/harmonic scales, Am/Dm/E7, 3/8 and sixteenth-note
-  preparation; five Music visits develop the authentic Für Elise pickup and
-  bars 1–8 through its first ending, with source notes, rests and partial bars.
-- **D major:** two sharps, D/G/A7/Bm/F#m and an inspected Canon ground bass;
-  five Music visits build a clearly labeled original piano realization of that
-  bass. Separate 6/8 preparation and two different first-reading examples.
-- **A major:** three sharps, A/D/E7/F#m, sixths/sevenths and 6/8 refinement;
-  three student versions preserve the inspected first-strain melody of
-  Mozart K.331. A complete original AB piece reverses the melody's hand.
-- **E major:** four sharps, E/A/B7/C#m, the inspected first four bars of
-  Grieg's Morning Mood in a disclosed piano arrangement, plus a complete
-  original twelve-bar blues with its own preparation and returning goals.
-- **Musicianship:** tetrachords, motion, double notes, six-key inversions,
-  signature/ledger retrieval, phrase answers, repeat endings, common time,
-  fermata, expression and optional pedal. Complete original AB and ABA pieces
-  return across the same five Music sessions.
+| Unit | Main musical work |
+|---|---|
+| C major | Pulse, ledger landmarks, held/broken bass, scale crossings, primary chords and original short studies. |
+| G major | F♯ in both clefs, scale crossings, close G/C/D7/Em changes and independent rhythms. |
+| F major | B♭, the RH finger-4 scale turn, F/B♭/C7/Dm and new musical studies. |
+| A minor | Natural/harmonic minor, Am/Dm/E7, 3/8 and sixteenth-note preparation for the Für Elise pickup and opening strain. |
+| D major | Two sharps and a disclosed original piano realization of the Canon bass; separate 6/8 preparation. |
+| A major | Three sharps, sixths/sevenths and 6/8; student versions of Mozart K.331's opening melody and a complete original AB piece. |
+| E major | Four sharps, a disclosed four-bar Morning Mood arrangement and a complete original twelve-bar blues. |
+| Musicianship across keys | Inversions, double notes, reading/aural retrieval, expression, optional pedal, repeat endings and complete original AB/ABA pieces. |
 
-There are **193 self-contained exercises** and **80 guided sessions / 1,600 planned minutes** across the eight units.
-The weekly target stays five days × two visits, or **200 minutes**; days are a
-rolling practice sequence, rather than calendar deadlines. Progress shows both
-the course total and the individual unit totals. Existing C-major saves retain
-their lesson IDs and completed blocks.
+Start with the three short placement checks or open a lesson directly. Placement
+records a useful starting report; it does not assign an exam grade or restrict
+access. The **Piano unit** selector keeps progress separate for each unit.
+**Resume** opens the first unfinished guided block. Practice in Chords or Scales
+can satisfy a matching block in the current guided session. Revisit walks through
+an already completed session without clearing earlier reports.
 
-Start with the short **placement** checks, or open any lesson directly. Each
-lesson includes its written score, explicit counting and fingering, practice
-steps, listening goals and self-checks. **Hear slowly**, **Hear reference** and
-**Play along** share the displayed score's note data. Choose either hand or both,
-set a comfortable tempo, select a written bar range, count in and loop that passage. Pickups keep their actual written timing and bar labels. Play-along
-provides a click and moving score position; **Include reference while I play**
-adds the model notes. **Follow score while playing** keeps the current system
-visible on long scores, with a pinned stop control; turn it off to browse freely.
-MIDI and microphone access are unnecessary.
+Every core exercise includes a score, fingering, counting/practice steps,
+listening goals and self-checks. **Hear slowly**, **Hear reference** and **Play
+along** use the displayed score's notes and timing. Choose hands, tempo and a bar
+range; use count-in, looping and optional model notes while playing. Pickups retain
+their written timing and bar labels. Follow-score can be disabled to browse.
+The synthesized model does not demonstrate a pianist's phrasing or assess touch.
 
-**Save practice** records learner-reported minutes, tempo, hands, passage, visit
-goal, observed self-checks, readiness and a note for next time. These are
-self-assessments, with no invented accuracy score. Progress includes earlier
-history and corrections; removing the last report for a block reopens that block
-unless an older imported completion already existed. **Revisit session** walks
-through every block again without clearing earlier progress.
-Save failures leave the lesson open with an error. Progress, session resume and
-placement survive reload and JSON export/import; older practice history is retained.
-The weekly target is five days × two 20-minute visits, or 200 minutes.
+The lesson and desktop practice rail share one tempo and playback controller.
+The rail returns to its standalone metronome after the lesson closes. Playback
+stops when the lesson is left. At 1024px and wider, navigation, the main view and
+the practice rail form three panes; narrower windows use the compact layout.
+**Score size** offers Fit width, 125% and 150%; the enlarged score is a focusable
+region that can be scrolled with arrow keys. A **Skip to practice** link bypasses
+navigation. With the system's reduced-motion preference, new lessons start with
+follow-score off and decorative motion is suppressed; follow-score remains an
+explicit learner choice.
 
-**Cumulative review** appears before the next guided session and draws from
-practised lessons across every unit. Up to three short return checks show the
-key, previous passage and next-step note; opening one keeps your selected unit
-and guided position. The review starts at your previous tempo, hands and passage.
-Try once with the written score before app playback, report that first attempt,
-then listen and repair as needed. The initial result and its tempo, hands and
-passage are saved separately from your final practice assessment. Skipping the
-first report records practice without inventing retention evidence.
+**Save practice** records minutes, assessment, hands, tempo, passage, goal,
+observed criteria and a next-step note. Progress supports corrections/removal.
+Saving a block records practice, not verified mastery. If saving fails, the lesson
+stays open with its report. Unfinished edits, choices and understanding-check
+answers are restored when reopening the same lesson context in the same browser
+tab, including after reload. Drafts are separate from saved history: they are not
+exported, should not be relied on after the tab closes, and are cleared after a
+successful save or when importing/resetting the profile.
 
-Starting a new guided session includes one due check in its existing twenty
-minutes: three minutes for review or a fresh example, with seventeen minutes
-distributed across all original lesson blocks. Saving that check preserves the
-allocation and session resume across reload and backup/import; the check itself
-never completes a lesson block. Sessions already in progress keep their existing
-plan. You can start without review, and a complete-session revisit retains its
-original twenty-minute lesson allocation. Opening a lesson directly uses its
-listed practice time.
+## Cumulative review and fresh examples
 
-After two comparable steady before-playback returns since the last setback or
-transfer, supported skills occasionally use a **fresh example**. Six bounded
-families vary pulse, subdivision, landmark reading, held-bass coordination,
-two-to-one coordination or a chord route in an already-taught key. They use
-authored pitch, register and fingering profiles. Each example has a stable ID;
-used examples are skipped, and exhausting the bank falls back to an ordinary
-return. A fresh example's first result is stored as transfer evidence, separately
-from the original passage's readiness and spacing. A difficult fresh attempt's
-next-step note carries into the following return. These checks remain
-learner-reported, rather than automatic performance assessments.
+The review queue draws from practised lessons across every unit, preserving the
+previous hands, tempo, passage and next-step note. Up to three due options are
+shown. Try once with the written score **before app playback**, report that first
+attempt, then listen and repair. The first result and its scope remain separate
+from the final assessment. Skipping that report records practice without
+inventing retention evidence.
 
-Ready practice first returns after three days; difficult or uncertain attempts
-return the next day. A steady before-playback check on a later day can extend
-the gap to seven, fourteen and thirty days when it covers the previous passage,
-hands and tempo. A setback restarts with next-day practice, followed by a
-three-day gap after a successful return. Same-day repeats cannot extend the gap.
-These are practical scheduling defaults, not a validated mastery model. Reviews
-never complete guided blocks, and all lessons remain available. Return evidence
-survives reload and backup/import; correcting or removing a log recalculates
-the suggestions from the remaining history.
+When starting a new session with a due review, one check fits **inside** its
+20-minute plan: **3 minutes of review + 17 minutes across all original blocks**.
+The review itself never completes a core block. Saving it preserves that session's
+allocation across reload and backup/import. Already-started sessions keep their
+plan; skipping review and complete-session revisits retain their original
+20-minute lesson allocation. Directly opened lessons use their listed time.
 
-**Check your understanding** appears within relevant lessons. It provides
-46 authored written/listening questions, staff examples, interval/chord audio
-and explanations. Checked answers travel with the practice log, independently
-of the learner's practical assessment. They do not grade piano performance or
-lock later lessons. A lesson also shows your previous visit and next-step note
-so a returning musical project can continue from a concrete repair.
+Ready practice first returns after three days. A comparable, steady delayed
+before-playback report can extend the next gap to seven, fourteen and thirty
+days. Difficulty brings next-day practice, followed by a three-day rebuilding
+gap after a successful return. Same-day repetition cannot extend spacing.
+Comparability includes the earlier passage, hands and tempo.
 
-The Catalogue separates optional outside material from the self-contained core.
-Curated built-in alternatives can replace a matching guided goal. The original
-repertoire tracks and exercise library remain accessible there, including their
-existing MIDI score tools. Commercial repertoire links are external resources;
-they are not bundled into required lessons.
+After two qualifying steady returns since the last setback or transfer,
+supported skills can receive a **fresh example** in an already taught key.
+Six bounded families vary pulse, subdivision, landmark reading, held bass,
+two-to-one coordination and a chord route. Examples have stable IDs; used ones
+are skipped and an exhausted bank falls back to ordinary review. Fresh-example
+reports are separate transfer evidence; they do not raise the original passage's
+readiness or spacing. A difficult fresh attempt carries its repair note forward.
+These intervals and eligibility rules are product defaults, **not a validated
+mastery model or a promise of learning outcomes**.
 
-**Optional recording:** press Record in a lesson to request the microphone, then
-stop and listen for one chosen criterion. Takes stay in that lesson's memory,
-with a three-minute maximum, explicit download/discard and no upload. Download
-before closing or saving/advancing if you want to keep the audio. Practice logs
-save your report and notes, not the recording. Denied/unsupported microphone
-access does not prevent any lesson or logging.
+Relevant lessons also offer **46 written/listening understanding questions** with
+staff examples, audio and explanations. Answers are saved separately from piano
+self-assessment and never lock lessons.
 
-The course covers the broad Piano Basics Level 2 lesson topics used as the
-user's benchmark, including correlated Theory/Technic topics. That benchmark
-does **not** determine Woodshed's order, pieces, styles, sections or progress
-model. The [topic-to-lesson checklist](docs/piano-topic-coverage.md) identifies
-29 coverage areas and their concrete practical tasks. Tests prevent a topic
-from losing its assigned instruction or conceptual check.
+## Optional tools and material limits
 
-This establishes content coverage, not an exam grade or validated learning
-outcome. Synthesized audio models notes/time rather than a pianist's phrasing;
-physical comfort and pacing still need the learner's own checks. Read the
-[material review and exact source decisions](docs/piano-curriculum-evidence.md)
-for inspected editions, arrangement choices and deferred optional repertoire.
+Catalogue includes optional resources and built-in alternatives for some guided
+goals. Commercial repertoire links are external resources; the core does not
+require buying or leaving the app. Named classical material is explicitly
+identified as an excerpt or arrangement, with source and edition notes.
 
-Run `npm test` for the existing suites plus curriculum, shared-progress,
-storage-round-trip and playback checks. `npm run test:program` runs only the new
-course checks.
+- [Curriculum/source review](docs/piano-curriculum-evidence.md) records inspected
+  editions, exact arrangement choices and deferred material.
+- [Topic coverage](docs/piano-topic-coverage.md) maps 29 benchmark areas to concrete
+  lessons. Coverage does not establish an exam level or teaching effectiveness.
+- Earlier repertoire tracks, exercise editing, chord charts, Your song and
+  sight-reading remain in Catalogue. Their piano MIDI tools retain their own
+  grading and progress model; guided lessons do not require this hardware.
+  See the [earlier practice tools reference](docs/earlier-practice-tools.md) for
+  connection, score, chart/song, editing and keyboard instructions.
+- Earlier guitar tools are optional retained tools. Guitar mic coaching and Echo
+  remain disabled behind `COACH_ENABLED`; the tuner is a single-note beta tool.
+- Lesson recording requests the microphone only when Record is pressed. Takes
+  stay in memory, last at most three minutes and are never uploaded. Download
+  before leaving/saving the lesson if you want to keep audio. Permission denial
+  does not prevent practice or logging.
 
-## Earlier practice tools
+Settings shows the guided course's fixed schedule. Its collapsed **Earlier
+practice settings** section controls the retained rotation/history settings,
+including instruments and the older weekly goal; it does not resize the course.
 
-The sections below document the earlier piano/guitar tools retained in Catalogue.
+## Data, installation and compatibility
 
-## What it does
+Saved practice uses this origin's browser `localStorage`; unfinished lesson
+drafts use this tab's `sessionStorage` with an in-memory fallback. Devices,
+browsers and different site URLs have separate profiles. Export a backup from
+**Settings → Your data** before changing devices or replacing a profile. Export
+contains saved history/settings, not audio takes or unfinished drafts. Import
+replaces the profile after confirmation and a successful durable save. Failed
+import/reset leaves existing history and unfinished drafts intact; they are
+replaced/cleared only once the replacement profile is saved. Current C-major IDs
+and completed blocks remain compatible when later units are added.
 
-- **A daily set.** A short, time-boxed rotation that biases toward whichever instrument is most overdue, sometimes pairing piano and guitar in one set. Within an instrument it rotates through what you haven't played lately, pairs a drill with a song, and brings back items you rated "tough" sooner than ones you rated "too easy."
-- **Skill tracks.** Ordered progressions per instrument (the **Tracks** tab). Only your *current* stage rotates into daily practice; clear it to unlock the next. When your logs say a stage is done — a couple of "too easy" ratings, or steady volume without a "tough" — a banner on **Today** offers to **Advance** it. Nothing changes until you confirm, and a dismissed suggestion won't reappear until you've practiced that stage more.
-- **Library.** Every exercise and track stage, grouped by instrument. Add your own; edit or hide any of them, and delete the ones you added.
-- **Lessons.** Every built-in exercise opens a self-contained lesson — step-by-step how-to and "watch for" notes, and on most, the concrete shapes (chord, scale and keyboard diagrams) with a **Hear it** audio demo (an oscillator synth derived from the shapes; no audio files). Tap **Learn** on a card. Lessons are hand-authored and looked up by exercise id — so they appear with no migration and never touch your saved data.
-- **Metronome, stopwatch & tuner.** The **♩** icon opens a Web Audio metronome and a session stopwatch. From there, a **tuner (beta)** uses your microphone to show the note you're playing and how far it is from pitch.
-- **Logging with tempo.** Log minutes and how it felt for each item, plus an optional BPM (it prefills from the metronome).
-- **Progress.** Streak, minutes, a 14-day strip, minutes by instrument, a consistency heatmap, per-exercise tempo trends, and recent sessions you can fix or remove.
-- **A streak that forgives a rest day.** Your streak survives a single missed day and only breaks after two in a row; it also tracks your best. Set a **weekly goal** (days/week) and watch it fill on the Progress screen.
-- **Curated links.** Exercises and track stages can carry a link out to real instruction; you can add or edit links on any exercise.
-- **Built to be usable.** Keyboard focus rings, ARIA on the custom toggles and controls, Escape to close any sheet, and screen-reader labels on the tuner and streak.
-- **Yours.** No account or server — history lives in your browser, with JSON export/import to move it between devices.
+### When saved practice cannot be opened
 
-> The audio tools (metronome and the mic tuner) are best verified on a real device with working audio in/out. Pitch detection is reliable for single, clearly-sounding notes, not chords. See **Tuner notes** below.
+Woodshed shows **Your saved practice needs attention** rather than silently
+replacing an unreadable profile. Use **Download original saved data** when
+available to keep the original bytes, then allow site storage and **Retry
+loading**, or choose a known JSON backup and **Restore backup**. A failed restore
+keeps the original data and reports the error. Recovery does not require erasing
+the browser's site data.
 
----
+Earlier four-instrument versions also contained bass and accordion. Migration
+removes those archived instruments from active data; retain an export first if
+their older history matters. Content remains in `archive/` and repository
+history.
 
-## On the desktop
+The production build includes a web-app manifest and a precached service worker
+configured for automatic updates. Installation, offline reopening and upgrade
+behavior must be checked on the actual browser/device before being claimed as
+release support. The [readiness matrix](docs/release-readiness.md) distinguishes
+in-app-browser observations from Chrome, Edge, Safari and physical-device tests.
 
-At 1024px and wider Woodshed switches to a three-pane layout: navigation in a
-sidebar, the piano program in the middle, and a practice rail on the right.
-The rail contains a metronome and stopwatch; earlier Catalogue lessons and the
-tuner also use that rail. Narrower windows get the phone layout.
+Desktop keyboard shortcuts include **Space** for the open guided lesson's
+play-along (otherwise the metronome), **T** for tap tempo, **←/→** for tempo,
+**S** for the stopwatch, **1–5** for sections and **?** for help. A focused button
+keeps normal Space activation; typing fields/dialogs suppress app shortcuts.
+Optional earlier scored tools expose their own additional shortcuts.
 
-**Install it:** open https://jcscocca.github.io/woodshed/ in Chrome or Edge and
-choose *Install app* (address bar icon or the ⋮ menu). It gets its own window,
-works offline, and updates itself when a new version is pushed.
+## Develop and deploy
 
-**Keyboard** (desktop layout only): **Space** starts/stops the open course
-lesson's play-along, or the metronome when no course lesson is open —
-unless you've Tabbed to a button, in which case Space presses that button
-instead. **T** taps tempo. **←/→** nudge tempo ±1 (**Shift** ±10). **S**
-starts/pauses the stopwatch. **1–5** switch the five piano program sections.
-**Esc** closes the lesson or tuner in the rail. **?** shows the full list.
-Nothing fires while you're typing in a field or while a dialog is open.
-
-### Piano over MIDI
-
-With piano in your rotation, the band along the bottom of the window shows a
-**Connect keyboard** button until you connect a USB-MIDI keyboard — Chrome or
-Edge only, with a one-time permission prompt. Later launches reconnect on their
-own, and plugging or unplugging the keyboard updates the band live.
-
-Connected, the band lights all 88 keys — brighter the harder you play — and
-its readout names the chord you're holding and spells its notes, or lists the
-note names when it doesn't recognize a chord. **Play back** replays your last
-phrase (everything since a 3-second pause) from an always-on 60-second
-in-memory buffer; nothing is saved. The chevron collapses the band to a thin
-bar.
-
-Open a piano lesson and the band outlines its notes with their finger numbers,
-standing in for the lesson's small keyboard diagram while the band is open.
-
-With the keyboard connected, any piano lesson that has notes offers **Coach
-me**, graded exactly against what you played: single-note lines note by note,
-the rolled-chord lesson in the order you strike it, and the two scale lessons
-(Major scales, and the track's one-octave scale stage) hands together, each
-right-hand note paired with its left-hand octave. The band outlines the
-targets and pulses the next one, coloring hits and misses as you go; the
-readout shows the next note and how many are done; a run ends on its own once
-every note is graded. The summary adds a timing note and a touch note (how
-evenly hard you played — per hand, for the hands-together lessons), neither
-scored. Accuracy logs as always and feeds the accuracy trend and the "ready
-for the next stage" check. Without a keyboard, piano lessons show **Connect
-your keyboard to coach this** (or **Keyboard disconnected…** after an
-unplug) where Coach me would be — piano coaching never falls back to the mic.
-
-**Echo** ear training (intervals and short phrases) is back for piano over
-MIDI the same way — the band stays dark while a prompt plays, so it can't
-give the answer away, then lights up on reveal.
-
-**K** shows/hides the band, **P** plays back, **C** starts/stops coaching the
-open lesson — all three do nothing until a keyboard is connected.
-
-Piano only — guitar coaching and Echo stay off, unchanged — desktop layout
-only. The app never plays your live notes through the speakers — the piano
-already makes its own sound; app audio stays limited to lesson demos and Play
-back.
-
-### Reading music
-
-Open a piece, a pop stage, or the sight-reading drill, and it takes over the
-middle pane as a **grand staff**, four bars to a system, with a **Score**
-entry in the sidebar (key **6**) while it's open.
-
-Work a **section** — the piece's own presets (**A**, **B**, **all**) or click
-any note in a bar (shift-click sets the far end) — and the rest of the staff dims
-without reflowing. **Hands** narrows to right or left alone, dimming and
-ignoring the other staff. **Wait mode** holds at each note (or chord) until
-you play it, lighting it on the staff and outlining what's next on the band;
-wrong presses flash and never advance. **Play-along** opens with a one-bar
-count-in on the click, then grades every note's pitch and timing against it —
-on time, early, late, missed or wrong, colored on the staff — and ends with a
-summary: notes % and rhythm % (a clean pass is 90%+ notes, 80%+ rhythm), any
-extra notes, and which bars to revisit. A clean pass climbs that section's
-own tempo ladder by 4 bpm toward the piece's target, remembered per section;
-**Log it** records minutes plus accuracy, rhythm, section and tempo.
-
-Three **piano tracks** (the **Tracks** tab) carry this. **Pieces** (8
-stages, easiest first) is written classical repertoire — two Petzold
-minuets and a musette from the Anna Magdalena notebook, two Schumann pieces
-from the Album for the Young, two Burgmüller studies, and the first
-movement of a Clementi sonatina — each a section at a time, hands
-separately then together then with the click. Six pieces are transcribed
-from Mutopia Project public-domain editions; the two Schumann pieces take
-their pitches and rhythms from Mutopia's CC BY-SA 2.5 editions (the
-compositions themselves are public domain), and every piece cites its
-source in its lesson. **Pop from chords** (8 stages) teaches pop piano from
-chord charts instead of copyrighted melodies — block chords, voice leading,
-a ballad left hand, a syncopated pulse, a doo-wop arpeggio and a 12-bar
-blues, then two public-domain lead sheets ("Ode to Joy", "Amazing Grace")
-with the melody in the right hand over a written-out left hand. **Two-Hand
-Coordination** (6 stages) is scored technique — five-finger patterns,
-contrary motion, one-octave scales, Hanon No. 1, cadences and arpeggios —
-graded the same way as any piece.
-
-A **chord chart** (a lesson with `chart` instead of `score`) writes a key,
-meter, a line of chords and a named accompaniment pattern — block,
-voice-led, ballad, pulse, arpeggio, boogie or waltz — out as a two-voice
-score with chord symbols, and grades exactly like a piece, note for note.
-**Your song**, in the Library, is the same machinery for any song you know
-the chords to: type a chord line (`C | G | Am | F`; a line break is also a
-bar line), pick a key, meter and pattern, and it plays and grades like any
-chart. Chord symbols it knows: `C`, `Cm`, `C7`, `Cmaj7`, `Cm7`, `Csus2`,
-`Csus4`, `Cdim`, and a slash bass like `C/E`. Save as many songs as you
-like — each remembers its own tempo.
-
-**Sight-reading** drills are generated fresh each time — never the same
-twice — across **10 levels**, from one hand in C major up to both hands
-together, sharp and flat keys, and chromatic neighbor notes. Play it with the
-click; three clean drills in a row and the app offers **Level up →** — it
-only advances if you take the offer.
-
-New shortcuts: **W** wait mode / play-along, **H** cycles hands, **N** a new
-drill, **[ / ]** previous/next section, **6** back to the open score, **↑/↓**
-move the page. Mid-run, **Space** or **C** stops it, and ←/→ and the rail's
-tempo controls lock for the run; **Esc** stops a run on the first press and
-closes the score on the second.
-
-Desktop and piano only, like the rest of this section.
-
----
-
-## Run it
-
-You'll need [Node.js](https://nodejs.org) 18 or newer.
+Use Node.js 22 to match deployment CI.
 
 ```bash
-npm install      # once
-npm run dev      # start the dev server -> http://localhost:5173
-npm test         # the test suites
+npm ci
+npm run dev             # http://localhost:5173
+npm test                # complete automated suite
+npm run test:program    # guided course checks
+npx playwright install chromium webkit  # once: browser acceptance dependencies
+npm run test:browser    # production build + Playwright acceptance
+npm run build           # production files in dist/
+npm run preview         # serve the built app locally
 ```
 
-To try it on your phone on the same Wi-Fi, expose the dev server on your
-network:
+`npm run dev -- --host` exposes the dev server for another device on the local
+network. Use a production HTTPS origin for install/permission/offline acceptance.
+`npm run test:audio` is the separate recorded-audio DSP suite; its fixture setup is
+in [test/audio/README.md](test/audio/README.md). Automated DSP checks do not verify
+a real microphone, speakers, room noise or MIDI hardware.
 
-```bash
-npm run dev -- --host
-# then open http://<your-computer-ip>:5173 on the phone
-```
+Pull requests run the reusable release checks on an ephemeral GitHub-hosted
+runner: runtime dependency audit, the Node suites and production-browser
+acceptance in desktop Chromium, narrow Chromium and desktop WebKit. Reports,
+failure screenshots and traces are retained as workflow artifacts. These engine
+tests supplement native browser and physical-device acceptance.
 
-## Build & host
+GitHub Pages deployment on `main` is gated by those same reusable checks before
+the production artifact is built/deployed. The intended site is
+[Woodshed on GitHub Pages](https://jcscocca.github.io/woodshed/). A successful push
+is not deployment evidence: record the completed workflow and live-site check in
+the release checklist. Relative asset paths support static hosting under a
+subpath.
 
-```bash
-npm run build    # outputs a static site to dist/
-npm run preview  # serve the built site locally to check it
-```
-
-`dist/` is plain static files. Host it however you like:
-
-- **Static hosts** — drag `dist/` onto Netlify / Vercel / Cloudflare Pages, or
-  push to GitHub Pages. (`base: "./"` in `vite.config.js` means it works from a
-  subpath too.)
-- **GitHub Pages, automatically** — `.github/workflows/pages.yml` builds and
-  deploys on every push to `main`, gated on `npm test` passing first. Install
-  URL: https://jcscocca.github.io/woodshed/
-- **Your own machine** — serve `dist/` from nginx, Caddy, or even
-  `npx serve dist`. Running it on an always-on box on your LAN means every
-  device can reach the same URL (though each browser still keeps its own data —
-  see below).
-
----
-
-## Where your data lives
-
-Practice history is stored in your browser's `localStorage`, which means it's
-**per device** — your laptop and your phone keep separate streaks. To move data
-between machines, use **Settings → Your data → Export / Import** (a small JSON
-file).
-
-Earlier versions also covered bass and accordion. Loading this version over that
-data drops the bass and accordion exercises and sessions, so export a backup
-first if that history matters.
-
-When you want true cross-device sync, it's a contained change: everything that
-touches storage lives in `src/storage.js`. Swap the bodies of `loadState` and
-`saveState` for `fetch()` calls to a small backend you run, and nothing else
-moves. Until then, Export / Import moves your data by hand.
-
----
-
-## Make it yours
-
-The code is split so the parts you'll want to change are easy to find:
-
-| File | What's in it |
-|------|--------------|
-| `src/seed.js` | Instruments, their colors, the exercise library (`LIBRARY`), and the **skill tracks** (`TRACKS`). **Add exercises or track stages here.** (Or use the in-app **+ Add** button, which saves to your browser.) |
-| `src/lessons/` | Hand-authored lesson content (`piano.js`, `guitar.js`), keyed by exercise id. `src/diagrams.jsx` draws the shapes; `src/lessonAudio.js` + `src/audio/notes.js` play them; `src/LessonSheet.jsx` is the sheet. |
-| `src/lessons/pieces/` | One module per piece — its ABC, lesson text and public-domain `source` — collected by `index.js` and spread into `piano.js`'s lesson map. |
-| `src/engine.js` | The session-building algorithm, the "ready for the next stage" suggestion, the **track** lock/unlock logic, and the stats. All pure functions. Practice stats (last played, count, latest rating, last tempo) are *derived* from the session log, so editing or deleting a session keeps everything consistent. |
-| `src/storage.js` | The only file that knows where data is saved. Swap for a backend here. Includes a `migrate()` step so old saved data upgrades cleanly when the shape changes. |
-| `src/features.js` | Feature flags. `COACH_ENABLED` switches the **mic**-based pitch coach and guitar Echo on or off (off for now — see *Direction*). Piano coaching and Echo run over MIDI regardless, in `src/midi/`. |
-| `src/useMetronome.js` | The Web Audio metronome (accurate lookahead scheduler, tap tempo, accent on beat 1). |
-| `src/stopwatch.js` | Pure stopwatch state (`{ startedAt, acc }`) — reads elapsed time from the clock, so it survives hidden tabs and unmounts. |
-| `src/PracticeProvider.jsx` | Owns the metronome and stopwatch above the layout switch, so they keep running across view changes and a resize; exposes them via `usePractice()`. |
-| `src/PracticeTools.jsx` | The metronome + stopwatch UI (beat dots, BPM, tap, start/stop/reset), shared by the phone sheet and the desktop rail. |
-| `src/PracticeSheet.jsx` | The phone bottom sheets: practice tools and the tuner (`ListenPanel`, the tuner body the rail also renders). |
-| `src/PracticeRail.jsx` | The desktop rail — `PracticeTools` plus a slot for the open lesson or tuner. |
-| `src/Sidebar.jsx` | The desktop sidebar — brand, streak, view nav, Settings. |
-| `src/useIsDesktop.js` | `matchMedia("(min-width: 1024px)")` hook that picks phone vs. desktop layout live. |
-| `src/shortcuts.js` + `src/useShortcuts.js` | Desktop keyboard shortcuts — a pure `actionFor(event, ctx)` and the `keydown` listener that dispatches it. |
-| `src/ShortcutHelp.jsx` | The `?` dialog listing every shortcut. |
-| `src/useListener.js` + `src/audio/dsp.js` | The microphone **tuner (beta)** — a thin browser shell over pure, headlessly-tested pitch detection. |
-| `src/coach.js`, `src/useCoach.js`, `src/CoachPanel.jsx`, `src/ear.js`, `src/EarPanel.jsx`, `src/lessons/ear.js` | The **pitch coach** and **Echo** ear training — grading, sessions and the shared panels. Live for piano over MIDI (`src/midi/useMidiCoach.js` feeds them from the keyboard); the mic path (`useCoach.js`) stays behind `COACH_ENABLED`, off for guitar. |
-| `src/midi/midiModel.js` | Pure MIDI parsing (node-tested) — raw bytes to note on/off/pedal, held-key state (pedal never counts as held), chord grouping, and the take buffer behind Play back. |
-| `src/midi/chords.js` | Names the chord you're holding — triads, sixths, sevenths, shell voicings and slash chords — from the pitch classes alone. |
-| `src/midi/connection.js` | The one MIDI connection, pure: works against the browser's MIDIAccess or a fake, first-connect plus silent reconnect, follows plug/unplug. |
-| `src/midi/fakeMidi.js` | Dev-only fake MIDI device (`?fakemidi` on the dev server) so you can drive the band without hardware. Stripped from production builds. |
-| `src/midi/overlay.js` | Small subscribable store a piano lesson uses to put its targets and progress on the band, without routing through `App`. |
-| `src/midi/MidiProvider.jsx` | Mounts the MIDI connection on desktop when piano is enabled; exposes status, `connect()`, `subscribe()` and Play back via `useMidi()`. |
-| `src/midi/MidiBand.jsx` | The 88-key band and its readout — keys lit by velocity, chord/note readout, Play back, collapse to a thin bar. |
-| `src/score/scoreModel.js` | Parses a piece's ABC notation into notes, bars and beats (pure, node-tested) — `parseScore`, plus the `inSection`/`forHands` helpers. |
-| `src/score/timedGrade.js` | Grades a play-along run's pitch and timing against the metronome — on / early / late / missed / wrong, notes % and rhythm % (pure). |
-| `src/score/waitGrade.js` | Grades wait mode — an onset (a note or chord) advances only once every note in it has been pressed; wrong presses flash but never advance (pure). |
-| `src/score/sightread.js` | Generates the sight-reading drills — 10 leveled, seeded patterns as ABC, never the same twice (pure). |
-| `src/score/chords.js` | Chord symbols — parses a symbol (`Am7`, `F#m`, `C/E`) or a whole chart line into bars, and spells each chord's tones from its root (pure). |
-| `src/score/patterns.js` | The accompaniment patterns (block, voice-led, ballad, pulse, arpeggio, boogie, waltz) as per-chord figures, plus the close-voicing helpers that pick each chord's inversion (pure). |
-| `src/score/chartToAbc.js` | Writes a chord chart (key, metre, chords, pattern, optional melody) out as two-voice ABC with chord symbols, so a chart plays and grades like any piece (pure). |
-| `src/score/scoreFor.js` | What a scored lesson plays — its ABC, bpm, target and sections, from `score` or a chart written out once; drills and Your song take their ABC from the panel instead. |
-| `src/score/songs.js` | Your song's model — `newSong`, `songError`, `lineSections`, `songScore` (a typed chord line to a played, graded score, via `chartToAbc`) (pure). |
-| `src/score/runStore.js` + `src/score/useRun.js` | A small subscribable store for the live score run (section, hands, mode, run state, the current drill, the visible window), like `src/midi/overlay.js`; `ScoreStage` and `ScorePanel` read it via the `useRun()` hook, and the shortcuts and rail metronome check whether a run is live. |
-| `src/score/ScoreStage.jsx` | The grand staff itself, in the main pane — renders the open piece or drill with lazy-loaded abcjs, colors notes by grading, dims sections, takes bar clicks, scrolls the system window. |
-| `src/score/ScorePanel.jsx` | The rail controls for a scored item — section / hands / mode, Start, the tempo ladder and summary, and the sight-reading level picker. |
-| `src/score/SongEditor.jsx` | The Your song editor — title, key, meter, chord line and pattern picker, and tempo — rendered by `ScorePanel` for `pno-song`. |
-| `src/score/ScoreSnippet.jsx` | A small static staff snippet for the rail (e.g. the C-major-scale lesson) — no cursor, no grading. |
-| `src/styles.css` | All styling and the color palette (CSS variables at the top). |
-| `src/App.jsx` | The views (Today / Tracks / Library / Progress), the dialogs, and the switch between the phone and desktop layouts. |
-| `test/` | The suites `npm test` runs (DSP smoke, lessons schema, coach, ear, engine, desktop, MIDI, score, charts, pieces), plus the real-audio suite in `test/audio/`. |
-| `scripts/midi-fixture.mjs` | Reads a reference MIDI file and writes a piece's expected onsets to `test/fixtures/pieces/<id>.json` — the authoring tool that checks each transcribed piece against a reference MIDI; not part of the shipped app. |
-| `archive/` | Bass and accordion content and the accordion pitch detector, out of the build. See `archive/README.md`. |
-| `docs/DIRECTION.md` | The current product direction. |
-
-### In-app editing
-
-Tap any exercise in **Library** to rename it, change its difficulty label or length, add a resource link, hide it from rotation, or (for ones you added) delete it — that's how you point "Your current piece" at whatever you're actually learning. The edit sheet also shows that exercise's **recent activity** (last sessions, with tempo). In **Progress**, tap any row under **Recent sessions** to fix the minutes/rating or remove a mis-log.
-
-In **Tracks**, each progression shows your place in it: completed stages, your current stage (with its notes and any link), and locked stages ahead. Use **Mark complete** to advance and unlock the next stage — or let the suggestion come to you.
-
-When you log, each exercise takes an optional **♩ tempo** — it prefills from the metronome (or the last tempo you logged) and feeds the tempo trends in Progress.
-
-### Tuner notes
-
-The tuner (`src/useListener.js`) is a thin shell over the pure DSP in
-`src/audio/dsp.js`. Pitch detection uses a normalized **AMDF** detector that
-gates on *periodicity* rather than loudness — so a quietly-played or
-far-from-the-mic note is still detected, while room noise can't produce a
-phantom reading. It's reliable for **single, clearly-sounding notes** (tuning a
-string, a monophonic line) and is **not** built for chords.
-
-The DSP is covered by a real-audio test suite (`test/audio/`, run with
-`npm run test:audio`; it needs fixtures, see `test/audio/README.md`): it runs
-these exact detectors against real recorded instrument audio, checked against
-ground truth with `pitchfinder` as an independent oracle. An earlier
-autocorrelation version dropped quiet real notes (acoustic-guitar E2/E4, piano
-C4); the suite catches that class of regression.
-
-What the suite does **not** cover is the live microphone path — real mic,
-auto-gain, room noise, latency, the animation-frame cadence. Verify that on a
-real device (microphone permission flow, and CPU cost: the AMDF scan runs per
-animation frame, which is fine for a tuner but is the first place to optimize —
-cap the lag search or move it to a worker — if the readout lags).
-
-### Adding an exercise in code
-
-Append an object to the `LIBRARY` array in `src/seed.js`:
-
-```js
-{
-  id: "gtr-dropd",          // any unique string
-  inst: "guitar",           // piano | guitar
-  title: "Drop-D riffing",
-  type: "technique",        // technique | song | sight | ear | creative
-  diff: 3,                  // 1 (beginner) .. 5 (advanced) — a label you set
-  min: 8,                   // estimated minutes
-  desc: "What to actually do in this exercise."
-}
-```
-
-Songs (`type: "song"` or `"creative"`) and drills are balanced within a set —
-the builder tries to pair one of each.
-
-> Note: editing `LIBRARY` changes the library for a **fresh** install. If you've
-> already used the app, your library is saved in your browser. Use
-> Settings → Reset to rebuild from the updated seed (this erases your logs), or
-> add the new items through the in-app **+ Add** button.
->
-> Newly **added** default items are different: the app merges missing default
-> content into an existing library on load (that's how new track stages reach
-> you without a reset). The reset caveat applies to *edits* of items you already
-> have.
-
----
-
-## Direction
-
-[docs/DIRECTION.md](docs/DIRECTION.md) is the current plan. In short:
-
-- **The desktop layout is done** (see *On the desktop* above). **Piano over
-  USB-MIDI is done too** (see *Piano over MIDI* above) — including coaching and
-  Echo, piano-only. **Next: deeper piano and guitar content.**
-- **Pitch coach and Echo** are back for piano, exact, over MIDI. On guitar
-  they're still disabled pending a rethink — what's worth keeping on the mic.
-  The mic path and guitar Echo stay behind `COACH_ENABLED` in
-  `src/features.js`.
-- **Bass and accordion** are archived in `archive/`; the last four-instrument
-  version is at git tag `four-instruments`.
-- **Parked:** the Android/Capacitor app, local-model exercise generation,
-  push-backed reminders and cross-device sync. Their specs stay in `docs/`.
+Core implementation lives in `src/program/` (curriculum, progress, review,
+transfer, session plans, player and drafts). `src/storage.js` owns saved-profile
+persistence/migration; `PracticeProvider` owns shared practice controls.
+`src/lessons/`, `src/score/` and `src/midi/` retain the optional earlier tools.
+Historical implementation specs remain in `docs/superpowers/`; the current
+scope and release gates are in the documents linked above.

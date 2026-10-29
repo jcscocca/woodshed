@@ -1,93 +1,73 @@
 # Woodshed — current direction
 
-**Set:** 2026-09-23, after a full code + content review.
-**Supersedes:** the README's *What's next* section and the roadmap in earlier specs.
+Updated for the v1 candidate. This replaces the September 23 piano/guitar daily-rotation
+roadmap. Earlier specs describe historical implementations, not the current v1
+release contract.
 
-## What Woodshed is now
+## Product and audience
 
-A **desktop-first practice app for piano and guitar.** The loop: a short daily
-set → a lesson for each item → log how it went → see progress. No account, no
-server; data lives in the browser.
+Woodshed v1 is a guided piano practice app for a returning adult learner who
+wants pulse, coordination and reading to catch up with music they enjoy.
+The central loop is a small musical goal → an initial attempt → focused repair →
+a saved next step → a delayed return. It works without MIDI, a microphone,
+an account or an application server.
 
-## Decisions
+The core comprises Guided Practice, Chords, Scales, Catalogue and Progress:
+193 self-contained exercises and 80 sessions across C, G, F, A minor, D, A, E
+and musicianship across keys. The plan offers five rolling days per unit,
+two 20-minute visits a day; 200 minutes per planned week and 1,600 across the
+course. This is a flexible practice structure, not a time-to-mastery claim.
 
-| Area | Decision |
+## v1 decisions
+
+| Area | Current contract |
 |---|---|
-| Instruments | **Piano and guitar only.** Bass and accordion are archived, not deleted (see *Archive*). |
-| Platform | **Desktop-first.** A wide three-pane layout at ≥1024px — sidebar nav, main view, persistent practice rail (metronome + stopwatch on top; lesson or tuner below). The phone layout stays as-is below 1024px. Installable from Chrome/Edge; works offline. |
-| Data | Fresh start on desktop. No sync, no migration from the phone. |
-| Piano input | **USB-MIDI (Web MIDI), piano only.** Its own spec. Guitar stays on the microphone; nothing MIDI touches guitar code paths. |
-| Progression | **Tracks drive progression.** The only suggestion kept is "ready for the next stage." |
-| Pitch coach + Echo | **Disabled, code kept** behind one flag. Up for a rethink — see below. |
+| Learning sequence | Key-based foundations connect rhythm, reading, coordination, scales and harmony to returning musical projects. All lessons remain open; placement helps choose a starting point. |
+| Cumulative review | Global across practised units. A due check fits inside a newly started visit as 3 minutes review + 17 minutes of original lesson goals. Saved review preserves that allocation; review never completes a core block. |
+| Retention evidence | First before-playback self-report remains separate from subsequent repair. Comparable delayed returns can extend 3/7/14/30-day gaps; difficulty returns sooner. Same-day practice cannot extend spacing. |
+| Transfer evidence | Finite authored variations cover six supported skill families in familiar keys, after two qualifying returns. Used/exhausted variants fall back to ordinary review. Transfer does not raise the source passage's spacing/readiness. |
+| Feedback | Minutes, readiness, criteria and musical notes are learner reports. Understanding questions assess the authored answer only. No implied automatic piano assessment or validated mastery score. |
+| Player | Written score, hands, selected passage, loop, count-in and model/play-along. Open lesson and desktop rail share tempo/playback. Leaving a lesson stops its audio. Score size offers fit/125%/150%; enlarged notation supports keyboard scrolling. |
+| Resume | Saved progress survives reload and export/import. Unfinished edits are scoped by lesson/session/review/variant and restored in the same tab; drafts are separate from history and are cleared on successful save/import/reset. |
+| Platforms | Desktop is the primary layout at ≥1024px; the compact layout remains part of the core acceptance pass. Actual browser/device support is gated by the release matrix. |
+| Persistence | Browser-local saved profile; JSON backup/import. No account, sync or server dependency. Recording is optional in-memory audio with explicit download. |
+| Recovery and access | Unreadable saved data gets download/retry/backup recovery. Import/reset replaces history and clears drafts only after durable save. Skip-to-practice, visible focus and reduced-motion defaults support keyboard access. |
+| Earlier tools | Piano repertoire, MIDI tools and exercise library stay accessible in Catalogue. Earlier guitar is optional retained scope, not a second guided v1 course. Older rotation settings are explicitly separate from the guided schedule. |
 
-## Cut
+The source and arrangement limits are recorded in
+[piano-curriculum-evidence.md](piano-curriculum-evidence.md); the
+[topic checklist](piano-topic-coverage.md) establishes coverage only. Interval
+choices, session duration and transfer eligibility are product defaults. No
+teacher review or learner pilot is implied by having content and passing tests.
 
-- **Loom** (canvas art mode).
-- **Adaptive difficulty** — the per-instrument level (`levelFor`) and the
-  level-up / ease-off / rotate-out suggestions. They relabeled a difficulty
-  number without changing what you practice.
-- **Song spacing** — spaced repetition applied to one or two placeholder songs.
-- **Daily reminder** — only ever fired while the app was already open.
-- **Tuner tempo estimate.** The tuner itself stays.
+## Release decision
 
-## Archive
+Finish the current core before expanding it. The
+[release checklist](release-readiness.md) tracks automated checks, browser/device
+acceptance, storage/recovery and PWA upgrades. The
+[teacher review and learner pilot](teacher-review-pilot.md) supplies the human
+content and usability gates across all eight units.
 
-Bass and accordion content (seed items, tracks, lessons, Echo items) moves to
-`archive/` out of the build, and the last four-instrument version is tagged
-`four-instruments`. Loading this version over saved four-instrument data drops
-the bass/accordion items and sessions — export first if that history matters.
+A deployable candidate may be published for this review. The final v1 tag and
+claims of release readiness stay on hold until blocking findings are resolved,
+required environments have evidence, and the human review/pilot is recorded.
+Unfinished gates must remain visibly pending.
 
-## Open: pitch coach rethink
+Pull requests run reusable release checks on a GitHub-hosted runner: runtime
+dependency audit, Node suites and production Chromium/WebKit acceptance. Main's
+Pages deploy depends on the same checks. A workflow definition is not a passing
+workflow run; the checklist records actual candidate results.
 
-Disabled because mic grading proved fragile (the review found a chord-scoring
-cascade, double-counted notes, mic leaks and a too-narrow octave window — all
-since fixed) and because it only covers lessons with a diagram: 5 on piano,
-13 on guitar. The rethink asked three questions; the piano one is decided, the
-guitar ones stay open:
+## Retained history and boundaries
 
-1. **Decided, piano:** the coach is back **piano-first over MIDI** (its own
-   spec, `docs/superpowers/specs/2026-09-24-piano-midi-design.md`). Grading is
-   exact — MIDI pitch needs no stabilizer: rolled chords grade in order, and
-   the two hands-together scale lessons grade each hand as its own line (a
-   pair counts when both hands got it). Mic grading stays off for piano; there's no
-   fallback. `COACH_ENABLED` (mic) stays `false` throughout.
-2. **Open:** is mic grading for **guitar** worth keeping, and for which lesson
-   kinds?
-3. **Decided, piano; open, guitar:** **Echo** returns over MIDI for piano
-   (intervals and short phrases, band dark during the prompt). Whether it
-   returns on guitar at all is still open.
+The earlier daily-rotation engine and MIDI score tools have separate progress
+rules. Their successful checks do not establish learning outcomes for the guided
+course. Guitar mic grading/Echo remain disabled behind `COACH_ENABLED`; piano's
+earlier MIDI tools do not create a microphone requirement for core lessons.
+Bass and accordion remain archived outside the build.
+The [earlier tools reference](earlier-practice-tools.md) preserves MIDI, scoring,
+song editing and keyboard usage with current Catalogue entry paths.
 
-The review's coach fixes are merged, so the code is correct when re-enabled.
-
-## The real gap: content
-
-Each instrument has ~15 thin items (average lesson: 71 words, 3 steps); 33 of
-59 lessons have no diagram; several "exercises" are placeholders ("Your current
-piece", "A four-chord song"). The machinery outran the content. With two
-instruments instead of four, content work goes deeper: fuller piano and guitar
-tracks, a diagram and demo on every lesson that can have one, and real songs.
-
-## Parked
-
-Android/Capacitor app, local-model exercise generation, push-backed reminders,
-cross-device sync. Specs stay in `docs/` for reference.
-
-## Order of work
-
-1. Land the review fixes (three lanes), minus items the cuts make moot.
-2. Cuts, archive, and the coach/Echo disable flag.
-3. Desktop layout — spec → plan → build.
-4. Piano over MIDI — spec → plan → build (piano-only; the coach rethink for
-   piano happens here). **Done.**
-5. Content — deepen piano and guitar tracks and lessons. Split into two
-   projects: the notation engine — grand-staff pieces, wait mode and
-   play-along grading, the tempo ladder, sight-reading drills (its own spec,
-   `docs/superpowers/specs/2026-09-26-notation-pieces-design.md`) — is
-   **done**. Piano content — its own spec,
-   `docs/superpowers/specs/2026-09-27-piano-content-design.md` — is **done**
-   too: 22 scored stages across three tracks (**Pieces**, **Pop from
-   chords**, **Two-Hand Coordination**), plus "Your song" for typing in any
-   song's chords. **Next: guitar content**, its own spec. Parked: any-voicing
-   chord grading, swing/shuffle feel, compound metres (6/8, 3/8), and "Hear
-   this section"/the app playing the other hand — the last two until the
-   metronome and the lesson synth share one AudioContext.
+Cross-device sync, a native Android wrapper, generated curricula and notifications
+are outside this release. Historical specs remain useful implementation context;
+they do not create additional v1 work or override the acceptance gates above.

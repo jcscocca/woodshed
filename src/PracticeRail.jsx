@@ -4,12 +4,12 @@ import { ListenPanel } from "./PracticeSheet.jsx";
 import { usePractice } from "./PracticeProvider.jsx";
 
 export default function PracticeRail({ lesson, scored, tunerOpen, onOpenTuner, onCloseSlot }) {
-  const { metro } = usePractice();
+  const { metro, activeLesson } = usePractice();
   return (
     <aside className="ws-rail" aria-label="Practice">
       <section className="ws-rail-tools">
         <PracticeTools hints compact stopwatchExtra={!tunerOpen && (
-          <button className="ws-listen-open" onClick={() => { metro.stop(); onOpenTuner(); }}>
+          <button className="ws-listen-open" disabled={activeLesson?.disabled} onClick={() => { activeLesson?.stop(); metro.stop(); onOpenTuner(); }}>
             <span className="ws-listen-dot" /> Tuner <span className="ws-beta">beta</span>
           </button>
         )} />
@@ -24,7 +24,7 @@ export default function PracticeRail({ lesson, scored, tunerOpen, onOpenTuner, o
             {lesson || <ListenPanel />}
           </>
         ) : (
-          <p className="ws-rail-hint">Open a lesson in Guided Practice, Chords or Scales to begin. Use these tools for extra practice.</p>
+          <p className="ws-rail-hint">{activeLesson ? <>Controls for <strong>{activeLesson.title}</strong>. Tempo and playback stay in sync with the lesson.</> : "Open a lesson in Guided Practice, Chords or Scales to begin. Use these tools for extra practice."}</p>
         )}
       </section>
     </aside>

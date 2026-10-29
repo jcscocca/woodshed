@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { build } from "esbuild";
 import { fileURLToPath } from "node:url";
 import { normalizeProgress, recordAttempt, sessionProgress } from "../src/program/progress.js";
-import { SESSIONS, EXERCISES } from "../src/program/curriculum.js";
+import { SESSIONS, EXERCISES, PLACEMENT } from "../src/program/curriculum.js";
 
 // Exercise the actual component's click/save handlers. The harness replaces
 // React's rendering boundary and the player, rather than copying flow logic.
@@ -73,6 +73,38 @@ await test("ordinary partial resume skips completed blocks and finishes the rema
   await save(player(h.render()));
   assert.equal(player(h.render()), null);
   assert.equal(h.progress().attempts.length, 2);
+});
+
+await test("session completion reveals and focuses its saved notice instead of retaining lesson scroll", async () => {
+  const h = harness([0, 1, 2]);
+  button(h.render(), "Resume · 3/4 blocks").props.onClick();
+  await save(player(h.render()));
+  const notice = find(h.render(), node => node.props?.role === "status");
+  assert.match(text(notice), /Session A saved/);
+  assert.equal(notice.props.tabIndex, -1);
+  const actions = [];
+  notice.props.ref({ focus: options => actions.push(["focus", options]), scrollIntoView: options => actions.push(["scroll", options]) });
+  assert.deepEqual(actions, [["focus", { preventScroll: true }], ["scroll", { block: "start" }]]);
+  assert.equal(find(h.render(), node => node.props?.role === "status").props.ref, notice.props.ref, "ordinary rerenders keep the same ref and do not repeat the focus transition");
+  button(h.render(), "Continue to Day 1 · Session B").props.onClick();
+  assert.equal(player(h.render()).props.exercise.id, SESSIONS.find((candidate) => candidate.id === "c1-d1-b").blocks[0].exerciseId);
+});
+
+await test("placement completion reveals its saved guidance while between-block notices leave focus to the player", async () => {
+  const h = harness();
+  button(h.render(), "Start placement · 5–10 min").props.onClick();
+  for (let index = 0; index < PLACEMENT.length; index++) await save(player(h.render()));
+  const notice = find(h.render(), node => node.props?.role === "status");
+  assert.match(text(notice), /Placement saved/);
+  assert.equal(notice.props.tabIndex, -1);
+  assert.equal(typeof notice.props.ref, "function");
+
+  const continuing = harness();
+  button(continuing.render(), "Start 20-minute session").props.onClick();
+  await save(player(continuing.render()));
+  assert.ok(player(continuing.render()), "the next block remains open");
+  const betweenBlocks = find(continuing.render(), node => node.props?.role === "status");
+  assert.equal(betweenBlocks.props.ref, undefined, "the new lesson owns its own focus");
 });
 
 await test("opening a completed block individually does not start a whole-session revisit", async () => {

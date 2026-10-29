@@ -14,6 +14,14 @@ const BY_ID = () => Object.fromEntries(EXERCISES.map((e) => [e.id, e]));
 const LABELS = { new: "New", ready: "Self-reported ready", practising: "Still practising", unsure: "Revisit with the demo" };
 const SAFE_URL = (url) => /^https?:\/\//i.test(url || "") ? url : undefined;
 const PLACEMENT_SUPPORT = { "place-pulse": "rhythm-long-short", "place-reading": "read-family-c", "place-coordination": "coord-held-bass" };
+// This stable ref runs when a finished lesson returns to the program home.
+// Focus without scrolling first, then reveal the notice in whichever container
+// owns the scroll (the desktop main panel or the mobile page).
+const revealCompletion = (node) => {
+  if (!node) return;
+  node.focus({ preventScroll: true });
+  node.scrollIntoView({ block: "start" });
+};
 const passageLabel = (attempt, exercise) => !attempt.fromBar ? "" : exercise?.pickup
   ? attempt.fromBar === 1 ? attempt.toBar === 1 ? "pickup" : `pickup–bar ${attempt.toBar - 1}` : `bars ${attempt.fromBar - 1}–${attempt.toBar - 1}`
   : `bars ${attempt.fromBar}–${attempt.toBar}`;
@@ -209,6 +217,7 @@ export default function Program({ section, progress, onAttempt, onLegacyView, un
       {session && <div className="pg-session-bar"><span>{UNITS.find((candidate) => candidate.id === session.unitId)?.key} · Day {session.day} · Session {session.slot} · Block {active.blockIndex + 1} of {session.blocks.length}</span><strong>{session.title}</strong></div>}
       {active.placementIndex !== undefined && <p className="pg-muted">Placement check {active.placementIndex + 1} of {PLACEMENT.length} · You can leave and resume later.</p>}
       <PracticePlayer key={`${active.exerciseId}-${active.transferExercise?.transferId || (active.reviewMode ? "review" : active.sessionId || "direct")}-${active.blockIndex ?? ""}`} exercise={exercise} onLog={save} onClose={() => setActive(null)} defaultMinutes={active.reviewMode ? 3 : sessionPlan?.blocks[active.blockIndex]?.minutes}
+        draftKey={`${active.exerciseId}:${active.transferExercise?.transferId || (active.placementIndex !== undefined ? "placement" : active.reviewMode ? "review" : "lesson")}:${active.reviewForSession || active.sessionId || "direct"}:${active.blockIndex ?? ""}`}
         reviewMode={!!active.reviewMode} transferMode={!!active.transferExercise} reviewNote={active.reviewNote} goal={active.transferExercise ? "Try this new example of a familiar skill before playback. Keep this first result separate from later repairs." : active.reviewMode ? "Return to your previous passage, then choose one detail to repair." : session?.blocks[active.blockIndex]?.goal} previousAttempt={previousAttempt} defaultRange={defaultRange} />
     </div>;
   }
@@ -216,7 +225,7 @@ export default function Program({ section, progress, onAttempt, onLegacyView, un
   if (section === "progress") return <div className="pg-root"><ProgramProgress progress={p} onChangeProgress={onChangeProgress} /></div>;
 
   return <div className="pg-root">
-    {saved && <p className="pg-notice" role="status">{saved}</p>}
+    {saved && <div className="pg-notice" role="status" tabIndex={-1} ref={revealCompletion}><p>{saved}</p>{section === "guided" && next && <button className="ws-btn ghost sm" onClick={() => startSession(next)}>Continue to Day {next.day} · Session {next.slot}</button>}</div>}
     <UnitPicker unitId={unit.id} onChange={changeUnit} />
     {section === "guided" && <>
       <header className="pg-hero"><div className="pg-eyebrow">Your piano program · Unit {unit.number}</div><h1>{unit.title}</h1><p>{unit.description}</p>

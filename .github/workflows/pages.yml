@@ -15,7 +15,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  acceptance:
+    uses: ./.github/workflows/checks.yml
+    permissions:
+      contents: read
+
   build:
+    needs: acceptance
     runs-on: [self-hosted, Linux, thinkpad]
     defaults:
       run:

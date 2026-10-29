@@ -24,6 +24,8 @@ import ScorePanel from "./score/ScorePanel.jsx";
 import Program from "./program/Program.jsx";
 import { contextForExercise, normalizeProgress, recordAttempt } from "./program/progress.js";
 import { EXERCISES, UNITS, sessionsForUnit } from "./program/curriculum.js";
+import { clearAllPracticeDrafts } from "./program/drafts.js";
+import { RELEASE_ID } from "./release.js";
 
 // Resource links are user-entered and ride along in exported/imported backups,
 // so treat them as untrusted. Only http(s) URLs ever reach an href — a
@@ -40,6 +42,27 @@ const normalizeUrl = (raw) => {
   if (/^https?:\/\//i.test(u)) return u;
   if (/^[a-z][\w+.-]*:/i.test(u)) return ""; // some other scheme -> reject
   return "https://" + u;
+};
+
+const downloadText = (text, filename) => {
+  const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+  const link = document.createElement("a");
+  link.href = url; link.download = filename;
+  document.body.appendChild(link); link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 40000);
+};
+
+const readBackupFile = (file, onRead, onError) => {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const raw = JSON.parse(String(reader.result));
+      if (!Array.isArray(raw?.items) || !Array.isArray(raw?.sessions)) throw new Error("Invalid backup");
+      onRead(raw);
+    } catch { onError("Couldn't read that backup. Choose a Woodshed JSON export."); }
+  };
+  reader.onerror = () => onError("Couldn't read that file. Please choose it again.");
+  reader.readAsText(file);
 };
 
 /* ============================================================
@@ -63,24 +86,34 @@ export default function Woodshed() {
   const [tunerOpen, setTunerOpen] = useState(false);
   const [showKeys, setShowKeys] = useState(false);
   const [showScore, setShowScore] = useState(false);
+  const [programEpoch, setProgramEpoch] = useState(0);
+  const [recovery, setRecovery] = useState(null), [recoveryLoading, setRecoveryLoading] = useState(true);
   const desktop = useIsDesktop();
   const loaded = useRef(false);
+  const loadGate = useRef(false), replacementGate = useRef(false);
 
-  // load once
-  useEffect(() => {
-    (async () => {
+  const loadCurrent = async () => {
+    if (loadGate.current || replacementGate.current) return;
+    loadGate.current = true; setRecoveryLoading(true);
+    try {
       let d = await loadState();
       if (!d) d = freshData();
-      if (d.items) d.items = mergeContent(d.items); // pick up newly added tracks/seeds
+      if (d.items) d.items = mergeContent(d.items);
       if (!d.currentSession || d.currentSession.date !== todayStr()) d.currentSession = gen(d);
-      setData(d);
-      loaded.current = true;
-    })();
-  }, []);
+      loaded.current = true; setRecovery(null); setData(d);
+    } catch (error) {
+      loaded.current = false;
+      setRecovery({ code: error?.code || "migration", raw: typeof error?.raw === "string" ? error.raw : null });
+      setData(null);
+    } finally { loadGate.current = false; setRecoveryLoading(false); }
+  };
+
+  // load once
+  useEffect(() => { loadCurrent(); }, []);
 
   // persist on change; surface failures instead of losing data quietly
   useEffect(() => {
-    if (!loaded.current || !data) return;
+    if (!loaded.current || !data || recovery || replacementGate.current) return;
     saveState(data).then((ok) => setSaveError(!ok));
   }, [data]);
 
@@ -98,7 +131,8 @@ export default function Woodshed() {
     };
   }, []);
 
-  if (!data) return <Shell><div className="ws-loading">Opening the woodshed…</div></Shell>;
+  if (recovery) return <RecoveryScreen error={recovery} loading={recoveryLoading} onRetry={loadCurrent} onRestore={importData} />;
+  if (!data) return <Shell><a className="ws-skip" href="#ws-main">Skip to practice</a><main id="ws-main" tabIndex={-1}><div className="ws-loading">Opening the woodshed…</div></main></Shell>;
 
   // item stats (last practiced, count, latest rating) are derived from the log
   const live = { ...data, items: withDerivedStats(data.items, data.sessions) };
@@ -193,24 +227,37 @@ export default function Woodshed() {
   const reopenStage = (id) =>
     setData((d) => ({ ...d, items: d.items.map((it) => (it.id === id ? { ...it, mastered: false, hidden: false } : it)) }));
 
-  const resetAll = () => { const d = freshData(); d.currentSession = gen(d); setData(d); setShowSettings(false); };
+  async function resetAll() {
+    if (replacementGate.current) return false;
+    replacementGate.current = true;
+    try {
+      const d = freshData(); d.currentSession = gen(d);
+      if (!(await saveState(d))) { setSaveError(true); return false; }
+      clearAllPracticeDrafts(); setProgramEpoch((epoch) => epoch + 1);
+      setData(d); setSaveError(false); setShowSettings(false);
+      return true;
+    } catch { setSaveError(true); return false; }
+    finally { replacementGate.current = false; }
+  }
 
   const exportData = () => {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `woodshed-backup-${todayStr()}.json`;
-    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 40000);
+    downloadText(JSON.stringify(data, null, 2), `woodshed-backup-${todayStr()}.json`);
   };
-  const importData = (raw) => {
+  async function importData(raw) {
+    if (replacementGate.current || loadGate.current) return false;
+    replacementGate.current = true;
     try {
+      if (!Array.isArray(raw?.items) || !Array.isArray(raw?.sessions)) return false;
       const parsed = migrate(raw);
       parsed.items = mergeContent(parsed.items);
       if (!parsed.currentSession || parsed.currentSession.date !== todayStr()) parsed.currentSession = gen(parsed);
-      setData(parsed);
+      if (!(await saveState(parsed))) { setSaveError(true); return false; }
+      clearAllPracticeDrafts(); setProgramEpoch((epoch) => epoch + 1);
+      loaded.current = true; setRecovery(null); setData(parsed); setSaveError(false);
       return true;
     } catch { return false; }
-  };
+    finally { replacementGate.current = false; }
+  }
 
   const courseAttempts = normalizeProgress(data.programProgress).attempts.filter((a) => a.section !== "placement");
   const streak = streakInfo([...data.sessions, ...courseAttempts]);
@@ -263,10 +310,10 @@ export default function Woodshed() {
 
   const saveErr = saveError && <div className="ws-saveerr">Couldn't save your latest change to this browser — your history may not persist.</div>;
   const views = (
-    <main className="ws-main">
-      {["guided", "chords", "scales", "progress"].includes(view) && <Program key={view} section={view} progress={data.programProgress} onAttempt={onProgramAttempt} unitId={data.programUnitId} onUnitChange={chooseProgramUnit} onChangeProgress={changeProgramProgress} />}
+    <div className="ws-main">
+      {["guided", "chords", "scales", "progress"].includes(view) && <Program key={`${view}:${programEpoch}`} section={view} progress={data.programProgress} onAttempt={onProgramAttempt} unitId={data.programUnitId} onUnitChange={chooseProgramUnit} onChangeProgress={changeProgramProgress} />}
       {view === "progress" && data.sessions.length > 0 && <details className="pg-legacy-toggle"><summary>Earlier practice history</summary><Progress data={data} live={live} streak={streak} onEditSession={setEditSession} /></details>}
-      {view === "catalogue" && !legacyView && <Program key={view} section={view} progress={data.programProgress} onAttempt={onProgramAttempt} unitId={data.programUnitId} onUnitChange={chooseProgramUnit} onLegacyView={setLegacyView} />}
+      {view === "catalogue" && !legacyView && <Program key={`${view}:${programEpoch}`} section={view} progress={data.programProgress} onAttempt={onProgramAttempt} unitId={data.programUnitId} onUnitChange={chooseProgramUnit} onLegacyView={setLegacyView} />}
       {view === "catalogue" && legacyView && <>
         <button className="ws-btn ghost sm" style={{ marginBottom: 20 }} onClick={() => { closeLesson(); setLegacyView(null); }}>← Back to catalogue</button>
         {legacyView === "tracks" && <Tracks live={live} onComplete={completeStage} onReopen={reopenStage} onLearn={openLesson} selectedId={selectedId} />}
@@ -290,7 +337,7 @@ export default function Woodshed() {
       {view === "library" && (
         <Library items={live.items} onOpen={(it) => setItemForm({ item: it })} onAdd={() => setItemForm({ item: null })} onLearn={openLesson} selectedId={selectedId} />
       )}
-    </main>
+    </div>
   );
   const dialogs = (
     <>
@@ -328,10 +375,11 @@ export default function Woodshed() {
   return (
     <PracticeProvider onTempo={setLastTempo}>
       <MidiProvider enabled={desktop && !!data.settings.enabled.piano}>
+        <a className="ws-skip" href="#ws-main">Skip to practice</a>
         {desktop ? (
           <div className="ws-desk">
             <Sidebar view={view} onView={showView} scoreOpen={showScore && isScored} onScore={isScored ? () => setShowScore(true) : null} onSettings={() => setShowSettings(true)} onHelp={() => setShowKeys(true)}><Streak streak={streak} /></Sidebar>
-            <div className="ws-desk-main">{saveErr}{showScore && isScored ? <ScoreStage key={lessonFor.id} item={lessonFor} lesson={getLesson(lessonFor.id)} /> : views}</div>
+            <main id="ws-main" tabIndex={-1} className="ws-desk-main">{saveErr}{showScore && isScored ? <ScoreStage key={lessonFor.id} item={lessonFor} lesson={getLesson(lessonFor.id)} /> : views}</main>
             <PracticeRail
               lesson={lessonProps && (isScored ? (
                 <ScorePanel
@@ -365,7 +413,7 @@ export default function Woodshed() {
               </div>
               <Streak streak={streak} />
             </header>
-            {views}
+            <main id="ws-main" tabIndex={-1}>{views}</main>
             <nav className="ws-nav">
               {VIEWS.map(([k, label, icon]) => (
                 <button key={k} className={`ws-tab ${view === k ? "on" : ""}`} aria-current={view === k ? "page" : undefined} onClick={() => showView(k)}>
@@ -387,6 +435,47 @@ export default function Woodshed() {
 /* ----------------------- shell ----------------------- */
 function Shell({ children }) {
   return <div className="ws-root"><div className="ws-col">{children}</div></div>;
+}
+
+function RecoveryScreen({ error, loading, onRetry, onRestore }) {
+  const [pending, setPending] = useState(null), [message, setMessage] = useState("");
+  const [restoring, setRestoring] = useState(false), gate = useRef(false);
+  const fileRevision = useRef(0);
+  const busy = loading || restoring;
+  const restore = async () => {
+    if (gate.current || loading || !pending) return;
+    gate.current = true; setRestoring(true); setMessage("");
+    try {
+      if (!(await onRestore(pending))) setMessage("The backup could not be saved. Your original saved data is unchanged. Check browser storage and try again.");
+    } catch { setMessage("The backup could not be restored. Your original saved data is unchanged."); }
+    finally { gate.current = false; setRestoring(false); }
+  };
+  return <Shell>
+    <a className="ws-skip" href="#ws-main">Skip to practice</a>
+    <main id="ws-main" tabIndex={-1} className="ws-main" aria-labelledby="ws-recovery-title" aria-busy={busy}>
+      <section className="ws-set-block">
+        <h1 id="ws-recovery-title">Your saved practice needs attention</h1>
+        <p role="alert">{error.code === "read" ? "Woodshed cannot access this browser’s saved practice. Allow site storage, then retry." : "Woodshed could not read your saved practice. Your original data has been kept, and nothing has been replaced."}</p>
+        <div className="ws-data-row">
+          <button className="ws-btn primary" disabled={busy} onClick={onRetry}>{loading ? "Retrying…" : "Retry loading"}</button>
+          {typeof error.raw === "string" && <button className="ws-btn ghost" disabled={busy} onClick={() => downloadText(error.raw, `woodshed-recovery-original-${todayStr()}.json`)}>Download original saved data</button>}
+        </div>
+        <h2>Restore a backup</h2>
+        <p>Choose a Woodshed JSON export. It replaces the saved history only after the backup is successfully saved. Download your original data first if you want to keep it.</p>
+        <label>Recovery backup <input type="file" accept="application/json" aria-label="Choose a recovery backup" disabled={busy} onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) {
+            const revision = ++fileRevision.current; setPending(null); setMessage("");
+            readBackupFile(file, (value) => { if (revision === fileRevision.current) setPending(value); }, (value) => { if (revision === fileRevision.current) setMessage(value); });
+          }
+          event.target.value = "";
+        }} /></label>
+        {pending && <p role="status">Backup selected. Restore it when you are ready to replace the saved history.</p>}
+        <button className="ws-btn primary" disabled={busy || !pending} onClick={restore}>{restoring ? "Restoring…" : "Restore backup"}</button>
+        {message && <p role="alert">{message}</p>}
+      </section>
+    </main>
+  </Shell>;
 }
 
 /* ----------------------- streak (beats) ----------------------- */
@@ -963,105 +1052,129 @@ function Settings({ settings, onChange, onToggle, onReset, onClose, onExport, on
   const [confirm, setConfirm] = useState(false);
   const [pending, setPending] = useState(null); // parsed backup awaiting confirmation
   const [msg, setMsg] = useState("");
+  const [busy, setBusy] = useState(null), busyGate = useRef(false);
   const fileRef = useRef(null);
-  const dlgRef = useDialog(onClose);
+  const fileRevision = useRef(0);
+  const close = () => { if (!busyGate.current) onClose(); };
+  const dlgRef = useDialog(close);
   const lengths = [10, 15, 20, 30, 45];
   const goals = [3, 4, 5, 6, 7];
 
   const handleFile = (e) => {
+    if (busyGate.current) return;
     const file = e.target.files && e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      let raw = null;
-      try { raw = JSON.parse(String(reader.result)); } catch { /* not JSON */ }
-      if (Array.isArray(raw?.items) && Array.isArray(raw?.sessions)) { setPending(raw); setMsg(""); }
-      else setMsg("Couldn't read that file.");
-    };
-    reader.readAsText(file);
+    const revision = ++fileRevision.current; setPending(null); setMsg("");
+    readBackupFile(file, (value) => { if (revision === fileRevision.current) setPending(value); }, (value) => { if (revision === fileRevision.current) setMsg(value); });
     e.target.value = "";
   };
-  const restore = () => {
+  const restore = async () => {
+    if (busyGate.current || !pending) return;
+    busyGate.current = true; setBusy("import"); setMsg("");
     const n = pending.sessions.length;
-    setMsg(onImport(pending) ? `Backup restored — ${n} session${n === 1 ? "" : "s"}.` : "Couldn't read that file.");
-    setPending(null);
+    try {
+      if (await onImport(pending)) { setMsg(`Backup restored — ${n} earlier session${n === 1 ? "" : "s"}, plus its saved piano progress.`); setPending(null); }
+      else setMsg("The backup could not be restored. Your current practice and unfinished work are unchanged. Check the file or browser storage and try again.");
+    } catch { setMsg("The backup could not be restored. Your current practice and unfinished work are unchanged."); }
+    finally { busyGate.current = false; setBusy(null); }
+  };
+  const erase = async () => {
+    if (busyGate.current) return;
+    busyGate.current = true; setBusy("reset"); setMsg("");
+    try {
+      if (!(await onReset())) setMsg("Your practice could not be reset. Your saved history and unfinished work are unchanged. Check browser storage and try again.");
+    } catch { setMsg("Your practice could not be reset. Your saved history and unfinished work are unchanged."); }
+    finally { busyGate.current = false; setBusy(null); }
   };
 
   return (
-    <div className="ws-sheet-wrap" onClick={onClose}>
-      <div className="ws-sheet" onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label="Settings" tabIndex={-1}>
+    <div className="ws-sheet-wrap" onClick={close}>
+      <div className="ws-sheet" onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label="Settings" aria-busy={!!busy} tabIndex={-1}>
         <div className="ws-sheet-grip" />
         <h2 className="ws-sheet-title">Settings</h2>
+        <p className="ws-set-note">App version <span className="mono">{RELEASE_ID}</span></p>
 
         <div className="ws-set-block">
-          <div className="ws-set-label">Session length</div>
-          <div className="ws-seg" role="group" aria-label="Session length in minutes">
-            {lengths.map((l) => (
-              <button key={l} className={`ws-seg-btn ${settings.target === l ? "on" : ""}`} aria-pressed={settings.target === l} onClick={() => onChange({ target: l })}>
-                <span className="mono">{l}</span>m
-              </button>
+          <div className="ws-set-label">Guided Practice schedule</div>
+          <p className="ws-set-note">Each guided visit is planned for 20 minutes, including any cumulative review. The course offers two visits a day, five days a week: 200 minutes across five practice days.</p>
+          <p className="ws-set-note">Use a comfortable pace and return when you are ready. The goals shown in Progress follow this course schedule.</p>
+        </div>
+
+        <details className="ws-set-block">
+          <summary>Earlier practice settings</summary>
+          <p className="ws-set-note" style={{ marginTop: 10 }}>These settings apply to the earlier exercise rotation and its practice history. Guided Practice follows the schedule above.</p>
+
+          <div className="ws-set-block">
+            <div className="ws-set-label">Earlier daily-set length</div>
+            <div className="ws-seg" role="group" aria-label="Earlier daily-set length in minutes">
+              {lengths.map((l) => (
+                <button key={l} disabled={!!busy} className={`ws-seg-btn ${settings.target === l ? "on" : ""}`} aria-pressed={settings.target === l} onClick={() => onChange({ target: l })}>
+                  <span className="mono">{l}</span>m
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="ws-set-block">
+            <div className="ws-set-label">Earlier history weekly goal</div>
+            <div className="ws-seg" role="group" aria-label="Earlier practice days per week goal">
+              {goals.map((g) => (
+                <button key={g} disabled={!!busy} className={`ws-seg-btn ${(settings.weeklyGoal || 4) === g ? "on" : ""}`} aria-pressed={(settings.weeklyGoal || 4) === g} onClick={() => onChange({ weeklyGoal: g })}>
+                  <span className="mono">{g}</span>×
+                </button>
+              ))}
+            </div>
+            <p className="ws-set-note">Days per week shown in Earlier practice history. A single missed day won't break your earlier practice streak.</p>
+          </div>
+
+          <div className="ws-set-block">
+            <div className="ws-set-label">Earlier rotation instruments</div>
+            {Object.keys(INSTRUMENTS).map((inst) => (
+              <label key={inst} className="ws-toggle-row" style={{ "--accent": INSTRUMENTS[inst].color }}>
+                <span className="ws-toggle-name"><span className="ws-toggle-swatch" />{INSTRUMENTS[inst].name}</span>
+                <button role="switch" disabled={!!busy} aria-checked={!!settings.enabled[inst]} aria-label={`${INSTRUMENTS[inst].name} in earlier rotation`} className={`ws-switch ${settings.enabled[inst] ? "on" : ""}`} onClick={() => onToggle(inst)}>
+                  <span className="ws-switch-knob" />
+                </button>
+              </label>
             ))}
           </div>
-        </div>
-
-        <div className="ws-set-block">
-          <div className="ws-set-label">Weekly goal</div>
-          <div className="ws-seg" role="group" aria-label="Practice days per week goal">
-            {goals.map((g) => (
-              <button key={g} className={`ws-seg-btn ${(settings.weeklyGoal || 4) === g ? "on" : ""}`} aria-pressed={(settings.weeklyGoal || 4) === g} onClick={() => onChange({ weeklyGoal: g })}>
-                <span className="mono">{g}</span>×
-              </button>
-            ))}
-          </div>
-          <p className="ws-set-note">Days per week you're aiming for. A single missed day won't break your streak.</p>
-        </div>
-
-        <div className="ws-set-block">
-          <div className="ws-set-label">Instruments in rotation</div>
-          {Object.keys(INSTRUMENTS).map((inst) => (
-            <label key={inst} className="ws-toggle-row" style={{ "--accent": INSTRUMENTS[inst].color }}>
-              <span className="ws-toggle-name"><span className="ws-toggle-swatch" />{INSTRUMENTS[inst].name}</span>
-              <button role="switch" aria-checked={!!settings.enabled[inst]} aria-label={`${INSTRUMENTS[inst].name} in rotation`} className={`ws-switch ${settings.enabled[inst] ? "on" : ""}`} onClick={() => onToggle(inst)}>
-                <span className="ws-switch-knob" />
-              </button>
-            </label>
-          ))}
-        </div>
+        </details>
 
         <div className="ws-set-block">
           <div className="ws-set-label">Your data</div>
           <p className="ws-set-note">Saved on this device. Export to move it to another machine or keep a backup.</p>
           <div className="ws-data-row">
-            <button className="ws-btn ghost sm" onClick={onExport}>Export backup</button>
-            <button className="ws-btn ghost sm" onClick={() => fileRef.current.click()}>Import</button>
-            <input ref={fileRef} type="file" accept="application/json" onChange={handleFile} hidden />
+            <button className="ws-btn ghost sm" disabled={!!busy} onClick={onExport}>Export backup</button>
+            <button className="ws-btn ghost sm" disabled={!!busy} onClick={() => fileRef.current.click()}>Import</button>
+            <input ref={fileRef} type="file" accept="application/json" aria-label="Choose a backup to import" disabled={!!busy} onChange={handleFile} hidden />
           </div>
           {pending ? (
             <div className="ws-confirm" style={{ marginTop: 10 }}>
               <span>Replace everything on this device with this backup ({pending.sessions.length} session{pending.sessions.length === 1 ? "" : "s"})?</span>
               <div>
-                <button className="ws-btn ghost sm" onClick={() => setPending(null)}>Keep</button>
-                <button className="ws-btn danger sm" onClick={restore}>Replace</button>
+                <button className="ws-btn ghost sm" disabled={!!busy} onClick={() => setPending(null)}>Keep</button>
+                <button className="ws-btn danger sm" disabled={!!busy} onClick={restore}>{busy === "import" ? "Replacing…" : "Replace"}</button>
               </div>
             </div>
-          ) : msg && <p className="ws-data-msg">{msg}</p>}
+          ) : null}
+          {msg && <p className="ws-data-msg" role={msg.startsWith("Backup restored") ? "status" : "alert"}>{msg}</p>}
         </div>
 
         <div className="ws-set-block">
           {!confirm ? (
-            <button className="ws-btn danger-ghost" onClick={() => setConfirm(true)}>Reset everything</button>
+            <button className="ws-btn danger-ghost" disabled={!!busy} onClick={() => setConfirm(true)}>Reset everything</button>
           ) : (
             <div className="ws-confirm">
               <span>Erase everything — logs, custom exercises, edits and settings? This can't be undone.</span>
               <div>
-                <button className="ws-btn ghost sm" onClick={() => setConfirm(false)}>Keep</button>
-                <button className="ws-btn danger sm" onClick={onReset}>Erase</button>
+                <button className="ws-btn ghost sm" disabled={!!busy} onClick={() => setConfirm(false)}>Keep</button>
+                <button className="ws-btn danger sm" disabled={!!busy} onClick={erase}>{busy === "reset" ? "Erasing…" : "Erase"}</button>
               </div>
             </div>
           )}
         </div>
 
-        <button className="ws-btn ghost full" onClick={onClose}>Close</button>
+        <button className="ws-btn ghost full" disabled={!!busy} onClick={close}>Close</button>
       </div>
     </div>
   );
