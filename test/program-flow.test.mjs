@@ -168,7 +168,7 @@ await test("an unfinished earlier plan resumes its actual old block without cred
   assert.ok(revised, "at least one music-specific visit is revised");
   const earlier = LEGACY_SESSIONS.find((candidate) => candidate.id === revised.legacySessionId);
   const h = versionHarness(earlier, { completedBlocks: { [earlier.id]: [0] } });
-  assert.match(text(h.render()), /earlier practice is kept on its original lesson plan/);
+  assert.match(text(h.render()), /Some visits use an earlier lesson plan/);
   button(h.render(), `Resume · 1/${earlier.blocks.length} blocks`).props.onClick();
   assert.equal(player(h.render()).props.exercise.id, earlier.blocks[1].exerciseId);
   await save(player(h.render()));
@@ -196,11 +196,11 @@ await test("a completed explicit revision counts once while its earlier partial 
   const newMarks = revised.blocks.map((_, index) => index);
   const h = versionHarness(earlier, { completedBlocks: { [earlier.id]: [0], [revised.id]: newMarks } });
   assert.match(progressText(h.progress()), /1\/80/);
-  assert.match(text(h.render()), /updated Day .* is complete and counts once/);
+  assert.match(text(h.render()), /Updated Day .* complete\./);
   button(h.render(), `Resume earlier Day ${earlier.day} · Session ${earlier.slot}`).props.onClick();
   assert.equal(player(h.render()).props.exercise.id, earlier.blocks[1].exerciseId);
   assert.equal(player(h.render()).props.defaultMinutes, earlier.blocks[1].minutes);
-  assert.match(text(h.render()), /earlier lesson plan is retained/);
+  assert.match(text(h.render()), /Using your earlier lesson plan/);
   await save(player(h.render()));
   assert.equal(h.progress().attempts.at(-1).sessionId, earlier.id);
   assert.deepEqual(h.progress().completedBlocks[revised.id], newMarks);
@@ -315,7 +315,7 @@ await test("a consolidation visit resumes after navigation and saves only its ac
   const exercises = [...new Map(EXERCISES.filter(e => e.section !== "placement" && e.abc).map(e => [e.unitId, e])).values()].slice(0, 9);
   const initial = { attempts: exercises.map(e => ({ exerciseId: e.id, section: "guided", date: addDays(todayStr(), -20), minutes: 3, assessment: "ready", hands: e.hands, bpm: 40, fromBar: 1, toBar: 1 })) };
   const h = versionHarness(SESSIONS[0], initial);
-  assert.match(text(h.render()), /9 skill checks due/);
+  assert.match(text(h.render()), /9 checks due/);
   button(h.render(), "Start 20-minute consolidation visit").props.onClick();
   const firstKey = player(h.render()).props.draftKey;
   await assert.rejects(player(h.render()).props.onLog({ assessment: "invalid", minutes: 4 }));
@@ -340,7 +340,7 @@ await test("a consolidation visit resumes after navigation and saves only its ac
   assert.ok(returns.every(a => a.section === "review" && !a.sessionId && !a.reviewForSession));
   assert.deepEqual(h.progress().completedBlocks, {});
   assert.equal(button(h.render(), "Start 20-minute consolidation visit"), null, "a second new consolidation is not recommended on the same day");
-  assert.match(text(h.render()), /already made room for consolidation today/);
+  assert.match(text(h.render()), /Consolidation done for today\./);
   assert.match(button(h.render(), "Start 20-minute session").props.className, /primary/, "the ordinary lesson remains the primary next action");
 });
 

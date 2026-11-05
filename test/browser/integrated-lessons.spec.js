@@ -9,8 +9,9 @@ const byId=new Map(EXERCISES.map(e=>[e.id,e]));
 const old=LEGACY_SESSIONS.find(s=>s.id==="c1-d4-b");
 const current=SESSIONS.find(s=>s.legacySessionId===old.id);
 const card=page=>page.locator(".pg-session-grid .pg-card").filter({has:page.getByRole("heading",{name:old.title,exact:true})});
-const note=page=>page.getByRole("textbox",{name:"One thing to try next time",exact:true});
-const minutes=page=>page.getByRole("spinbutton",{name:"Minutes practised",exact:true});
+const note=page=>page.getByRole("textbox",{name:"One thing to try next time",exact:true, includeHidden: true});
+const minutes=page=>page.getByRole("spinbutton",{name:"Minutes practised",exact:true, includeHidden: true});
+const openDetails = async (page) => { const d = page.locator("details.ws-player-details"); if (await d.count() && !(await d.evaluate((el) => el.open))) await d.locator("summary").click(); };
 const seed=async(page,state)=>page.addInitScript(({key,state})=>{if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify(state));},{key,state});
 const choose=async page=>{
   await page.getByRole("combobox",{name:"Piano unit",exact:true}).selectOption(old.unitId);
@@ -32,7 +33,7 @@ test("new practice connects the actual broken-chord preparation to After the rai
     const block=current.blocks[i],e=byId.get(block.exerciseId);
     await expect(page.getByRole("heading",{name:e.title,exact:true})).toBeVisible();
     await expect(page.locator(".ws-player-goal")).toHaveText(`This visit: ${block.goal}`);
-    await minutes(page).fill("1");await note(page).fill(`Integrated lesson UI fixture block ${i+1}; no piano performance measured.`);
+    await openDetails(page); await minutes(page).fill("1");await note(page).fill(`Integrated lesson UI fixture block ${i+1}; no piano performance measured.`);
     await page.getByRole("button",{name:"Save practice",exact:true}).click();
     await expect.poll(()=>page.evaluate(({key,sessionId,blockIndex})=>{
       const saved=JSON.parse(localStorage.getItem(key));
@@ -62,7 +63,7 @@ test("an existing partial visit resumes the original music block and its eight-m
   await card(page).getByRole("button",{name:"Resume · 1/4 blocks",exact:true}).click();
   await expect(page.getByRole("heading",{name:byId.get(old.blocks[1].exerciseId).title,exact:true})).toBeVisible();
   await expect(minutes(page)).toHaveValue(String(old.blocks[1].minutes));
-  await expect(page.locator(".pg-plan-note")).toContainText("retained");
+  await expect(page.locator(".pg-plan-note")).toContainText("earlier lesson plan");
   const saved=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),key);
   expect(saved.programProgress.completedBlocks[old.id]).toEqual([0]);
   expect(saved.programProgress.completedBlocks[current.id]).toBeUndefined();

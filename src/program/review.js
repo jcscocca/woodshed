@@ -69,8 +69,13 @@ export function reviewQueue(progress, exercises, { today = todayStr(), limit = 3
   const count = Number.isInteger(limit) && limit >= 0 ? limit : 3;
   if (!count) return [];
   const byId = new Map(exercises.filter((exercise) => exercise?.id && exercise.section !== "placement").map((exercise) => [exercise.id, exercise]));
-  const history = new Map(), transferredToday = new Set(), lastTransfer = new Map();
-  for (const entry of normalizeProgress(progress).attempts) {
+  const history = new Map(), transferredToday = new Set(), lastTransfer = new Map(), retired = new Set();
+  const attempts = normalizeProgress(progress).attempts;
+  // A lesson whose latest report is a skip stays out of review until unskipped.
+  for (const entry of attempts) if (entry.section !== "placement" && entry.section !== "knowledge") {
+    if (entry.skipped) retired.add(entry.exerciseId); else if (entry.section !== "transfer") retired.delete(entry.exerciseId);
+  }
+  for (const entry of attempts) {
     // A placement, missing date, future correction or malformed zero-minute
     // report cannot silently establish that a lesson has been practised.
     if (entry.section === "placement" || entry.section === "knowledge" || !byId.has(entry.exerciseId) || !entry.minutes
@@ -86,8 +91,9 @@ export function reviewQueue(progress, exercises, { today = todayStr(), limit = 3
     history.get(entry.exerciseId).push(entry);
   }
   const candidates = [];
-  for (const [exerciseId, attempts] of history) {
-    const { successDates, ...state } = reviewState(attempts);
+  for (const [exerciseId, reports] of history) {
+    if (retired.has(exerciseId)) continue;
+    const { successDates, ...state } = reviewState(reports);
     const checksSinceTransfer = successDates.filter((day) => day > (lastTransfer.get(exerciseId) || "")).length;
     if (state.dueDate <= today && !transferredToday.has(exerciseId)) candidates.push({ exercise: byId.get(exerciseId), ...state, checksSinceTransfer });
   }

@@ -3,18 +3,21 @@ import PracticeTools from "./PracticeTools.jsx";
 import { ListenPanel } from "./PracticeSheet.jsx";
 import { usePractice } from "./PracticeProvider.jsx";
 
-export default function PracticeRail({ lesson, scored, tunerOpen, onOpenTuner, onCloseSlot }) {
+// Collapsing only hides the tools and slot, so an open lesson, coach run or tuner keeps running.
+export default function PracticeRail({ lesson, scored, tunerOpen, onOpenTuner, onCloseSlot, open = true, onToggle }) {
   const { metro, activeLesson } = usePractice();
   return (
-    <aside className="ws-rail" aria-label="Practice">
-      <section className="ws-rail-tools">
+    <aside className={`ws-rail${open ? "" : " collapsed"}`} aria-label="Practice">
+      <button className="ws-rail-toggle" onClick={onToggle} aria-expanded={open ? "true" : "false"} aria-label={open ? "Hide metronome and timer" : "Show metronome and timer"}>{open ? "›" : "‹"}</button>
+      {!open && <PracticeTools mini />}
+      <section className="ws-rail-tools" hidden={!open}>
         <PracticeTools hints compact stopwatchExtra={!tunerOpen && (
           <button className="ws-listen-open" disabled={activeLesson?.disabled} onClick={() => { if (activeLesson?.disabled) return; activeLesson?.stop(); metro.stop(); onOpenTuner(); }}>
             <span className="ws-listen-dot" /> Tuner <span className="ws-beta">beta</span>
           </button>
         )} />
       </section>
-      <section className="ws-rail-slot">
+      <section className="ws-rail-slot" hidden={!open}>
         {lesson || tunerOpen ? (
           <>
             <div className="ws-rail-slot-head">
@@ -23,8 +26,8 @@ export default function PracticeRail({ lesson, scored, tunerOpen, onOpenTuner, o
             </div>
             {lesson || <ListenPanel />}
           </>
-        ) : (
-          <p className="ws-rail-hint">{activeLesson ? <>Controls for <strong>{activeLesson.title}</strong>. Tempo and playback stay in sync with the lesson.</> : "Open a lesson in Guided Practice, Chords or Scales to begin. Use these tools for extra practice."}</p>
+        ) : activeLesson && (
+          <p className="ws-rail-hint">Controls for <strong>{activeLesson.title}</strong>.</p>
         )}
       </section>
     </aside>

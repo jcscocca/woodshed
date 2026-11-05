@@ -35,7 +35,6 @@ export default function KnowledgeChecks({ questions, onResultsChange, onAnswersC
   };
   return <section className="pg-knowledge" aria-labelledby={`${id}-heading`}>
     <h3 id={`${id}-heading`}>Check your understanding</h3>
-    <p className="ws-player-caption">Apply the idea before reading the explanation. These written and listening answers are separate from your piano performance and never lock a lesson.</p>
     {questions.map((q) => {
       const result = results.find((item) => item.questionId === q.id);
       return <fieldset key={q.id} disabled={disabled}>
@@ -48,6 +47,6 @@ export default function KnowledgeChecks({ questions, onResultsChange, onAnswersC
       </fieldset>;
     })}
     <button type="button" className="ws-player-button" disabled={disabled || !Object.keys(answers).length} onClick={check}>Check selected answers</button>
-    {results.length > 0 && <p className="ws-player-caption">These answers will be included when you save this practice. Change an answer and check again to record your correction.</p>}
+    {results.length > 0 && <p className="ws-player-caption">Saved when you save practice.</p>}
   </section>;
 }

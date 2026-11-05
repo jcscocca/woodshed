@@ -3,6 +3,7 @@ import { usePractice } from "../PracticeProvider.jsx";
 import { keepClefs, parseScore, walkTune } from "../score/scoreModel.js";
 import { createLessonPlayback, planPlayback } from "./playback.js";
 import PracticeRecorder from "./PracticeRecorder.jsx";
+import HandMap from "./HandMap.jsx";
 import KnowledgeChecks from "./KnowledgeChecks.jsx";
 import { knowledgeForExercise } from "./knowledge.js";
 import { stop as stopLegacyAudio } from "../lessonAudio.js";
@@ -26,7 +27,7 @@ const boundedRange = (value, bars) => {
   return { from, to: Math.max(from, Number.isInteger(value?.to) && value.to > 0 ? Math.min(value.to, end) : end) };
 };
 
-export default function PracticePlayer({ exercise, onLog, onClose, defaultMinutes, defaultRange, goal, previousAttempt, reviewMode = false, transferMode = false, reviewNote, draftKey, reusePreviousScope = false }) {
+export default function PracticePlayer({ exercise, onLog, onClose, defaultMinutes, defaultRange, goal, previousAttempt, reviewMode = false, transferMode = false, reviewNote, draftKey, reusePreviousScope = false, skipped = false, onUnskip }) {
   const id = useId();
   const practice = usePractice(), setCoursePlaying = practice?.setCoursePlaying, setActiveLesson = practice?.setActiveLesson;
   const identity = draftKey || `${exercise.id}:${exercise.transferId || (reviewMode ? "review" : "direct")}`;
@@ -203,14 +204,17 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
     } catch (error) { if (mounted.current && token === playRevision.current) { setAudioError(error.message || "Audio could not start. Try again."); setMode(null); } }
   };
 
-  const save = async (event) => {
-    event.preventDefault();
+  // quick: "done" saves the form as it stands, as ready; "skip" records the lesson as too easy.
+  const save = async (event, quick) => {
+    event?.preventDefault();
     if (recordingActive || saveGate.current.busy || saveGate.current.saved || !onLog) return;
     const gate = saveGate.current, exerciseId = exercise.id;
     gate.busy = true;
     stop(); setSaveError(null); setSaving(true);
     try {
-      await onLog({ exerciseId: exercise.id, skillIds: exercise.skillIds || [], assessment, minutes: Number(minutes), bpm: Number(bpm), hands, note: note.trim(), section: exercise.section,
+      await onLog(quick === "skip" ? { exerciseId: exercise.id, skillIds: exercise.skillIds || [], assessment: "ready", minutes: 0, skipped: true, section: exercise.section } : {
+        exerciseId: exercise.id, skillIds: exercise.skillIds || [], assessment: quick === "done" ? "ready" : assessment,
+        minutes: Number(minutes) >= 1 ? Number(minutes) : initialMinutes(exercise, defaultMinutes), bpm: Number(bpm), hands, note: note.trim(), section: exercise.section,
         fromBar: range.from, toBar: Math.min(range.to, parsed?.score.bars.length || range.from), checks: checked.map((index) => exercise.checks[index]), goal, knowledgeResults,
         ...(exercise.technique ? { techniqueScope } : {}),
         ...(reviewMode && firstCheck.current ? { [transferMode ? "transferCheck" : "reviewCheck"]: firstCheck.current } : {}),
@@ -297,33 +301,40 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
   return (
     <article className="ws-practice-player" aria-labelledby={`${id}-title`} ref={lessonRef} tabIndex={-1}>
       <header className="ws-player-heading">
-        <div><span className="ws-player-eyebrow">Guided piano practice{exercise.key ? ` · ${exercise.key}` : ""}</span><h2 id={`${id}-title`}>{exercise.title}</h2></div>
-        {onClose && <button type="button" className="ws-player-button quiet" onClick={() => { stop(); onClose(); }}>Close lesson</button>}
+        <div><span className="ws-player-eyebrow">{exercise.key}</span><h2 id={`${id}-title`}>{exercise.title}</h2></div>
+        <div className="ws-player-actions">
+          {onLog && !saved && <>
+            {skipped && <><span className="ws-player-skipped">Skipped</span>{onUnskip && <button type="button" className="ws-player-button quiet" disabled={saving} onClick={onUnskip}>Unskip</button>}</>}
+            <button type="button" className="ws-player-button primary" disabled={recordingActive || saving} onClick={() => save(null, "done")}>Done</button>
+            {!skipped && <button type="button" className="ws-player-button quiet" disabled={recordingActive || saving} onClick={() => save(null, "skip")}>{reviewMode ? "Too easy — stop reviewing" : "Too easy — skip"}</button>}
+          </>}
+          {onClose && <button type="button" className="ws-player-button quiet" onClick={() => { stop(); onClose(); }}>Close lesson</button>}
+        </div>
       </header>
-      {restoredDraft && <p role="status" className="ws-player-caption">Unfinished practice restored. Your changes are kept in this tab until you save practice.</p>}
+      {restoredDraft && <p role="status" className="ws-player-caption">Unfinished practice restored.</p>}
       {!reviewMode && <p className="ws-player-summary">{exercise.summary}</p>}
       {goal && <p className="ws-player-goal"><strong>This visit:</strong> {goal}</p>}
-      {exercise.technique && <div className="ws-player-score-size"><label htmlFor={`${id}-technique-scope`}>What did you actually play? <select id={`${id}-technique-scope`} aria-label="What did you actually play?" value={techniqueScope} disabled={saving || recordingActive || !!mode} onChange={(event) => { setTechniqueScope(event.target.value); edited(); }}>{Object.entries(SCOPE_LABELS).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label><p className="ws-player-caption">Report the amount you played, even when the whole score is selected. This is your own report; the app does not measure your performance.</p></div>}
+      {exercise.technique && <div className="ws-player-score-size"><label htmlFor={`${id}-technique-scope`}>What did you actually play? <select id={`${id}-technique-scope`} aria-label="What did you actually play?" value={techniqueScope} disabled={saving || recordingActive || !!mode} onChange={(event) => { setTechniqueScope(event.target.value); edited(); }}>{Object.entries(SCOPE_LABELS).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label></div>}
       {reviewMode && <section className="ws-player-return" aria-labelledby={`${id}-return-title`}>
         <div className="ws-player-eyebrow">{transferMode ? "Fresh example" : "Cumulative review"} · about {defaultMinutes || 3} minutes</div>
         <h3 id={`${id}-return-title`}>{transferMode ? "Try the new example before playback" : "Try one return before playback"}</h3>
-        <p>{transferMode ? "This is new music for a skill you have already practised. Preview the notes and count, try once before playback, then report the first attempt. Later tries are practice of this example, rather than another fresh reading." : "Use the written score and your last practice setup. Try this passage once, then report how that first attempt felt. You can listen and repair it afterward."}</p>
+        
         {(reviewNote || previousAttempt?.note) && <p className="ws-player-return-note"><strong>Your next step:</strong> {reviewNote || previousAttempt.note}</p>}
         {reviewCheck ? <div className="ws-player-return-result" role="status">
           <strong>{transferMode ? "First fresh attempt" : "First return"}: {RETURN_LABELS[reviewCheck.assessment].toLowerCase()}.</strong>
           <span>{reviewCheck.hands === "R" ? "Right hand" : reviewCheck.hands === "L" ? "Left hand" : "Both hands"} · ♩ = {reviewCheck.bpm} · {barLabel(reviewCheck.fromBar)}{reviewCheck.toBar !== reviewCheck.fromBar ? `–${barLabel(reviewCheck.toBar)}` : ""}</span>
           {reviewCheck.techniqueScope && <span>First scope: {SCOPE_LABELS[reviewCheck.techniqueScope]?.toLowerCase()}.</span>}
-          <span>{reviewCheck.beforeDemo ? "Reported before playback." : "Reported after playback."} This first result will stay separate from how the rest of your practice goes.</span>
+          <span>{reviewCheck.beforeDemo ? "Reported before playback." : "Reported after playback."}</span>
           <span>Save practice below to keep this self-assessment.</span>
         </div> : <>
           <div className="ws-player-return-choices" role="group" aria-label="How did your first return feel?">
             {Object.entries(RETURN_LABELS).map(([value, label]) => <button key={value} type="button" className="ws-player-button" disabled={!!mode || recordingActive || saving || !parsed || !!scoreError} onClick={() => recordFirstCheck(value)}>{label}</button>)}
           </div>
-          <p className="ws-player-caption">Your report is optional. Playback stays available, and saving without a first report records practice only.</p>
+          
         </>}
       </section>}
       {reviewMode && <p className="ws-player-summary"><strong>After your first attempt:</strong> {exercise.summary}</p>}
-      {previousAttempt && <details className="ws-player-previous"><summary>Your previous visit · {previousAttempt.date || "saved practice"}</summary><p>{previousAttempt.minutes} minutes{previousAttempt.bpm ? ` at ♩ = ${previousAttempt.bpm}` : ""} · {previousAttempt.hands === "R" ? "right hand" : previousAttempt.hands === "L" ? "left hand" : "both hands"} · {previousAttempt.assessment === "ready" ? "felt ready" : previousAttempt.assessment === "unsure" ? "felt unsure" : "still practising"}.</p>{previousAttempt.note && <p><strong>Your next step:</strong> {previousAttempt.note}</p>}<p>Try one uninterrupted return before the demo, then choose the specific join to repair today.</p></details>}
+      {previousAttempt && <details className="ws-player-previous"><summary>Your previous visit · {previousAttempt.date || "saved practice"}</summary><p>{previousAttempt.minutes} minutes{previousAttempt.bpm ? ` at ♩ = ${previousAttempt.bpm}` : ""} · {previousAttempt.hands === "R" ? "right hand" : previousAttempt.hands === "L" ? "left hand" : "both hands"} · {previousAttempt.assessment === "ready" ? "felt ready" : previousAttempt.assessment === "unsure" ? "felt unsure" : "still practising"}.</p>{previousAttempt.note && <p><strong>Your next step:</strong> {previousAttempt.note}</p>}</details>}
       <section className="ws-player-score-section" aria-label="Score and playback">
         <div className="ws-player-hand-controls" role="group" aria-label="Choose hands">
           {HANDS.map(([value, label]) => <button key={value} type="button" aria-pressed={hands === value} disabled={!!parsed && value !== "both" && !availableHands.has(value)} onClick={() => changeHands(value)}>{label}</button>)}
@@ -341,16 +352,18 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
           <span>{frame?.phase === "countin" ? `Count in: ${frame.count} of ${frame.countTotal}` : `${mode === "along" ? "Play along" : "Reference"} · ${barLabel(frame?.bar || range.from)}`}</span>
           <button type="button" className="ws-player-button" onClick={stop}>■ Stop playback</button>
         </div>}
-        {ready && <div className="ws-player-score-size"><label htmlFor={`${id}-score-size`}>Score size <select id={`${id}-score-size`} aria-label="Score size" value={scoreScale} onChange={(event) => { setScoreScale(Number(event.target.value)); edited(); }}><option value={1}>Fit width</option><option value={1.25}>125%</option><option value={1.5}>150%</option></select></label><p className="ws-player-caption" id={`${id}-score-help`}>Enlarge the notation if it feels small. At larger sizes, focus the score and use the arrow keys to scroll.</p></div>}
+        {ready && <div className="ws-player-score-size"><label htmlFor={`${id}-score-size`}>Score size <select id={`${id}-score-size`} aria-label="Score size" value={scoreScale} onChange={(event) => { setScoreScale(Number(event.target.value)); edited(); }}><option value={1}>Fit width</option><option value={1.25}>125%</option><option value={1.5}>150%</option></select></label><p className="ws-sr-only" id={`${id}-score-help`}>Enlarge the notation if it feels small. At larger sizes, focus the score and use the arrow keys to scroll.</p></div>}
         <div className="ws-player-score-scroll" ref={scoreViewportRef} role={scoreScale > 1 ? "region" : undefined} aria-label={scoreScale > 1 ? "Enlarged written score" : undefined} aria-describedby={scoreScale > 1 ? `${id}-score-help` : undefined} tabIndex={scoreScale > 1 ? 0 : undefined}
           onKeyDown={(event) => { if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown", " "].includes(event.key)) event.stopPropagation(); }}>
           <div className="ws-player-paper" ref={paperRef} style={{ width: `${scoreScale * 100}%` }} />
         </div>
+        {ready && (!reviewMode || reviewCheck) && <HandMap score={parsed.score} exerciseId={exercise.transferId ? undefined : exercise.id} hands={hands} from={range.from} to={range.to}
+          beat={mode && mode !== "listening" && frame?.phase === "playing" ? frame.onsetBeat : null} />}
         {ready && <>
           <div className="ws-player-tempo">
             <label htmlFor={`${id}-tempo`}>Practice tempo <span>♩ = {bpm}</span></label>
             <input id={`${id}-tempo`} type="range" min="20" max="160" value={bpm} aria-valuetext={`${bpm} quarter-note beats per minute`} aria-describedby={`${id}-tempo-help`} onChange={(e) => { stop(); setBpm(Number(e.target.value)); edited(); }} />
-            <span className="ws-player-caption" id={`${id}-tempo-help`}>Suggested reference ♩ = {target}; begin wherever you can keep a steady pulse. The synthesized reference demonstrates notes and timing. Shape the dynamics and phrasing from the score and listening goals.</span>
+            <span className="ws-sr-only" id={`${id}-tempo-help`}>Target ♩ = {target}</span>
           </div>
           <div className="ws-player-transport">
             <button type="button" className="ws-player-button" disabled={recordingActive || saving} onClick={() => play("slow", slow)}>Hear slowly · {slow}</button>
@@ -366,8 +379,8 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
           </div>
           <p className="ws-sr-only" role="status" aria-live="polite" aria-atomic="true">{mode === "listening" ? "Listening example started." : mode === "along" ? "Play along started." : mode ? "Reference playback started." : "Playback stopped. Ready to listen or play."}</p>
           <div className="ws-player-position">
-            {mode === "listening" ? "Listening example · the lesson score is paused" : frame?.phase === "countin" ? `Count in: ${frame.count} of ${frame.countTotal}` : mode ? `${mode === "along" ? "Play along" : "Reference"} · ${barLabel(frame?.bar || range.from)}${loop ? ` · pass ${frame?.pass || 1}` : ""}` : "Ready to listen or play"}
-            <span>Ungraded · no keyboard connection needed</span>
+            {mode === "listening" ? "Listening example · the lesson score is paused" : frame?.phase === "countin" ? `Count in: ${frame.count} of ${frame.countTotal}` : mode ? `${mode === "along" ? "Play along" : "Reference"} · ${barLabel(frame?.bar || range.from)}${loop ? ` · pass ${frame?.pass || 1}` : ""}` : ""}
+            
           </div>
           <div className="ws-player-progress" aria-hidden="true"><span style={{ width: `${(frame?.progress || 0) * 100}%` }} /></div>
         </>}
@@ -375,7 +388,7 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
       </section>
 
       {exercise.fingering && <section className="ws-player-fingering"><h3>Where your hands go</h3><p>{exercise.fingering}</p></section>}
-      <section className="ws-player-steps"><h3>{reviewMode ? "After your first attempt: work through it" : "Work through it"}</h3>{reviewMode && <p className="ws-player-caption">Try the score once and report above before using these listening and repair steps.</p>}<ol>{(exercise.steps || []).map((step, i) => <li key={i}>{step}</li>)}</ol></section>
+      <section className="ws-player-steps"><h3>{reviewMode ? "After your first attempt: work through it" : "Work through it"}</h3><ol>{(exercise.steps || []).map((step, i) => <li key={i}>{step}</li>)}</ol></section>
       {exercise.listenFor?.length > 0 && <section className="ws-player-listen"><h3>Listen for</h3><ul>{exercise.listenFor.map((item, i) => <li key={i}>{item}</li>)}</ul></section>}
       {!transferMode && <KnowledgeChecks key={identity} questions={knowledgeForExercise(exercise)} initialAnswers={draft?.knowledgeAnswers} initialResults={draft?.knowledgeResults} onAnswersChange={setKnowledgeAnswers} onResultsChange={setKnowledgeResults} onEdited={edited} onHear={hearQuestion} disabled={recordingActive || saving} />}
 
@@ -383,7 +396,8 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
 
       <form onSubmit={save} className="ws-player-review">
         <h3>Review your practice</h3>
-        <p className="ws-player-caption">Your own assessment. The moving score shows position; it does not listen to or score your playing.</p>
+        
+        <details className="ws-player-details" open={restoredDraft || undefined}><summary>Add details</summary>
         {exercise.checks?.length > 0 && <fieldset><legend>What did you notice?</legend>{exercise.checks.map((check, i) => <label className="ws-player-check" key={i}><input type="checkbox" checked={checked.includes(i)} onChange={(e) => { setChecked((prev) => e.target.checked ? [...prev, i] : prev.filter((n) => n !== i)); edited(); }} />{check}</label>)}</fieldset>}
         <fieldset><legend>How does this goal feel?</legend><div className="ws-player-assessments">
           {[["practising", "Still practising"], ["ready", "Ready for a fresh check"], ["unsure", "Not sure yet"]].map(([value, label]) => <label key={value}><input type="radio" name={`${id}-assessment`} value={value} checked={assessment === value} onChange={() => { setAssessment(value); edited(); }} />{label}</label>)}
@@ -391,8 +405,9 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
         <label className="ws-player-minutes" htmlFor={`${id}-minutes`}>Minutes practised <input id={`${id}-minutes`} type="number" min="1" max="240" step="1" required value={minutes} onChange={(e) => { setMinutes(e.target.value); edited(); }} /></label>
         <label className="ws-player-notes" htmlFor={`${id}-notes`}>One thing to try next time <textarea id={`${id}-notes`} rows="2" value={note} maxLength="2000" placeholder="For example: keep the left-hand note held through beat 4." onChange={(e) => { setNote(e.target.value); edited(); }} /></label>
         <button type="submit" className="ws-player-button primary" disabled={recordingActive || saving || saved || !onLog}>{saving ? "Saving…" : saved ? "Practice saved ✓" : "Save practice"}</button>
+        </details>
         {recordingActive && <p className="ws-player-caption">Finish or cancel the recording before saving this block.</p>}
-        {saved && <p role="status" className="ws-player-saved">Saved as a self-assessed session.</p>}
+        {saved && <p role="status" className="ws-sr-only">Saved as a self-assessed session.</p>}
         {saveError && <p role="alert" className="ws-player-error">{saveError}</p>}
       </form>
       {exercise.source && <section className="ws-player-source"><h3>About this music</h3><p>{exercise.source.url ? <a href={exercise.source.url} target="_blank" rel="noreferrer">{exercise.source.label}</a> : exercise.source.label}.</p>{exercise.source.scope && <p>{exercise.source.scope}</p>}{exercise.source.changes && <><p>Edition notes:</p>{Array.isArray(exercise.source.changes) ? <ul>{exercise.source.changes.map((change) => <li key={change}>{change}</li>)}</ul> : <p>{exercise.source.changes}</p>}</>}{exercise.why && <p>Why this piece: {exercise.why}</p>}</section>}

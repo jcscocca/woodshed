@@ -9,8 +9,9 @@ const twoOctavePattern = "major:2";
 const twoOctaveScale = SCALE_EXERCISES.find((exercise) => exercise.technique.pattern === "major" && exercise.technique.octaves === 2 && exercise.hands === "R");
 const returnScale = SCALE_EXERCISES.find((exercise) => exercise.technique?.pattern === "major" && exercise.technique.octaves === 1 && exercise.hands === "R");
 const ago = (days) => { const d = new Date(); d.setDate(d.getDate() - days); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
-const notes = (page) => page.getByRole("textbox", { name: "One thing to try next time", exact: true });
-const minutes = (page) => page.getByRole("spinbutton", { name: "Minutes practised", exact: true });
+const notes = (page) => page.getByRole("textbox", { name: "One thing to try next time", exact: true, includeHidden: true });
+const minutes = (page) => page.getByRole("spinbutton", { name: "Minutes practised", exact: true, includeHidden: true });
+const openDetails = async (page) => { const d = page.locator("details.ws-player-details"); if (await d.count() && !(await d.evaluate((el) => el.open))) await d.locator("summary").click(); };
 const openCard = (page, exercise) => page.locator(".pg-scale-path .pg-card").filter({ has: page.getByRole("heading", { name: exercise.title, exact: true }) }).getByRole("button", { name: "Open lesson", exact: true }).click();
 const goToScales = async (page) => {
   await page.getByRole("button", { name: "Scales", exact: true }).click();
@@ -45,7 +46,7 @@ test("optional reference keeps pattern, key and drafts without becoming another 
   await expect(page.getByLabel("What did you actually play?", { exact: true })).toHaveAccessibleName("What did you actually play?");
   await page.getByLabel("Through bar", { exact: true }).selectOption("2");
   await page.getByLabel("Repeat the excerpt", { exact: true }).check();
-  await minutes(page).fill("1"); await notes(page).fill("CI scale fixture: keep the continuation crossing quiet; no piano performance measured.");
+  await openDetails(page); await minutes(page).fill("1"); await notes(page).fill("CI scale fixture: keep the continuation crossing quiet; no piano performance measured.");
   await page.getByRole("button", { name: "Progress", exact: true }).click();
   await goToScales(page);
   await expect(page.getByRole("combobox", { name: "Pattern and range", exact: true })).toHaveValue(twoOctavePattern);
@@ -92,7 +93,7 @@ test("a scale return preserves its first scope and difficult result after a succ
   await expect(page.getByRole("slider", { name: /^Practice tempo/ })).toHaveValue("44");
   await page.getByRole("button", { name: "Needs more work", exact: true }).click();
   await page.getByLabel("Through bar", { exact: true }).selectOption("1");
-  await page.getByRole("radio", { name: "Ready for a fresh check", exact: true }).check();
+  await openDetails(page); await page.getByRole("radio", { name: "Ready for a fresh check", exact: true }).check();
   await minutes(page).fill("1"); await notes(page).fill("CI return fixture: repair felt steadier; retain the first result.");
   await page.getByRole("button", { name: "Progress", exact: true }).click();
   await goToScales(page);
@@ -100,7 +101,7 @@ test("a scale return preserves its first scope and difficult result after a succ
   await expect(page.getByText("First return: needs more work.", { exact: false })).toBeVisible();
   await expect(page.getByText("Reported before playback.", { exact: false })).toBeVisible();
   await expect(page.getByLabel("Through bar", { exact: true })).toHaveValue("1");
-  await expect(page.getByRole("radio", { name: "Ready for a fresh check", exact: true })).toBeChecked();
+  await expect(page.getByRole("radio", { name: "Ready for a fresh check", exact: true, includeHidden: true })).toBeChecked();
   await page.getByRole("button", { name: "Save practice", exact: true }).click();
   await expect(page.locator(".pg-notice")).toContainText("Review saved");
   const stored = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)), stateKey);

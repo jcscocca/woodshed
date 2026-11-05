@@ -3,7 +3,7 @@ import { usePractice } from "./PracticeProvider.jsx";
 import { toggleWatch, elapsedSec, RESET_WATCH } from "./stopwatch.js";
 import { useRun } from "./score/useRun.js";
 
-export default function PracticeTools({ hints = false, compact = false, stopwatchExtra = null }) {
+export default function PracticeTools({ hints = false, compact = false, mini = false, stopwatchExtra = null }) {
   const { metro, watch, setWatch, coursePlaying, activeLesson } = usePractice();
   const m = activeLesson || metro;
   const minBpm = activeLesson ? 20 : 40, maxBpm = activeLesson ? 160 : 240;
@@ -25,6 +25,14 @@ export default function PracticeTools({ hints = false, compact = false, stopwatc
   const mm = String(Math.floor(sec / 60)).padStart(2, "0");
   const ss = String(sec % 60).padStart(2, "0");
 
+  if (mini) return (
+    <div className="ws-metro-mini">
+      <div className="ws-bpm"><span className="mono ws-bpm-num">{m.bpm}</span><span className="ws-bpm-label">bpm</span></div>
+      <button className={`ws-round ws-metro-mini-go ${m.playing ? "" : "primary"}`} disabled={transportLocked} onClick={m.playing ? m.stop : m.start}
+        aria-label={m.playing ? "Stop" : activeLesson ? "Play along" : "Start metronome"}>{m.playing ? "■" : "▶"}</button>
+    </div>
+  );
+
   return (
     <>
       <div className="ws-metro">
@@ -43,7 +51,7 @@ export default function PracticeTools({ hints = false, compact = false, stopwatc
           </button>
           <button className="ws-round" disabled={locked} onClick={() => m.setBpm(Math.min(maxBpm, m.bpm + 1))} aria-label="Faster">+</button>
         </div>
-        {hints && <div className="ws-hint-keys"><kbd className="ws-kbd">Space</kbd> {activeLesson ? "play" : "start"} / stop · <kbd className="ws-kbd">← →</kbd> tempo</div>}
+        
         <div className="ws-metro-row2">
           <button className="ws-chip" disabled={locked} onClick={m.tap}>Tap tempo{hints && <kbd className="ws-kbd" aria-hidden="true">T</kbd>}</button>
           {activeLesson ? <span className="ws-stop-note">Lesson meter · {m.meterLabel || `${m.beatsPer} beats`}</span> : <div className="ws-sig">
@@ -61,7 +69,7 @@ export default function PracticeTools({ hints = false, compact = false, stopwatc
           <button className="ws-btn ghost sm" onClick={() => setWatch(RESET_WATCH)}>Reset</button>
           {stopwatchExtra}
         </div>
-        {!compact && <p className="ws-stop-note">Time your session here, then enter the minutes when you log.</p>}
+        
       </div>
     </>
   );

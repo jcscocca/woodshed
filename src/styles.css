@@ -421,7 +421,14 @@ body{
 .ws-kb-white{ fill:#d8d0c0; stroke:#2b2722; stroke-width:1; }
 .ws-kb-white.lit{ fill:var(--gold); }
 .ws-kb-black{ fill:#211e1a; }
-.ws-kb-finger{ fill:#1d1408; font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; }
+.ws-kb-finger{ fill:#1d1408; font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; }
+.ws-kb{ --lh:#5fa8a0; width:100%; }
+.ws-kb svg{ display:block; width:100%; height:auto; }
+.ws-kb-white.lit.lh{ fill:var(--lh); }
+.ws-kb-black.lit{ fill:var(--gold); stroke:#211e1a; stroke-width:1; }
+.ws-kb-black.lit.lh{ fill:var(--lh); }
+.ws-kb-c{ fill:var(--muted2); font-family:'JetBrains Mono',monospace; font-size:9px; }
+.ws-kb-c.mid{ fill:var(--text); font-weight:700; }
 
 /* library row: split into a tap area + a Learn button (avoids nested buttons) */
 .ws-lib-item{ cursor:default; }
@@ -470,6 +477,17 @@ body{
 .ws-desk-main{ overflow-y:auto; padding:26px 36px 48px; min-height:0; }
 .ws-desk-main > .ws-main{ max-width:960px; margin:0 auto; }
 .ws-rail{ overflow-y:auto; min-height:0; border-left:1px solid var(--line); background:var(--bg2); padding:22px 20px 32px; display:flex; flex-direction:column; gap:20px; }
+.ws-desk.rail-collapsed{ grid-template-columns:200px minmax(0,1fr) 64px; }
+.ws-rail{ position:relative; padding-left:36px; }
+.ws-rail-toggle{ position:absolute; top:14px; left:-1px; width:28px; height:44px; border:1px solid var(--line); border-left:none; border-radius:0 9px 9px 0; background:var(--bg); color:var(--muted); font-size:18px; line-height:1; cursor:pointer; z-index:1; }
+.ws-rail-toggle:hover{ color:var(--text); }
+.ws-rail.collapsed{ padding:68px 8px 20px; align-items:center; }
+.ws-rail.collapsed .ws-rail-toggle{ left:8px; width:48px; border:1px solid var(--line2); border-radius:12px; }
+.ws-metro-mini{ display:flex; flex-direction:column; align-items:center; gap:12px; }
+.ws-metro-mini .ws-bpm{ flex-direction:column; align-items:center; gap:0; margin:0; }
+.ws-metro-mini .ws-bpm-num{ font-size:24px; }
+.ws-metro-mini-go{ width:48px; height:48px; font-size:16px; }
+.ws-metro-mini-go.primary{ background:var(--gold); border-color:var(--gold); color:#1d1408; }
 .ws-rail-slot{ border-top:1px solid var(--line); padding-top:16px; }
 .ws-rail-slot-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
 .ws-rail-label{ font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted2); font-weight:600; }

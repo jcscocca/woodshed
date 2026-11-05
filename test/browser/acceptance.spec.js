@@ -8,10 +8,11 @@ import { recordAttempt } from "../../src/program/progress.js";
 const stateKey = "woodshed-state-v1";
 const ago = (days) => { const d = new Date(); d.setDate(d.getDate() - days); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
 const start = page => page.getByRole("button", { name: /^(Start 20-minute session|Resume session)$/ }).click();
-const note = page => page.getByRole("textbox", { name: "One thing to try next time", exact: true });
-const minutes = page => page.getByRole("spinbutton", { name: "Minutes practised", exact: true });
+const note = page => page.getByRole("textbox", { name: "One thing to try next time", exact: true, includeHidden: true });
+const minutes = page => page.getByRole("spinbutton", { name: "Minutes practised", exact: true, includeHidden: true });
+const openDetails = async (page) => { const d = page.locator("details.ws-player-details"); if (await d.count() && !(await d.evaluate((el) => el.open))) await d.locator("summary").click(); };
 const save = async (page, message) => {
-  await minutes(page).fill("1"); await note(page).fill(message);
+  await openDetails(page); await minutes(page).fill("1"); await note(page).fill(message);
   await page.getByRole("button", { name: "Save practice", exact: true }).click();
   await expect(page.getByRole("button", { name: "Saving…", exact: true })).toHaveCount(0);
 };
@@ -48,13 +49,14 @@ test("placement, drafts, shared controls, all core blocks and completion", async
   await page.getByRole("button", { name: "Continue to Day 1 · Session A", exact: true }).click();
   const lessonTempo = page.getByRole("slider", { name: /^Practice tempo/ });
   if (info.project.name !== "chromium-narrow") {
+    await page.getByRole("button", { name: "Show metronome and timer", exact: true }).click();
     await page.getByRole("button", { name: "Faster", exact: true }).click();
     await expect(lessonTempo).toHaveValue("57");
     await expect(page.getByRole("slider", { name: "Tempo", exact: true })).toHaveValue("57");
   }
   await page.getByLabel("Through bar", { exact: true }).selectOption("2");
   await page.getByLabel("Repeat the excerpt", { exact: true }).check();
-  await note(page).fill("Keep my unfinished passage and note.");
+  await openDetails(page); await note(page).fill("Keep my unfinished passage and note.");
   await page.getByRole("button", { name: "Progress", exact: true }).click();
   await page.getByRole("button", { name: "Guided Practice", exact: true }).click();
   await expect(page.getByRole("button", { name: "Resume session", exact: true })).toBeVisible();
@@ -94,7 +96,7 @@ test("due review retains first-attempt evidence and seventeen-minute core alloca
   await expect(page.getByText("Reported before playback.", { exact: false })).toBeVisible();
   await expect(page.getByText("First return: needs more work.", { exact: false })).toBeVisible();
   await save(page, "Acceptance fixture: first result survives repair and navigation.");
-  await expect(page.locator(".pg-notice")).toContainText("within this session’s 20 minutes");
+  await expect(page.locator(".pg-notice")).toContainText("saved. Continue with the lesson blocks below.");
   await page.getByRole("button", { name: "Close lesson", exact: true }).click();
   await expect(page.getByText(/Review saved · lesson practice uses the remaining 17-minute allocation/)).toBeVisible();
   await page.reload();
@@ -208,7 +210,7 @@ test("installed worker upgrades between real builds and retains offline history 
   await page.reload();
   await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
   await start(page); await save(page, "Offline history marker.");
-  await note(page).fill("Offline and update draft marker.");
+  await openDetails(page); await note(page).fill("Offline and update draft marker.");
   await page.evaluate(() => { window.__woodshedBeforeUpdate = navigator.serviceWorker.controller; });
   await buildRelease(nextRelease);
   await page.evaluate(async () => {

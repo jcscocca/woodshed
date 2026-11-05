@@ -7,10 +7,11 @@ import { QUESTION_BY_ID, knowledgeForExercise } from "../../src/program/knowledg
 import { todayStr, addDays } from "../../src/dateUtils.js";
 
 const key = "woodshed-state-v1";
-const note = page => page.getByRole("textbox", { name: "One thing to try next time", exact: true });
+const note = page => page.getByRole("textbox", { name: "One thing to try next time", exact: true, includeHidden: true });
 const start = page => page.getByRole("button", { name: "Start 20-minute session", exact: true }).click();
+const openDetails = async (page) => { const d = page.locator("details.ws-player-details"); if (await d.count() && !(await d.evaluate((el) => el.open))) await d.locator("summary").click(); };
 const save = async (page, value) => {
-  await page.getByRole("spinbutton", { name: "Minutes practised", exact: true }).fill("1");
+  await openDetails(page); await page.getByRole("spinbutton", { name: "Minutes practised", exact: true, includeHidden: true }).fill("1");
   await note(page).fill(value);
   await page.getByRole("button", { name: "Save practice", exact: true }).click();
   await expect(page.getByRole("button", { name: "Saving…", exact: true })).toHaveCount(0);
@@ -55,7 +56,7 @@ test("crossing both responsive breakpoints retains the active lesson, playback a
   await page.goto("./"); await start(page);
   const heading = page.getByRole("heading", { name: "The beat continues while notes change length", exact: true });
   await expect(heading).toBeVisible();
-  await note(page).fill("Keep my responsive UI draft.");
+  await openDetails(page); await note(page).fill("Keep my responsive UI draft.");
   await page.getByRole("button", { name: /^Hear reference ·/ }).click();
   await page.setViewportSize({ width: 900, height: 900 });
   await expect(heading).toBeVisible(); await expect(note(page)).toHaveValue("Keep my responsive UI draft.");
@@ -70,7 +71,7 @@ test("a revised current-plan draft resumes the exact later music block after rel
   const card = () => page.locator(".pg-session-grid .pg-card").filter({ has: page.getByRole("heading", { name: session.title, exact: true }) });
   await page.goto("./");
   await card().getByRole("button", { name: /^After the rain / }).click();
-  await note(page).fill("Unfinished revised-plan music, not the first block.");
+  await openDetails(page); await note(page).fill("Unfinished revised-plan music, not the first block.");
   await page.getByRole("combobox", { name: "Through bar", exact: true }).selectOption("2");
   await page.reload();
   await card().getByRole("button", { name: "Resume · 0/4 blocks", exact: true }).click();
@@ -85,13 +86,13 @@ test("due workload recommends a resumable twenty-minute review visit without gui
   const exercises = [...new Map(EXERCISES.filter(e => e.section !== "placement" && e.abc).map(e => [e.unitId, e])).values()].slice(0, 6);
   for (const e of exercises) state.programProgress = recordAttempt(state.programProgress, { exerciseId: e.id, section: "guided", date: addDays(todayStr(), -20), minutes: 3, assessment: "ready", hands: e.hands, bpm: 40, fromBar: 1, toBar: 1 });
   await seed(page, state); await page.goto("./");
-  await expect(page.getByText(/6 skill checks due/)).toBeVisible();
+  await expect(page.getByText(/6 checks due/)).toBeVisible();
   await page.getByRole("button", { name: "Start 20-minute consolidation visit", exact: true }).click();
   for (let index = 0; index < 5; index++) {
     await expect(page.locator(".pg-session-bar")).toContainText(`check ${index + 1} of 5`);
-    await expect(page.getByRole("spinbutton", { name: "Minutes practised", exact: true })).toHaveValue("4");
+    await expect(page.getByRole("spinbutton", { name: "Minutes practised", exact: true, includeHidden: true })).toHaveValue("4");
     await page.getByRole("button", { name: "Felt steady", exact: true }).click();
-    await note(page).fill(`Consolidation UI fixture ${index + 1}; no piano performance measured.`);
+    await openDetails(page); await note(page).fill(`Consolidation UI fixture ${index + 1}; no piano performance measured.`);
     await page.getByRole("button", { name: "Save practice", exact: true }).click();
     if (index < 4) await expect(page.locator(".pg-session-bar")).toContainText(`check ${index + 2} of 5`);
     if (index === 1) {
