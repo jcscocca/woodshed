@@ -32,6 +32,11 @@ const bundle = await build({
             previous?.cleanup?.(); h.slots[i] = { deps, cleanup: fn() };
           });
         }
+        export function useRef(initial) {
+          const h = current(), i = h.cursor++;
+          if (!(i in h.slots)) h.slots[i] = { current: initial };
+          return h.slots[i];
+        }
         export function createContext(value) { const context = { value }; context.Provider = { context }; return context; }
         export const useContext = context => context.value;
         export default { Fragment: 'fragment', createElement(type, props, ...children) { return { type, props: { ...props, children } }; } };`,
@@ -176,6 +181,35 @@ test("a scored play-along retains its metronome lock", h => {
   h.env.run = { state: "running", play: true }; h.sync();
   assert.equal(range(h.tools.tree).props.disabled, true);
   assert.equal(button(h.tools.tree, "Start").props.disabled, true);
+});
+
+test("the collapsed rail keeps the tempo and transport and reopens on request", h => {
+  let toggles = 0;
+  const rail = runner(Rail, { open: false, onToggle() { toggles++; } });
+  rail.render();
+  assert.equal(find(rail.tree, node => node.type === Tools).props.mini, true);
+  globalThis.document = { activeElement: null };
+  try { button(rail.tree, "Show metronome and timer").props.onClick({ currentTarget: {} }); } finally { delete globalThis.document; }
+  assert.equal(toggles, 1);
+  assert.equal(button(h.rail.tree, "Hide metronome and timer").props["aria-expanded"], "true", "an uncontrolled rail stays open");
+  rail.close();
+});
+
+test("the collapsed strip follows the lesson tempo, transport and locks", h => {
+  const mini = runner(Tools, { mini: true });
+  mini.render();
+  assert.match(content(mini.tree), /90/);
+  button(mini.tree, "Start metronome").props.onClick();
+  assert.equal(h.env.metroStarts, 1);
+  h.setLesson(); mini.render();
+  assert.match(content(mini.tree), /56/);
+  button(mini.tree, "Play along").props.onClick();
+  assert.equal(h.env.lessonStarts, 1); assert.equal(h.env.metroStarts, 1);
+  h.env.lesson = { ...h.env.lesson, playing: true }; h.setLesson(); mini.render();
+  assert.equal(button(mini.tree, "Stop").props.disabled, false);
+  h.env.lesson = { ...h.env.lesson, playing: false, disabled: true }; h.setLesson(); mini.render();
+  assert.equal(button(mini.tree, "Play along").props.disabled, true);
+  mini.close();
 });
 
 if (failures) process.exitCode = 1;

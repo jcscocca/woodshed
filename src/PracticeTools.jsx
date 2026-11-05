@@ -3,7 +3,7 @@ import { usePractice } from "./PracticeProvider.jsx";
 import { toggleWatch, elapsedSec, RESET_WATCH } from "./stopwatch.js";
 import { useRun } from "./score/useRun.js";
 
-export default function PracticeTools({ hints = false, compact = false, stopwatchExtra = null }) {
+export default function PracticeTools({ hints = false, compact = false, mini = false, stopwatchExtra = null }) {
   const { metro, watch, setWatch, coursePlaying, activeLesson } = usePractice();
   const m = activeLesson || metro;
   const minBpm = activeLesson ? 20 : 40, maxBpm = activeLesson ? 160 : 240;
@@ -24,6 +24,14 @@ export default function PracticeTools({ hints = false, compact = false, stopwatc
   const sec = elapsedSec(watch);
   const mm = String(Math.floor(sec / 60)).padStart(2, "0");
   const ss = String(sec % 60).padStart(2, "0");
+
+  if (mini) return (
+    <div className="ws-metro-mini">
+      <div className="ws-bpm"><span className="mono ws-bpm-num">{m.bpm}</span><span className="ws-bpm-label">bpm</span></div>
+      <button className={`ws-round ws-metro-mini-go ${m.playing ? "" : "primary"}`} disabled={transportLocked} onClick={m.playing ? m.stop : m.start}
+        aria-label={m.playing ? "Stop" : activeLesson ? "Play along" : "Start metronome"}>{m.playing ? "■" : "▶"}</button>
+    </div>
+  );
 
   return (
     <>

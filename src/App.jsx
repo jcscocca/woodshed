@@ -84,11 +84,14 @@ export default function Woodshed() {
   const [coachResults, setCoachResults] = useState({}); // itemId -> { accuracy, missed }
   const [saveError, setSaveError] = useState(false);
   const [tunerOpen, setTunerOpen] = useState(false);
+  const [railOpen, setRailOpen] = useState(false);
   const [showKeys, setShowKeys] = useState(false);
   const [showScore, setShowScore] = useState(false);
   const [programEpoch, setProgramEpoch] = useState(0);
   const [recovery, setRecovery] = useState(null), [recoveryLoading, setRecoveryLoading] = useState(true);
   const desktop = useIsDesktop();
+  // The score gets the width; the rail opens itself for what lives in it.
+  useEffect(() => { if (lessonFor || tunerOpen) setRailOpen(true); }, [lessonFor, tunerOpen]);
   const loaded = useRef(false);
   const loadGate = useRef(false), replacementGate = useRef(false), logGate = useRef(false);
   const dataRef = useRef(data); dataRef.current = data;
@@ -444,7 +447,7 @@ export default function Woodshed() {
         <a className="ws-skip" href="#ws-main">Skip to practice</a>
         {/* Keep the lesson at the same React position across layout changes.
             Replacing its parent would discard the active lesson and local take. */}
-        <div className={desktop ? "ws-desk" : "ws-root"}>
+        <div className={desktop ? `ws-desk${railOpen ? "" : " rail-collapsed"}` : "ws-root"}>
           <div className={desktop ? undefined : "ws-col"} style={desktop ? { display: "contents" } : undefined}>
             {desktop && <Sidebar view={view} onView={showView} scoreOpen={showScore && isScored} onScore={isScored ? () => setShowScore(true) : null} onSettings={() => setShowSettings(true)} onHelp={() => setShowKeys(true)}><Streak streak={streak} /></Sidebar>}
             {!desktop && <header className="ws-head">
@@ -473,6 +476,7 @@ export default function Woodshed() {
               tunerOpen={tunerOpen}
               onOpenTuner={() => { closeLesson(); setTunerOpen(true); }}
               onCloseSlot={() => { closeLesson(); setTunerOpen(false); }}
+              open={railOpen} onToggle={() => setRailOpen((o) => !o)}
             />}
             {!desktop && <nav className="ws-nav">
               {VIEWS.map(([k, label, icon]) => (
