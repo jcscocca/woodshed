@@ -11,8 +11,8 @@ const score = (id) => parseScore(byId.get(id).abc, abcjs);
 const shapes = (id, opts) => handShapes(score(id), { exerciseId: id, ...opts });
 const view = (step) => step.keys.map((k) => `${k.hand}${k.midi}${k.fingers.length ? `:${k.fingers.join("/")}` : ""}`).join(" ");
 
-test("every chord lesson without written fingering has transcribed fingers", () => {
-  const missing = EXERCISES.filter((e) => e.section === "chords" && !/![1-5]!/.test(e.abc) && !CHORD_FINGERS[e.id]).map((e) => e.id);
+test("every lesson without written fingering has transcribed fingers", () => {
+  const missing = EXERCISES.filter((e) => !/![1-5]!/.test(e.abc) && !CHORD_FINGERS[e.id]).map((e) => e.id);
   assert.deepEqual(missing, []);
 });
 
@@ -24,7 +24,7 @@ test("transcribed fingers match their scores attack for attack", () => {
 });
 
 test("every right-hand chord-lesson attack has a finger", () => {
-  for (const [id, fingers] of Object.entries(CHORD_FINGERS)) if (fingers.R) assert.ok(!fingers.R.split(/\s+/).includes("-"), id);
+  for (const [id, fingers] of Object.entries(CHORD_FINGERS)) if (byId.get(id).section === "chords" && fingers.R) assert.ok(!fingers.R.split(/\s+/).includes("-"), id);
 });
 
 test("written score fingering reaches the keyboard map", () => {
@@ -32,6 +32,12 @@ test("written score fingering reaches the keyboard map", () => {
   const { steps } = handShapes(parseScore(scale.abc, abcjs), { exerciseId: scale.id });
   assert.equal(steps.length, 1);
   assert.equal(view(steps[0]), "R55:1 R57:2 R59:3 R60:1 R62:2 R64:3 R66:4 R67:5");
+});
+
+test("prose fingering reaches melody lessons", () => {
+  const { steps } = shapes("place-reading");
+  assert.equal(steps.length, 1);
+  assert.equal(view(steps[0]), "L48:5 L50:4 L52:3 L55:1 R60:1 R62:2 R64:3 R67:5");
 });
 
 test("chord lessons step through one shape per chord, with both hands", () => {

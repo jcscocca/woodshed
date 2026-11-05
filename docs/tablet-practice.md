@@ -35,12 +35,14 @@ two places:
 
 1. **The score's own fingering.** The 441 scale-path setups already write
    finger numbers into their ABC.
-2. **`src/program/chordFingers.js`.** The 33 chord lessons state fingering only
-   in prose, so their fingering is transcribed there. There is one token per
-   attack in each hand, digits low to high for a chord, and `-` where the
-   prose names no finger. `test/program-hand-map.test.mjs` checks every token
-   against its score's attack and pitch count. Every chord lesson must have an
-   entry, and every right-hand attack must have a finger.
+2. **`src/program/chordFingers.js`.** The 196 core lessons (33 chord, 163
+   placement, guided and scale lessons) state fingering only in prose, so
+   their fingering is transcribed there. There is one token per attack in
+   each hand, digits low to high for a chord, and `-` where the prose names no
+   finger. `test/program-hand-map.test.mjs` checks every token against its
+   score's attack and pitch count. Every lesson without written fingering
+   must have an entry, and every chord-lesson right-hand attack must have a
+   finger.
 
 Decisions behind that:
 
@@ -60,8 +62,11 @@ Decisions behind that:
 
 Known limits:
 
-- The other 163 core exercises show lit keys without finger numbers.
-  Transcribing their prose fingering is follow-up work.
+- The other 163 core exercises take their fingers from a hand transcription of
+  their fingering text in `src/program/chordFingers.js`. Only digits the text
+  states, or that a stated five-finger position fixes, are filled; keys the
+  text leaves to "a comfortable finger", or that follow an unstated move, stay
+  blank. Editing an exercise's fingering text does not update its entry.
 - A shape split mid-bar does not carry the other hand's held note into the new
   step.
 
