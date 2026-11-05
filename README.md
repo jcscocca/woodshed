@@ -25,6 +25,7 @@ readable, without awarding old block credit to a different task.
 [Product direction](docs/DIRECTION.md) · [Release readiness](docs/release-readiness.md)
 · [Teacher review and learner pilot](docs/teacher-review-pilot.md)
 · [Critical audit fixes](docs/audit-fixes.md)
+· [Practising from a tablet](docs/tablet-practice.md)
 
 ## The guided course
 
