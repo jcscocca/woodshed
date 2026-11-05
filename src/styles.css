@@ -421,7 +421,14 @@ body{
 .ws-kb-white{ fill:#d8d0c0; stroke:#2b2722; stroke-width:1; }
 .ws-kb-white.lit{ fill:var(--gold); }
 .ws-kb-black{ fill:#211e1a; }
-.ws-kb-finger{ fill:#1d1408; font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; }
+.ws-kb-finger{ fill:#1d1408; font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; }
+.ws-kb{ --lh:#5fa8a0; width:100%; }
+.ws-kb svg{ display:block; width:100%; height:auto; }
+.ws-kb-white.lit.lh{ fill:var(--lh); }
+.ws-kb-black.lit{ fill:var(--gold); stroke:#211e1a; stroke-width:1; }
+.ws-kb-black.lit.lh{ fill:var(--lh); }
+.ws-kb-c{ fill:var(--muted2); font-family:'JetBrains Mono',monospace; font-size:9px; }
+.ws-kb-c.mid{ fill:var(--text); font-weight:700; }
 
 /* library row: split into a tap area + a Learn button (avoids nested buttons) */
 .ws-lib-item{ cursor:default; }

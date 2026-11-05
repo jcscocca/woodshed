@@ -75,7 +75,10 @@ export function parseScore(abc, abcjs) {
     // A tie sounds as one MIDI event but is drawn as several written notes.
     // Keep those segments so the cursor follows the notation through the tie.
     if (!el.rest && el.pitches?.length) visualNotes.push({ beat, dur: duration, bar, hand });
-    for (const p of el.midiPitches || []) notes.push({ midi: p.pitch, beat, dur: round(p.duration * 4 * (el.gracenotes ? 2 : 1)), bar, hand });
+    // A written finger number (!1!..!5!) belongs to a single note; a chord symbol names the attack.
+    const finger = el.midiPitches?.length === 1 && el.decoration?.find((d) => /^[1-5]$/.test(d));
+    const chord = el.chord?.find((c) => c.position === "default")?.name;
+    for (const p of el.midiPitches || []) notes.push({ midi: p.pitch, beat, dur: round(p.duration * 4 * (el.gracenotes ? 2 : 1)), bar, hand, ...(finger && { finger: Number(finger) }), ...(chord && { chord }) });
   });
   notes.sort((a, b) => a.beat - b.beat || a.midi - b.midi);
   let onset = -1, last = null;

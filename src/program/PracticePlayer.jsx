@@ -3,6 +3,7 @@ import { usePractice } from "../PracticeProvider.jsx";
 import { keepClefs, parseScore, walkTune } from "../score/scoreModel.js";
 import { createLessonPlayback, planPlayback } from "./playback.js";
 import PracticeRecorder from "./PracticeRecorder.jsx";
+import HandMap from "./HandMap.jsx";
 import KnowledgeChecks from "./KnowledgeChecks.jsx";
 import { knowledgeForExercise } from "./knowledge.js";
 import { stop as stopLegacyAudio } from "../lessonAudio.js";
@@ -346,6 +347,8 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
           onKeyDown={(event) => { if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown", " "].includes(event.key)) event.stopPropagation(); }}>
           <div className="ws-player-paper" ref={paperRef} style={{ width: `${scoreScale * 100}%` }} />
         </div>
+        {ready && (!reviewMode || reviewCheck) && <HandMap score={parsed.score} exerciseId={exercise.transferId ? undefined : exercise.id} hands={hands} from={range.from} to={range.to}
+          beat={mode && mode !== "listening" && frame?.phase === "playing" ? frame.onsetBeat : null} />}
         {ready && <>
           <div className="ws-player-tempo">
             <label htmlFor={`${id}-tempo`}>Practice tempo <span>♩ = {bpm}</span></label>
