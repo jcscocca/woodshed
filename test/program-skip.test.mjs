@@ -47,6 +47,16 @@ test("unskip removes the skip and reopens its block", () => {
   assert.deepEqual(queue(p), ["c-pulse"]);
 });
 
+test("unskip undoes only the latest skip", () => {
+  let p = skipLesson(normalizeProgress({}), pulse, { sessionId: session.id, blockIndex: 0, date: "2026-10-01" });
+  p = recordAttempt(p, report("2026-10-02"));
+  p = skipLesson(p, pulse, { date: "2026-10-05" });
+  p = unskipLesson(p, "c-pulse");
+  assert.deepEqual(sessionProgress(p, session).completedBlocks, [0], "the earlier block skip stays");
+  assert.equal(exerciseProgress(p, "c-pulse").skipped, false);
+  assert.deepEqual(queue(p), ["c-pulse"], "the retirement is undone");
+});
+
 test("the skip marker only survives on a zero-minute report", () => {
   const p = normalizeProgress({ attempts: [report("2026-10-01", { skipped: true }), report("2026-10-02", { minutes: 0, skipped: "yes" })] });
   assert.deepEqual(p.attempts.map((a) => a.skipped), [undefined, undefined]);

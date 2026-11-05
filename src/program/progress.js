@@ -255,8 +255,9 @@ export function skipLesson(progress, exercise, { sessionId, blockIndex, date: da
     ...(sessionId ? { sessionId, blockIndex } : {}), ...(day ? { date: day } : {}) });
 }
 
+// Undo the latest skip only; an earlier skip of another block stays.
 export function unskipLesson(progress, exerciseId) {
-  let next = normalizeProgress(progress);
-  for (let i = next.attempts.length - 1; i >= 0; i--) if (next.attempts[i].exerciseId === exerciseId && next.attempts[i].skipped) next = removeAttempt(next, i);
-  return next;
+  const next = normalizeProgress(progress);
+  const index = next.attempts.findLastIndex((a) => a.exerciseId === exerciseId && a.skipped);
+  return index < 0 ? next : removeAttempt(next, index);
 }

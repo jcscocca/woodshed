@@ -403,7 +403,7 @@ export default function Program({ section, progress, onAttempt, onLegacyView, un
     </>}
     {section === "scales" && (scaleView === "reference"
       ? <ScalePath progress={p} stageId={scaleStageId} onStageChange={changeScaleStage} keyFilter={scaleKey} onKeyChange={changeScaleKey} preferredKey={unit.key} onOpen={open} reviews={scaleReviews} onOpenReview={(item) => openReview(item, {}, false)} onUnskip={(e) => change(unskipLesson(p, e.id), `Unskipped: ${e.title}.`)} />
-      : <section aria-label="Unit scales"><h2>{unit.key} scales</h2><div className="pg-exercises">{EXERCISES.filter((exercise) => (exercise.unitId === unit.id || unitExerciseIds.has(exercise.id)) && exercise.section === "scales").map((exercise) => <ExerciseCard key={exercise.id} exercise={exercise} progress={p} onOpen={() => open(exercise.id)} />)}</div></section>)}
+      : <section aria-label="Unit scales"><h2>{unit.key} scales</h2><div className="pg-exercises">{EXERCISES.filter((exercise) => (exercise.unitId === unit.id || unitExerciseIds.has(exercise.id)) && exercise.section === "scales").map((exercise) => <ExerciseCard key={exercise.id} exercise={exercise} progress={p} onOpen={() => open(exercise.id)} onUnskip={() => change(unskipLesson(p, exercise.id), `Unskipped: ${exercise.title}.`)} />)}</div></section>)}
     {section === "catalogue" && <>
       <header className="pg-hero"><h1>Catalogue</h1></header>
       <div className="pg-exercises">{CATALOGUE.filter((c) => (c.kind === "external" && !c.unitId) || (c.unitId || byId[c.exerciseId]?.unitId) === unit.id).map((c) => {

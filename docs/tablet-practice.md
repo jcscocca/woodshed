@@ -74,9 +74,10 @@ expand control (`src/PracticeRail.jsx`, `PracticeTools mini`). The strip uses
 the same tempo and transport locks as the full rail.
 
 - Opening a Catalogue lesson or the tuner, which live in the rail's slot,
-  expands it. Collapsing it again is always available.
-- Focus stays on the toggle across its own swap, following the MIDI band's
-  chevron.
+  expands it. Collapsing it again is always available, and it only hides the
+  rail's tools and slot: an open lesson, a coach run or the tuner keeps
+  running.
+- The toggle is one button in both states, so focus stays on it.
 - The state is not remembered across reloads: the score gets the width by
   default.
 - The MIDI keyboard band keeps its 380px readout column. Its readout cannot fit
@@ -95,8 +96,11 @@ form asked for decisions they didn't need.
   does the same for every unfinished block.
 - **Too easy — stop reviewing** on a review card, or in a review visit, retires
   a lesson already practised. Its past practice stays in history.
-- **Unskip** appears on a skipped lesson's card and in its header. Progress
-  history lists the skip with **Remove this skip**.
+- **Unskip** appears on a skipped lesson's card and in its header. It undoes
+  the latest skip only, so an earlier skipped session block stays complete.
+  Progress history lists each skip with **Remove this skip**. A skipped lesson
+  still offers Done, which records real practice and brings it back into
+  review.
 - **Done** saves the lesson as ready with its planned minutes in one tap. The
   full form (notes, checks, assessment, minutes) is under **Add details**. It
   opens on its own when an unfinished draft is restored. Done records exactly
@@ -121,6 +125,12 @@ practice. It is stored as a normal attempt with `assessment: "ready"`,
   the same check.
 - **Totals.** Skips add no minutes, no practice day and no streak day. The
   lesson card shows "Skipped" instead of "Ready · 1 visit".
+- **Older cached builds.** A build from before this change drops the
+  `skipped` marker the next time it saves. The block stays complete and the
+  zero-minute report still never enters review. But the review retirement is
+  lost, a skipped review check stops filling its slot, and that older build
+  counts the skip as a visit and a streak day. Nothing is lost or broken; the
+  next update restores the full behaviour for new skips.
 
 ## Less text
 

@@ -303,10 +303,11 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
       <header className="ws-player-heading">
         <div><span className="ws-player-eyebrow">{exercise.key}</span><h2 id={`${id}-title`}>{exercise.title}</h2></div>
         <div className="ws-player-actions">
-          {onLog && !saved && (skipped
-            ? <><span className="ws-player-skipped">Skipped</span>{onUnskip && <button type="button" className="ws-player-button quiet" disabled={saving} onClick={onUnskip}>Unskip</button>}</>
-            : <><button type="button" className="ws-player-button primary" disabled={recordingActive || saving} onClick={() => save(null, "done")}>Done</button>
-              <button type="button" className="ws-player-button quiet" disabled={recordingActive || saving} onClick={() => save(null, "skip")}>{reviewMode ? "Too easy — stop reviewing" : "Too easy — skip"}</button></>)}
+          {onLog && !saved && <>
+            {skipped && <><span className="ws-player-skipped">Skipped</span>{onUnskip && <button type="button" className="ws-player-button quiet" disabled={saving} onClick={onUnskip}>Unskip</button>}</>}
+            <button type="button" className="ws-player-button primary" disabled={recordingActive || saving} onClick={() => save(null, "done")}>Done</button>
+            {!skipped && <button type="button" className="ws-player-button quiet" disabled={recordingActive || saving} onClick={() => save(null, "skip")}>{reviewMode ? "Too easy — stop reviewing" : "Too easy — skip"}</button>}
+          </>}
           {onClose && <button type="button" className="ws-player-button quiet" onClick={() => { stop(); onClose(); }}>Close lesson</button>}
         </div>
       </header>
