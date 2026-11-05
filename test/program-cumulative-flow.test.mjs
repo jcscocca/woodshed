@@ -157,7 +157,7 @@ await test("a C-major return appears before new work in G and opens the latest d
   const h = programHarness([newest, olderAppended]);
   const tree = h.render(), card = reviewCard(tree, cExercise);
   assert.ok(card); assert.match(text(card), /C major/);
-  assert.ok(text(tree).indexOf("Keep earlier skills alive") < text(tree).indexOf("Up next"));
+  assert.ok(text(tree).indexOf("checks due") < text(tree).indexOf("Up next"));
   assert.equal(picker(tree).props.unitId, gUnit.id);
   button(card, "Start return check").props.onClick();
   const current = player(h.render());
@@ -210,7 +210,7 @@ await test("fresh and not-yet-due histories keep new guided work available witho
   assert.equal(reviewSection(fresh.render()), null);
   assert.ok(button(fresh.render(), "Start 20-minute session"));
   const recent = programHarness([report(cExercise, { date: today })]);
-  assert.match(text(reviewSection(recent.render())), /No return checks are due today/);
+  assert.match(text(reviewSection(recent.render())), /Nothing due today/);
   assert.equal(button(reviewSection(recent.render()), "Start return check"), null);
   assert.ok(button(recent.render(), "Start 20-minute session"));
 });
@@ -223,8 +223,7 @@ await test("history distinguishes a difficult first return from final readiness 
   globalThis.__woodshedCumulativeHooks = { cursor: 0, slots: [] };
   const tree = ProgramProgress({ progress });
   assert.match(text(tree), /First return before playback: needed more work/);
-  assert.match(text(tree), /Self-reported, separately from the final practice assessment/);
-  assert.match(text(tree), /Self-reported ready/);
+  assert.match(text(tree), /Ready/);
   assert.match(text(tree), /First check: LH · 42 bpm · bars 1–2/, "initial scope remains distinct from final repaired practice");
   assert.match(text(tree), /no first-attempt check recorded/);
 });

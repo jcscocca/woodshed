@@ -102,7 +102,7 @@ export default function CoachPanel({ item, lesson, sessions = [], onLog, source 
     );
   }
 
-  const band = r.accuracy >= 90 ? "Clean run" : r.accuracy >= 60 ? "Solid run — a couple to clean up" : "Keep at it — this one needs reps";
+  const band = r.accuracy >= 90 ? "Clean run" : r.accuracy >= 60 ? "Solid run" : "Needs more reps";
   const cur = r.cursor;
   // the latest missed pair names the note that was missed
   const slip = mode === "chords" && r.results.findLast((x) => x.status === "missed");
@@ -124,7 +124,7 @@ export default function CoachPanel({ item, lesson, sessions = [], onLog, source 
       ) : coach.listening ? (
         <>
           <div className="ws-coach-hint mono">
-            {r.lastHeard ? `hearing ${r.lastHeard.name} · looking for ${r.results[cur]?.target.label ?? "—"}` : diff ? `${slip.target.label}: ${diff}` : r.done ? "done — nice" : "play along…"}
+            {r.lastHeard ? `hearing ${r.lastHeard.name} · looking for ${r.results[cur]?.target.label ?? "—"}` : diff ? `${slip.target.label}: ${diff}` : r.done ? "done" : "play along…"}
           </div>
           <button className="ws-btn ghost sm full" onClick={coach.stop}>■ Stop</button>
         </>

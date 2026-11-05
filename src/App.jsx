@@ -332,7 +332,7 @@ export default function Woodshed() {
     finally { replacementGate.current = false; }
   }
 
-  const courseAttempts = normalizeProgress(data.programProgress).attempts.filter((a) => a.section !== "placement" && a.section !== "knowledge");
+  const courseAttempts = normalizeProgress(data.programProgress).attempts.filter((a) => a.section !== "placement" && a.section !== "knowledge" && !a.skipped);
   const streak = streakInfo([...data.sessions, ...courseAttempts]);
   const onProgramAttempt = async (entry) => {
     const latest = await commitMutation(data, (current) => {
@@ -664,7 +664,6 @@ function LogSheet({ session, itemById, lastTempo, coachResults = {}, onCancel, o
       <div className="ws-sheet" onClick={(e) => e.stopPropagation()} ref={dlgRef} role="dialog" aria-modal="true" aria-label="Log your session" tabIndex={-1}>
         <div className="ws-sheet-grip" />
         <h2 className="ws-sheet-title">How'd it go?</h2>
-        <p className="ws-sheet-sub">Marking things <em>too easy</em> or <em>tough</em> tunes what comes next.</p>
 
         <div className="ws-log-list">
           {entries.map((e, i) => (
@@ -760,7 +759,6 @@ function Tracks({ live, onComplete, onReopen, onLearn, selectedId }) {
   return (
     <>
       <h2 className="ws-h2">Skill tracks</h2>
-      <p className="ws-track-intro">Ordered progressions. Only your current stage rotates into daily practice — clear it to unlock the next.</p>
       {TRACKS.map((t) => {
         const stages = status[t.id] || [];
         const done = stages.filter((s) => s.status === "done").length;
@@ -872,7 +870,7 @@ function Progress({ data, live, streak, onEditSession }) {
   const maxDay = Math.max(1, ...last14.map((day) => day.mins));
 
   if (!data.sessions.length)
-    return <Empty title="No sessions yet" body="Your first practice will show up here — streak, minutes, and where each instrument stands." />;
+    return <Empty title="No sessions yet" />;
 
   return (
     <div className="ws-progress">
@@ -1175,13 +1173,11 @@ function Settings({ settings, onChange, onToggle, onReset, onClose, onExport, on
 
         <div className="ws-set-block">
           <div className="ws-set-label">Guided Practice schedule</div>
-          <p className="ws-set-note">Each guided visit is planned for 20 minutes, including any cumulative review. The course offers two visits a day, five days a week: 200 minutes across five practice days.</p>
-          <p className="ws-set-note">Use a comfortable pace and return when you are ready. The goals shown in Progress follow this course schedule.</p>
+          <p className="ws-set-note">20-minute visits, two a day, five days a week (200 min).</p>
         </div>
 
         <details className="ws-set-block">
           <summary>Earlier practice settings</summary>
-          <p className="ws-set-note" style={{ marginTop: 10 }}>These settings apply to the earlier exercise rotation and its practice history. Guided Practice follows the schedule above.</p>
 
           <div className="ws-set-block">
             <div className="ws-set-label">Earlier daily-set length</div>
@@ -1394,7 +1390,7 @@ function Empty({ title, body, action }) {
   return (
     <div className="ws-empty">
       <h2 className="ws-empty-title">{title}</h2>
-      <p className="ws-empty-body">{body}</p>
+      {body && <p className="ws-empty-body">{body}</p>}
       {action}
     </div>
   );

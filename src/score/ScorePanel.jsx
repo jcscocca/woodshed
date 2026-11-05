@@ -24,7 +24,7 @@ const setRun = (patch) => runStore.set({ run: { ...runStore.get().run, ...patch 
 const noteNames = (notes) => notes.map((n) => { const x = midiToNote(n.midi); return `${x.name}${x.octave}`; }).join(" ");
 const barList = (bars) => `bar${bars.length > 1 ? "s" : ""} ${bars.join(", ")}`;
 const waitLine = (r) => `found ${r.found} of ${r.total} · ${r.wrong} wrong press${r.wrong === 1 ? "" : "es"}${r.wrongBars.length ? ` (${barList(r.wrongBars)})` : ""}`;
-const bandOf = (r) => (r.clean ? "Clean run" : r.notesPct >= 60 ? "Solid run — a couple to clean up" : "Keep at it — this one needs reps");
+const bandOf = (r) => (r.clean ? "Clean run" : r.notesPct >= 60 ? "Solid run" : "Needs more reps");
 const seed = () => Math.floor(Math.random() * 2 ** 28);
 
 // A sight-reading lesson (lesson.sightread) plays generated drills instead: always

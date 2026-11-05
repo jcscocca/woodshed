@@ -147,7 +147,7 @@ test("lesson tempo nudges respect 20–160 and close restores standalone control
   assert.equal(range(h.tools.tree).props.value, 160);
   h.setLesson(null);
   assert.equal(range(h.tools.tree).props.value, 90);
-  assert.match(content(h.rail.tree), /Open a lesson/);
+  assert.doesNotMatch(content(h.rail.tree), /Controls for/);
   assert.ok(button(h.tools.tree, "4/4 · 4 beats per bar"));
 });
 

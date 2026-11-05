@@ -34,8 +34,8 @@ export default function PracticeRail({ lesson, scored, tunerOpen, onOpenTuner, o
             </div>
             {lesson || <ListenPanel />}
           </>
-        ) : (
-          <p className="ws-rail-hint">{activeLesson ? <>Controls for <strong>{activeLesson.title}</strong>. Tempo and playback stay in sync with the lesson.</> : "Open a lesson in Guided Practice, Chords or Scales to begin. Use these tools for extra practice."}</p>
+        ) : activeLesson && (
+          <p className="ws-rail-hint">Controls for <strong>{activeLesson.title}</strong>.</p>
         )}
       </section>
     </aside>

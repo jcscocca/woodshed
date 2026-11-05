@@ -81,3 +81,8 @@
 .ws-hand-legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 .ws-hand-legend .r::before{background:var(--gold,#e3a948)}
 .ws-hand-legend .l::before{background:#5fa8a0}
+.ws-player-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px}
+.ws-player-skipped{font-size:13px;font-weight:700;color:var(--muted,#a79d8e);text-transform:uppercase;letter-spacing:.06em}
+.ws-player-details{margin:4px 0 14px}
+.ws-player-details>summary{cursor:pointer;min-height:40px;display:flex;align-items:center;font-weight:600;color:var(--muted,#a79d8e)}
+.ws-player-details[open]>summary{margin-bottom:10px}

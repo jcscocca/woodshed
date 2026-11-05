@@ -90,14 +90,14 @@ function ConceptReviewTask({ question, exercise, source, onLog, onClose }) {
     <header className="ws-player-heading"><div><span className="ws-player-eyebrow">Understanding check</span><h2 id={`${id}-title`}>Revisit one musical idea</h2></div>
       <button type="button" className="ws-player-button quiet" onClick={() => { stop(); onClose?.(); }}>Close understanding check</button>
     </header>
-    <p className="ws-player-summary">From {exercise.title}. This check records your understanding separately from your piano report. It adds no practice minutes or guided-block completion.</p>
+    <p className="ws-player-summary">From {exercise.title}.</p>
     {restored && <p className="ws-player-caption" role="status">Your unfinished answers have been restored.</p>}
     <KnowledgeChecks questions={[question]} initialAnswers={restored?.answers} initialResults={restored?.results} onAnswersChange={setAnswers} onResultsChange={receiveResults} onEdited={edited} onHear={hear} disabled={saving} />
     {playing && <button type="button" className="ws-player-button" onClick={stop}>■ Stop listening example</button>}
     {audioError && <p className="ws-player-error" role="alert">{audioError}</p>}
     <div className="ws-player-review"><button type="button" className="ws-player-button primary" disabled={saving || saved || !results.length || !onLog} onClick={save}>{saving ? "Saving…" : saved ? "Understanding check saved ✓" : "Save understanding check"}</button>
       {!results.length && <p className="ws-player-caption">Choose an answer and check it above before saving.</p>}
-      {saved && <p role="status" className="ws-player-saved">Understanding check saved separately from your piano practice.</p>}
+      {saved && <p role="status" className="ws-sr-only">Understanding check saved separately from your piano practice.</p>}
       {error && <p className="ws-player-error" role="alert">{error}</p>}
     </div>
   </article>;

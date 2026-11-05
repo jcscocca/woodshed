@@ -38,7 +38,7 @@ export function ListenPanel() {
   if (!l.listening)
     return (
       <div className="ws-listen-intro">
-        <p>Uses your microphone to show pitch. It works best on single, clearly-sounding notes — tuning a string, or a monophonic line. Chords are unreliable here.</p>
+        <p>Single notes only; chords won't read.</p>
         <button className="ws-btn primary" onClick={l.start}>Start listening</button>
       </div>
     );

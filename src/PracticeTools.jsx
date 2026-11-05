@@ -51,7 +51,7 @@ export default function PracticeTools({ hints = false, compact = false, mini = f
           </button>
           <button className="ws-round" disabled={locked} onClick={() => m.setBpm(Math.min(maxBpm, m.bpm + 1))} aria-label="Faster">+</button>
         </div>
-        {hints && <div className="ws-hint-keys"><kbd className="ws-kbd">Space</kbd> {activeLesson ? "play" : "start"} / stop · <kbd className="ws-kbd">← →</kbd> tempo</div>}
+        
         <div className="ws-metro-row2">
           <button className="ws-chip" disabled={locked} onClick={m.tap}>Tap tempo{hints && <kbd className="ws-kbd" aria-hidden="true">T</kbd>}</button>
           {activeLesson ? <span className="ws-stop-note">Lesson meter · {m.meterLabel || `${m.beatsPer} beats`}</span> : <div className="ws-sig">
@@ -69,7 +69,7 @@ export default function PracticeTools({ hints = false, compact = false, mini = f
           <button className="ws-btn ghost sm" onClick={() => setWatch(RESET_WATCH)}>Reset</button>
           {stopwatchExtra}
         </div>
-        {!compact && <p className="ws-stop-note">Time your session here, then enter the minutes when you log.</p>}
+        
       </div>
     </>
   );
