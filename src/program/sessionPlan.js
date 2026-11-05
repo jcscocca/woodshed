@@ -47,7 +47,7 @@ export function guidedSessionPlan(progress, session, reviewItems = [], { today =
   // review. Earlier review logs must not silently shorten that fresh visit.
   if (state.done) return original;
   const reviewDone = p.attempts.some((attempt) => (attempt.section === "review" || attempt.section === "transfer")
-    && attempt.reviewForSession === session.id && attempt.minutes > 0
+    && attempt.reviewForSession === session.id && (attempt.minutes > 0 || attempt.skipped)
     && validDay(attempt.date) && attempt.date <= today);
   // Preserve partial sessions that were started before integrated review,
   // including completion-only imports with no individual reports.

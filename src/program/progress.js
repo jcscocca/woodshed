@@ -56,6 +56,9 @@ function attempt(raw) {
   if (Array.isArray(raw.knowledgeResults)) out.knowledgeResults = normalizeKnowledge(raw.knowledgeResults);
   if (typeof raw.bpm === "number" && Number.isFinite(raw.bpm) && raw.bpm > 0 && raw.bpm <= 400) out.bpm = raw.bpm;
   if (HANDS.has(raw.hands)) out.hands = raw.hands === "RH" ? "R" : raw.hands === "LH" ? "L" : raw.hands;
+  // A skip carries no minutes, so it can complete a block but never counts as
+  // practice or review evidence, even in an older copy of the app.
+  if (raw.skipped === true && out.minutes === 0) out.skipped = true;
   // A return check records the first attempt separately from any repair that
   // follows. Old practice reports never acquire invented retention evidence.
   if (section === "review" || section === "transfer") {
@@ -166,7 +169,7 @@ export function removeAttempt(progress, index) {
 }
 
 function summary(attempts, placement = null) {
-  const practice = attempts.filter((a) => a.section !== "placement" && a.section !== "knowledge");
+  const practice = attempts.filter((a) => a.section !== "placement" && a.section !== "knowledge" && !a.skipped);
   // A fresh transfer example is practice of a related skill, not a new
   // readiness or passage claim about the original lesson.
   const sourceAttempts = attempts.filter((a) => a.section !== "transfer" && a.section !== "knowledge");
@@ -184,6 +187,7 @@ function summary(attempts, placement = null) {
     minutes: practice.reduce((n, a) => n + a.minutes, 0),
     placementMinutes: placements.reduce((n, a) => n + a.minutes, 0),
     status: lastAttempt?.assessment || placement || "new",
+    skipped: attempts.filter((a) => a.section !== "placement" && a.section !== "knowledge").at(-1)?.skipped === true,
     lastAttempt,
     lastPractised: lastPractice?.date || null,
     bpm: latestWith("bpm"),
@@ -211,7 +215,7 @@ export function sessionProgress(progress, session, { today = todayStr() } = {}) 
   const completedBlocks = sessionId && own(p.completedBlocks, sessionId) ? p.completedBlocks[sessionId].filter((i) => i < total) : [];
   const attempts = sessionId ? p.attempts.filter((a) => a.sessionId === sessionId && a.section !== "placement" && a.blockIndex < total) : [];
   const reviewAttempts = sessionId && total && date(today) ? p.attempts.filter((a) => a.reviewForSession === sessionId
-    && (a.section === "review" || a.section === "transfer") && a.minutes > 0 && a.date && a.date <= today) : [];
+    && (a.section === "review" || a.section === "transfer") && (a.minutes > 0 || a.skipped) && a.date && a.date <= today) : [];
   const nextBlock = Array.from({ length: total }, (_, i) => i).find((i) => !completedBlocks.includes(i)) ?? null;
   const uniqueBlocks = new Set(attempts.map((a) => a.blockIndex));
   return {
@@ -242,4 +246,17 @@ export function contextForExercise(progress, sessions, exerciseId) {
   const completed = new Set(sessionProgress(progress, session).completedBlocks);
   const index = session.blocks.findIndex((block, i) => block?.exerciseId === exerciseId && !completed.has(i));
   return index < 0 ? {} : { sessionId: session.id, blockIndex: index };
+}
+
+// "Too easy": complete the lesson (and its block, if any) without practice, and
+// keep it out of review until it is unskipped.
+export function skipLesson(progress, exercise, { sessionId, blockIndex, date: day } = {}) {
+  return recordAttempt(progress, { exerciseId: exercise.id, skillIds: exercise.skillIds, section: exercise.section, assessment: "ready", minutes: 0, skipped: true,
+    ...(sessionId ? { sessionId, blockIndex } : {}), ...(day ? { date: day } : {}) });
+}
+
+export function unskipLesson(progress, exerciseId) {
+  let next = normalizeProgress(progress);
+  for (let i = next.attempts.length - 1; i >= 0; i--) if (next.attempts[i].exerciseId === exerciseId && next.attempts[i].skipped) next = removeAttempt(next, i);
+  return next;
 }

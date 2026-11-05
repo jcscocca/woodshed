@@ -31,7 +31,7 @@ export function makeReviewVisit(due, { today = todayStr(), id = `review-visit:${
 export function reviewVisitProgress(progress, visit, { today = todayStr() } = {}) {
   if (!validVisit(visit) || !validDay(today)) return { completed: [], nextIndex: -1, done: false };
   const attempts = normalizeProgress(progress).attempts.filter((attempt) => attempt.section === "review"
-    && attempt.reviewVisitId === visit.id && attempt.minutes > 0 && validDay(attempt.date) && attempt.date <= today
+    && attempt.reviewVisitId === visit.id && (attempt.minutes > 0 || attempt.skipped) && validDay(attempt.date) && attempt.date <= today
     && visit.exerciseIds[attempt.reviewVisitIndex] === attempt.exerciseId);
   const completed = [...new Set(attempts.map((attempt) => attempt.reviewVisitIndex))];
   const nextIndex = visit.exerciseIds.findIndex((_, index) => !completed.includes(index));

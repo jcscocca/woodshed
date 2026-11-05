@@ -7,7 +7,7 @@ const savedContext = (progress, session) => {
   if (progress.completedBlocks[session.id]?.some((index) => index < count)) return true;
   return progress.attempts.some((attempt) => attempt.sessionId === session.id
     && Number.isInteger(attempt.blockIndex) && attempt.blockIndex < count
-    || attempt.reviewForSession === session.id && attempt.minutes > 0);
+    || attempt.reviewForSession === session.id && (attempt.minutes > 0 || attempt.skipped));
 };
 const complete = (progress, session) => Array.isArray(session.blocks) && session.blocks.length > 0
   && session.blocks.every((_, index) => progress.completedBlocks[session.id]?.includes(index));
