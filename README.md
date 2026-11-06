@@ -160,7 +160,7 @@ a piano block, advance its spacing, or add a piano practice day.
 
 ## Optional tools and material limits
 
-Catalogue is a shelf of sheet music: the course's 24 pieces grouped by unit,
+Catalogue is a shelf of sheet music: the course's 27 pieces grouped by unit,
 ten repertoire pieces with full scores (Petzold, Schumann, Burgmüller, Clementi
 and two lead sheets) and six outside scores and books. Every in-app piece opens
 regardless of the current unit, and a filter narrows the shelf by difficulty.

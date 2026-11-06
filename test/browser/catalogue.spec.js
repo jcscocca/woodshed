@@ -13,11 +13,11 @@ test("the catalogue is a shelf of music, grouped course, repertoire, outside", a
     "C major · Unit 1 · you're here", "G major · Unit 2", "F major · Unit 3", "A minor · Unit 4",
     "D major · Unit 5", "A major · Unit 6", "E major · Unit 7", "Musicianship · Unit 8",
   ]);
-  await expect(group(page, "Course pieces").locator(".pg-shelf-item")).toHaveCount(24);
+  await expect(group(page, "Course pieces").locator(".pg-shelf-item")).toHaveCount(27);
   await expect(group(page, "Repertoire").locator(".pg-shelf-item")).toHaveCount(10);
   await expect(group(page, "Outside Woodshed").getByRole("link")).toHaveCount(6);
   await expect(group(page, "Outside Woodshed").getByRole("link", { name: /Gymnopédie No\. 1.*opens in a new tab/ })).toHaveAttribute("target", "_blank");
-  await expect(page.locator(".pg-shelf-item.is-here")).toHaveCount(3);
+  await expect(page.locator(".pg-shelf-item.is-here")).toHaveCount(6);
   await expect(page.getByText("Hear and speak rhythm", { exact: false })).toHaveCount(0);
   await expect(page.getByRole("button", { name: /C major scale/i })).toHaveCount(0);
 });
@@ -35,7 +35,7 @@ test("filters narrow the shelf and say so when nothing matches", async ({ page }
   await expect(page.getByText("No pieces match.", { exact: true })).toBeVisible();
   await difficulty.getByRole("button", { name: "All", exact: true }).click();
   await shelf.getByRole("button", { name: "All", exact: true }).click();
-  await expect(page.locator(".pg-shelf-item")).toHaveCount(40);
+  await expect(page.locator(".pg-shelf-item")).toHaveCount(43);
 });
 
 test("list view is remembered and works when storage is blocked", async ({ page }) => {
