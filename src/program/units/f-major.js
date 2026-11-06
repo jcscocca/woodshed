@@ -273,8 +273,3 @@ export const SESSIONS = [
   { id: "f3-d5-a", unitId: UNIT.id, day: 5, slot: "A", title: "Two turns, one shared pulse", focus: "Try an unfamiliar reading, apply the RH turn in a phrase, and join only a comfortable hands-together scale chunk.", blocks: [{ exerciseId: "f3-read-fresh", minutes: 3 }, { exerciseId: "f3-rhythm-pulse", minutes: 3 }, { exerciseId: "f3-scale-turn-application", minutes: 4 }, { exerciseId: "f3-scale-octave-both", minutes: 6 }, { exerciseId: "f3-coord-held-bass", minutes: 4 }] },
   { id: "f3-d5-b", unitId: UNIT.id, day: 5, slot: "B", title: "A musical goal to keep", focus: "Refine the rolling accompaniment, choose a four- or eight-bar performance, and finish with your own ending and a return to this morning's reading.", blocks: [{ exerciseId: "f3-chord-ballad", minutes: 4 }, { exerciseId: "f3-music-paper-boats", minutes: 8 }, { exerciseId: "f3-create-ending", minutes: 4 }, { exerciseId: "f3-read-fresh", minutes: 4, goal: "Recall and read this morning's example before the model. Listen afterward for the one repair you chose; the example is now familiar." }] },
 ];
-
-export const CATALOGUE = [
-  ...EXERCISES.filter((e) => e.section === "chords" || e.section === "scales").map((e) => ({ id: `catalogue-${e.id}`, unitId: UNIT.id, title: e.title, description: e.summary, exerciseId: e.id, kind: "built-in", skills: [...e.skillIds] })),
-  ...EXERCISES.filter((e) => e.id.startsWith("f3-music-")).map((e) => ({ id: `catalogue-${e.id}`, unitId: UNIT.id, title: e.title, description: e.summary, exerciseId: e.id, kind: "built-in", skills: [...e.skillIds], ...(e.id === "f3-music-field-lanterns" ? { substitutesFor: ["f3-music-harbor-light"] } : {}) })),
-];

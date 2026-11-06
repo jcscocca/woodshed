@@ -1,13 +1,12 @@
 // Key-based piano units. Existing C-major exercise/session IDs stay stable so
 // adding the G/F lessons preserves saved attempts and completed blocks.
-import { UNIT as G_MAJOR, EXERCISES as G_EXERCISES, SESSIONS as G_SESSIONS, CATALOGUE as G_CATALOGUE } from "./units/g-major.js";
-import { UNIT as F_MAJOR, EXERCISES as F_EXERCISES, SESSIONS as F_SESSIONS, CATALOGUE as F_CATALOGUE } from "./units/f-major.js";
-import { UNIT as A_MINOR, EXERCISES as A_EXERCISES, SESSIONS as A_SESSIONS, CATALOGUE as A_CATALOGUE } from "./units/a-minor.js";
-import { UNIT as D_MAJOR, EXERCISES as D_EXERCISES, SESSIONS as D_SESSIONS, CATALOGUE as D_CATALOGUE } from "./units/d-major.js";
-import { UNIT as A_MAJOR, EXERCISES as AM_EXERCISES, SESSIONS as AM_SESSIONS, CATALOGUE as AM_CATALOGUE } from "./units/a-major.js";
-import { UNIT as E_MAJOR, EXERCISES as E_EXERCISES, SESSIONS as E_SESSIONS, CATALOGUE as E_CATALOGUE } from "./units/e-major.js";
-import { UNIT as MUSICIANSHIP, EXERCISES as M_EXERCISES, SESSIONS as M_SESSIONS, CATALOGUE as M_CATALOGUE } from "./units/musicianship.js";
-import { EXTERNAL_MUSIC } from "./guides.js";
+import { UNIT as G_MAJOR, EXERCISES as G_EXERCISES, SESSIONS as G_SESSIONS } from "./units/g-major.js";
+import { UNIT as F_MAJOR, EXERCISES as F_EXERCISES, SESSIONS as F_SESSIONS } from "./units/f-major.js";
+import { UNIT as A_MINOR, EXERCISES as A_EXERCISES, SESSIONS as A_SESSIONS } from "./units/a-minor.js";
+import { UNIT as D_MAJOR, EXERCISES as D_EXERCISES, SESSIONS as D_SESSIONS } from "./units/d-major.js";
+import { UNIT as A_MAJOR, EXERCISES as AM_EXERCISES, SESSIONS as AM_SESSIONS } from "./units/a-major.js";
+import { UNIT as E_MAJOR, EXERCISES as E_EXERCISES, SESSIONS as E_SESSIONS } from "./units/e-major.js";
+import { UNIT as MUSICIANSHIP, EXERCISES as M_EXERCISES, SESSIONS as M_SESSIONS } from "./units/musicianship.js";
 import { SCALE_EXERCISES } from "./scales.js";
 import { INTEGRATED_EXERCISES, integrateMusicSessions, integrateMusicExercises } from "./musicIntegration.js";
 import { resolveSessionVersions } from "./sessionVersions.js";
@@ -362,15 +361,6 @@ const C_SESSIONS = [
 
 export const PLACEMENT = ["place-pulse", "place-reading", "place-coordination"];
 
-const C_CATALOGUE = [
-  ...C_EXERCISES.filter((e) => e.section === "chords" || e.section === "scales").map((e) => ({ id: `catalogue-${e.id}`, title: e.title, description: e.summary, exerciseId: e.id, kind: "built-in", skills: [...e.skillIds] })),
-  { id: "catalogue-night-windows", title: "Night windows", description: "A spacious original study: half-note melody, whole-note bass, C five-finger range.", exerciseId: "music-night-windows", kind: "built-in", skills: ["held-bass", "half-note-melody", "pulse"] },
-  { id: "catalogue-evening-signals", title: "Evening signals — an alternate first study", description: "A different tune with the same range, rhythm, bass and practice goal as Night windows. Use it in place of that block when you want a change of scene.", exerciseId: "music-evening-signals", substitutesFor: ["music-night-windows"], kind: "built-in", skills: ["held-bass", "half-note-melody", "pulse"] },
-  { id: "catalogue-ode-opening", title: "Ode to Joy: opening", description: "A four-bar public-domain melody with an original held-bass accompaniment; includes a dotted-quarter figure.", exerciseId: "music-ode-opening", kind: "built-in", skills: ["repertoire-reading", "dotted-rhythm", "held-bass"] },
-  { id: "catalogue-rhythm-reference", title: "Hear and speak rhythm: Takadimi", description: "Optional guidance from the system's authors on hearing, speaking and moving to a beat. Woodshed's lessons use metric counting; a syllable system is an optional aid.", url: "https://www.takadimi.net/teachingWithTakadimi.html", kind: "external", skills: ["pulse", "eighth-subdivision"] },
-  { id: "catalogue-ledger-reference", title: "Ledger notes and a family of Cs", description: "Optional Faber teacher guidance on C landmarks and expanded reading. This is reference material, not a required book purchase or a replacement for your chosen method.", url: "https://pianoadventures.com/piano-books/accelerated-piano-adventures/level-2/accelerated-2-qa/", kind: "external", skills: ["ledger-landmarks", "staff-reading"] },
-];
-
 export const UNITS = [COURSE, G_MAJOR, F_MAJOR, A_MINOR, D_MAJOR, A_MAJOR, E_MAJOR, MUSICIANSHIP];
 export const EXERCISES = [...integrateMusicExercises([...C_EXERCISES, ...G_EXERCISES, ...F_EXERCISES, ...A_EXERCISES, ...D_EXERCISES, ...AM_EXERCISES, ...E_EXERCISES, ...M_EXERCISES]), ...INTEGRATED_EXERCISES, ...SCALE_EXERCISES];
 // The guided course is still eight units and eighty visits. Revised visits
@@ -379,19 +369,6 @@ export const LEGACY_SESSIONS = [...C_SESSIONS, ...G_SESSIONS, ...F_SESSIONS, ...
 export const SESSIONS = integrateMusicSessions(LEGACY_SESSIONS, EXERCISES);
 export const ALL_SESSIONS = [...new Map([...ARCHIVED_SESSIONS, ...LEGACY_SESSIONS, ...SESSIONS].map((session) => [session.id, session])).values()];
 export const HISTORY_EXERCISES = [...EXERCISES, ...ARCHIVED_EXERCISES];
-export const CATALOGUE = [
-  ...C_CATALOGUE.map((entry) => entry.kind === "external" ? entry : { ...entry, unitId: COURSE.id }),
-  ...G_CATALOGUE,
-  ...F_CATALOGUE,
-  ...A_CATALOGUE,
-  ...D_CATALOGUE,
-  ...AM_CATALOGUE,
-  ...E_CATALOGUE,
-  ...M_CATALOGUE,
-  ...INTEGRATED_EXERCISES.map((exercise) => ({ id: `catalogue-${exercise.id}`, unitId: exercise.unitId, title: exercise.title, description: exercise.summary, exerciseId: exercise.id, kind: "built-in", skills: [...exercise.skillIds] })),
-  ...SCALE_EXERCISES.map((exercise) => ({ id: `catalogue-${exercise.id}`, unitId: exercise.unitId, title: exercise.title, description: exercise.summary, exerciseId: exercise.id, kind: "built-in", skills: [...exercise.skillIds] })),
-  ...EXTERNAL_MUSIC,
-];
 
 export const sessionsForUnit = (unitId, progress) => resolveSessionVersions(progress,
   SESSIONS.filter((session) => session.unitId === unitId),
