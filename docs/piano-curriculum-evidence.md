@@ -57,18 +57,26 @@ The A-major unit's complete original Two Rooms, E-major twelve-bar Switchyard
 Blues, and the final unit's complete AB/ABA works supply contrasting full-form
 goals without attaching famous titles to unrelated original music.
 
+## Repertoire scores from Mutopia
+
+Three earlier outside candidates are now complete in-app scores on the Pieces
+track. Each was transcribed from the edition's LilyPond source and checked bar by
+bar against the edition's own MIDI (`test/fixtures/pieces`, enforced by
+`test/pieces.test.mjs`), then read against the rendered PDF.
+
+| Material | Edition | What the score keeps and changes |
+|---|---|---|
+| [Bach, Prelude in C, BWV 846, Mutopia 5](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=5) | Public domain; printed source given as unknown; typeset by Shay Rojansky, Han-Wen Nienhuys and Tobias Erbsland. 35 bars. | Every note and both held left-hand voices, on the bass staff as printed. The right hand's bass clef in bar 33 is kept. The final rolled chord and fermatas are kept as marks; playback strikes the chord together. No dynamics in the source. |
+| [Satie, Gymnopédie No. 1, Mutopia 37](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=37) | Public domain; Dover reprint of the 1888 original; typeset by Evin Robertson. | The edition folds Satie's written-out second pass into a repeat with two endings. The app can't play repeats, so the score writes it out again, 78 bars, as Satie printed it. Left-hand chords move between the staves as in the edition (treble staff, bass staff for bars 19–31 and 58–70). Dynamics, hairpins and slurs are left out. "Lent et douloureux" appears in the summary, not on the page. |
+| [Tchaikovsky, Old French Song, Op. 39 No. 16, Mutopia 2080](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=2080) | Public domain; Schirmer 1904; typeset by David McNamara. 32 bars plus an eighth-note pickup. | The pickup is padded into a full first bar, so app bar numbers run one ahead of the print. The right hand's short lower voice in printed bars 31–32 is folded into chords; its D shows as a dotted eighth and is held under the G. Both left-hand voices are kept. Staccato is kept; dynamics, the espressivo swells and slurs are left out. |
+
+The left hand's inner voices need more than one voice per staff. The authoring
+conventions in `docs/superpowers/specs/2026-09-26-notation-pieces-design.md`
+now allow that: every voice after the first is the left hand's, and two
+left-hand voices striking one pitch together grade as one key.
+
 ## Examined alternatives and decisions
 
-- [Bach BWV 846, Mutopia 5](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=5):
-  opening four bars are a promising later harmonic cycle. The held LH voices and
-  RH sixteenth entry require preparation; this is an external candidate, not an
-  implemented course lesson. The edition lists its printed source as unknown.
-- [Tchaikovsky Old French Song, Mutopia 2080](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=2080):
-  the first statement adds G-minor/two-flat reading, moving LH inner voice,
-  sixteenths and a double-dotted figure. Deferred until those demands are taught.
-- [Satie Gymnopédie 1, Mutopia 37](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=37):
-  bars 5–12 add bass/chord travel, high A5 and long ties. Slow tempo does not make
-  this an immediate easy next piece; keep it as a later stretch or labeled arrangement.
 - [Star Wars for Beginning Piano Solo, publisher samples](https://www.halleonard.com/viewcloserlook.action?itemId=00110287&name=star-wars-for-beginning-piano-solostar-wars-for-beginning-piano-solo):
   Cantina Band, printed p.7, was visually examined. Held-note bass keeps one
   layer simple, while ties, rests, detached notes and chromatic accidentals make

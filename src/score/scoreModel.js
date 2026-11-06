@@ -3,7 +3,7 @@
 const round = (x) => Math.round(x * 1000) / 1000;
 
 // The music in time as written (repeats once): every note and rest of every voice with
-// its beat, hand (voice 1 right, voice 2 left; one voice by its clef) and bar. Tuplets
+// its beat, hand (voice 1 right, every other voice left; one voice by its clef) and bar. Tuplets
 // scale their notes; spacers and grace notes take no time. The stage maps its drawn
 // notes with this same walk. Returns the beat where the music ends.
 export function walkTune(tune, visit) {
@@ -78,7 +78,12 @@ export function parseScore(abc, abcjs) {
     // A written finger number (!1!..!5!) belongs to a single note; a chord symbol names the attack.
     const finger = el.midiPitches?.length === 1 && el.decoration?.find((d) => /^[1-5]$/.test(d));
     const chord = el.chord?.find((c) => c.position === "default")?.name;
-    for (const p of el.midiPitches || []) notes.push({ midi: p.pitch, beat, dur: round(p.duration * 4 * (el.gracenotes ? 2 : 1)), bar, hand, ...(finger && { finger: Number(finger) }), ...(chord && { chord }) });
+    for (const p of el.midiPitches || []) {
+      // Two voices of one hand striking the same pitch together are one key.
+      const same = notes.find((n) => n.beat === beat && n.midi === p.pitch && n.hand === hand);
+      if (same) { same.dur = Math.max(same.dur, round(p.duration * 4)); continue; }
+      notes.push({ midi: p.pitch, beat, dur: round(p.duration * 4 * (el.gracenotes ? 2 : 1)), bar, hand, ...(finger && { finger: Number(finger) }), ...(chord && { chord }) });
+    }
   });
   notes.sort((a, b) => a.beat - b.beat || a.midi - b.midi);
   let onset = -1, last = null;
