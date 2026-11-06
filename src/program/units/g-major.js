@@ -280,11 +280,3 @@ export const SESSIONS = [
   session({ id: "g2-d5-a", day: 5, slot: "A", title: "Choose the rhythm before the notes", focus: "Review dots, ties and rests, try fresh reading, and join a modest dotted melody to the bass.", blocks: [{ exerciseId: "g-rhythm-mix", minutes: 4 }, { exerciseId: "g-read-fresh", minutes: 4 }, { exerciseId: "g-coord-final", minutes: 7 }, { exerciseId: "g-scale-both", minutes: 5 }] }),
   session({ id: "g2-d5-b", day: 5, slot: "B", title: "Make the return home yours", focus: "Keep the G-major loop alive, perform a short section of Homeward, and create your own ending.", blocks: [{ exerciseId: "g-chords-four-loop", minutes: 5 }, { exerciseId: "g-music-homeward", minutes: 8 }, { exerciseId: "g-create-ending", minutes: 4 }, { exerciseId: "g-read-fresh", minutes: 3, goal: "Return to this morning's reading before playback. Check the repair you chose; this is retrieval, rather than a new sight-read." }] }),
 ];
-
-export const CATALOGUE = EXERCISES
-  .filter((e) => e.section === "scales" || e.section === "chords" || e.id.startsWith("g-music-"))
-  .map((e) => ({
-    id: `catalogue-${e.id}`, unitId: UNIT.id, title: e.title, description: e.summary,
-    exerciseId: e.id, kind: "built-in", skills: [...e.skillIds],
-    ...(e.id === "g-music-blue-hour" ? { substitutesFor: ["g-music-northern-lights"] } : {}),
-  }));

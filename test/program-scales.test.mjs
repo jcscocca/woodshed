@@ -31,7 +31,7 @@ test("the continuing route covers all twelve majors at both ranges and every han
   }
 });
 
-test("every new lesson is reachable once in a paced stage and participates in the shared catalogue", () => {
+test("every new lesson is reachable once in a paced stage and is in the shared exercise list", () => {
   const routed = SCALE_STAGES.flatMap(s => s.exerciseIds);
   assert.equal(new Set(routed).size, routed.length, "duplicate lesson routes");
   assert.deepEqual([...routed].sort(), SCALE_EXERCISES.map(e=>e.id).sort());

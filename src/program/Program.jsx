@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
-import { COURSE, UNITS, SESSIONS, ALL_SESSIONS, EXERCISES, HISTORY_EXERCISES, PLACEMENT, CATALOGUE, sessionsForUnit } from "./curriculum.js";
+import Shelf from "./Shelf.jsx";
+import { COURSE, UNITS, SESSIONS, ALL_SESSIONS, EXERCISES, HISTORY_EXERCISES, PLACEMENT, sessionsForUnit } from "./curriculum.js";
 import { normalizeProgress, recordAttempt, exerciseProgress, sessionProgress, nextSession, editAttempt, removeAttempt, skipLesson, unskipLesson } from "./progress.js";
 import PracticePlayer from "./PracticePlayer.jsx";
 import { guideForUnit } from "./guides.js";
@@ -21,7 +22,6 @@ const BY_ID = () => Object.fromEntries(HISTORY_EXERCISES.map((e) => [e.id, e]));
 const runnableSession = (id) => ALL_SESSIONS.find((session) => session.id === id && Array.isArray(session.blocks));
 const LABELS = { new: "New", ready: "Ready", practising: "Still practising", unsure: "Revisit with the demo" };
 const TECHNIQUE_SCOPE = { chunk: "crossing or short chunk", ascent: "complete ascent", "round-trip": "complete up-and-down route" };
-const SAFE_URL = (url) => /^https?:\/\//i.test(url || "") ? url : undefined;
 const PLACEMENT_SUPPORT = { "place-pulse": "rhythm-long-short", "place-reading": "read-family-c", "place-coordination": "coord-held-bass" };
 const scalePreference = (name, fallback) => {
   try { return sessionStorage.getItem(`woodshed:scales:${name}:v1`) || fallback; } catch { return fallback; }
@@ -133,7 +133,7 @@ export function ProgramProgress({ progress, onChangeProgress }) {
   </section>;
 }
 
-export default function Program({ section, progress, onAttempt, onLegacyView, unitId = COURSE.id, onUnitChange, onChangeProgress }) {
+export default function Program({ section, progress, onAttempt, onLegacyView, onOpenPiece, unitId = COURSE.id, onUnitChange, onChangeProgress }) {
   const p = normalizeProgress(progress), byId = BY_ID();
   const unit = UNITS.find((candidate) => candidate.id === unitId) || COURSE;
   const unitSessions = sessionsForUnit(unit.id, p);
@@ -339,7 +339,7 @@ export default function Program({ section, progress, onAttempt, onLegacyView, un
       <header className="pg-hero"><h1>Scales</h1></header>
       <div className="pg-actions pg-scale-views" role="group" aria-label="Scale collections"><button className={`ws-btn ${scaleView === "unit" ? "primary" : "ghost"} sm`} aria-pressed={scaleView === "unit"} onClick={() => changeScaleView("unit")}>Unit scales</button><button className={`ws-btn ${scaleView === "reference" ? "primary" : "ghost"} sm`} aria-pressed={scaleView === "reference"} onClick={() => changeScaleView("reference")}>All-key reference</button></div>
     </>}
-    {(section !== "scales" || scaleView === "unit") && <UnitPicker unitId={unit.id} onChange={changeUnit} />}
+    {(section === "guided" || section === "chords" || (section === "scales" && scaleView === "unit")) && <UnitPicker unitId={unit.id} onChange={changeUnit} />}
     {section === "guided" && <>
       <header className="pg-hero"><div className="pg-eyebrow">{`Unit ${unit.number}`}</div><h1>{unit.title}</h1><p>{unit.description}</p>
         <div className="pg-pills"><span>{unit.key}</span><span>{unit.daysPerWeek} days · 2 × 20 min</span></div>
@@ -404,20 +404,8 @@ export default function Program({ section, progress, onAttempt, onLegacyView, un
     {section === "scales" && (scaleView === "reference"
       ? <ScalePath progress={p} stageId={scaleStageId} onStageChange={changeScaleStage} keyFilter={scaleKey} onKeyChange={changeScaleKey} preferredKey={unit.key} onOpen={open} reviews={scaleReviews} onOpenReview={(item) => openReview(item, {}, false)} onUnskip={(e) => change(unskipLesson(p, e.id), `Unskipped: ${e.title}.`)} />
       : <section aria-label="Unit scales"><h2>{unit.key} scales</h2><div className="pg-exercises">{EXERCISES.filter((exercise) => (exercise.unitId === unit.id || unitExerciseIds.has(exercise.id)) && exercise.section === "scales").map((exercise) => <ExerciseCard key={exercise.id} exercise={exercise} progress={p} onOpen={() => open(exercise.id)} onUnskip={() => change(unskipLesson(p, exercise.id), `Unskipped: ${exercise.title}.`)} />)}</div></section>)}
-    {section === "catalogue" && <>
-      <header className="pg-hero"><h1>Catalogue</h1></header>
-      <div className="pg-exercises">{CATALOGUE.filter((c) => (c.kind === "external" && !c.unitId) || (c.unitId || byId[c.exerciseId]?.unitId) === unit.id).map((c) => {
-        const ex = byId[c.exerciseId];
-        const state = next && sessionProgress(p, next);
-        const substitute = next?.blocks.findIndex((b, i) => !state.completedBlocks.includes(i) && c.substitutesFor?.includes(b.exerciseId));
-        return <article className="pg-card" key={c.id}><div className="pg-eyebrow">{c.kind === "external" ? "External resource" : "Built-in music"}</div><h3>{c.title}</h3><p>{c.description}</p>
-          {ex && <button className="ws-btn ghost sm" onClick={() => open(ex.id)}>Practise this music</button>}
-          {ex && substitute >= 0 && <button className="ws-btn ghost sm" onClick={() => open(ex.id, { sessionId: next.id, blockIndex: substitute })}>Use in current guided session</button>}
-          {SAFE_URL(c.url) && <a className="pg-link" href={SAFE_URL(c.url)} target="_blank" rel="noreferrer">Visit resource ↗</a>}
-        </article>;
-      })}</div>
-      <section className="pg-placement"><div><h2>Existing piano repertoire and tools</h2></div><div className="pg-actions"><button className="ws-btn ghost sm" onClick={() => onLegacyView("tracks")}>Browse repertoire tracks</button><button className="ws-btn ghost sm" onClick={() => onLegacyView("library")}>Open exercise library</button></div></section>
-      <p className="pg-muted">These tools need a MIDI keyboard.</p>
-    </>}
+    {section === "catalogue" && <Shelf unitId={unit.id} onOpen={open} onOpenPiece={onOpenPiece} onLegacyView={onLegacyView}
+      substituteBlock={(entry) => next ? next.blocks.findIndex((b, i) => !sessionProgress(p, next).completedBlocks.includes(i) && entry.substitutesFor.includes(b.exerciseId)) : -1}
+      onUseInSession={(exerciseId, blockIndex) => open(exerciseId, { sessionId: next.id, blockIndex })} />}
   </div>;
 }

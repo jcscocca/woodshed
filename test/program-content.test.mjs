@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import abcjs from "abcjs";
-import { COURSE, UNITS, EXERCISES, SESSIONS, LEGACY_SESSIONS, PLACEMENT, CATALOGUE } from "../src/program/curriculum.js";
+import { COURSE, UNITS, EXERCISES, SESSIONS, LEGACY_SESSIONS, PLACEMENT } from "../src/program/curriculum.js";
+import { SHELF } from "../src/program/shelf.js";
 import { parseScore } from "../src/score/scoreModel.js";
 import { guideForUnit } from "../src/program/guides.js";
 import { SCALE_TRACK, SCALE_STAGES } from "../src/program/scales.js";
@@ -152,7 +153,7 @@ test("chord and scale lessons belong to guided practice or the continuing scales
     const used = new Set([...SESSIONS,...LEGACY_SESSIONS].filter((s) => s.unitId === e.unitId).flatMap((s) => s.blocks.map((b) => b.exerciseId)));
     const routed = e.trackId === SCALE_TRACK.id && SCALE_STAGES.some((stage) => stage.exerciseIds.includes(e.id));
     assert.ok(used.has(e.id) || routed, `${e.id} has no guided session or continuing scales route`);
-    assert.ok(CATALOGUE.some((c) => c.exerciseId === e.id && c.kind === "built-in"), `${e.id}: missing catalogue entry`);
+    assert.ok(UNITS.some((u) => u.id === e.unitId) || e.unitId === SCALE_TRACK.id, `${e.id}: not shown on a Chords or Scales tab`);
   }
 });
 
@@ -215,14 +216,8 @@ test("new-key dominant seventh examples sound their stated full two-hand harmoni
 });
 
 test("curated alternatives explicitly match the target exercise's goal and difficulty", () => {
-  assert.equal(new Set(CATALOGUE.map((c) => c.id)).size, CATALOGUE.length);
-  const substitutions = CATALOGUE.filter((c) => c.substitutesFor);
+  const substitutions = SHELF.filter((c) => c.substitutesFor);
   assert.ok(substitutions.length >= 1);
-  for (const c of CATALOGUE) {
-    assert.ok(["built-in", "external"].includes(c.kind));
-    if (c.kind === "built-in") assert.ok(byId.has(c.exerciseId), c.id);
-    else assert.ok(/^https:\/\//.test(c.url), c.id);
-  }
   for (const c of substitutions) {
     const alt = byId.get(c.exerciseId);
     for (const id of c.substitutesFor) {
@@ -230,7 +225,6 @@ test("curated alternatives explicitly match the target exercise's goal and diffi
       assert.ok(target && target !== alt, `${c.id}: invalid substitution target`);
       assert.equal(alt.unitId, target.unitId, `${c.id}: substitution changes the unit's key`);
       assert.deepEqual([...alt.skillIds].sort(), [...target.skillIds].sort(), `${c.id}: different learning goal`);
-      assert.deepEqual([...c.skills].sort(), [...target.skillIds].sort());
       assert.equal(alt.hands, target.hands);
       assert.equal(alt.bpm, target.bpm);
       assert.equal(alt.targetBpm, target.targetBpm);

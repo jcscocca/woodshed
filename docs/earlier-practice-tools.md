@@ -5,9 +5,9 @@ library, MIDI scoring and song tools. They are optional alongside the guided
 piano course and retain their own progress/grading rules. They do not change the
 course's learner-reported readiness into a measured piano score.
 
-Open **Catalogue → Browse repertoire tracks** for the earlier tracks, or
-**Catalogue → Open exercise library** for individual exercises, the sight-reading
-drill and Your song. Use **Back to catalogue** to return. References below to
+At the bottom of Catalogue, under **Older practice tools**, open **Browse
+repertoire tracks** for the earlier tracks, or **Open exercise library** for
+individual exercises, the sight-reading drill and Your song. Use **Back to catalogue** to return. References below to
 Library or tracks mean these embedded earlier views; there is no separate Today
 page in the current primary navigation.
 
@@ -44,8 +44,8 @@ Guitar mic coaching and guitar Echo remain disabled behind `COACH_ENABLED`.
 
 ## Reading and playing an earlier score
 
-Open a scored piece, pop stage or sight-reading drill from Catalogue's earlier
-views. On desktop it uses the main pane as a grand staff, with the rail holding
+Open a scored piece from Catalogue's Repertoire shelf, or a pop stage or
+sight-reading drill from Catalogue's earlier views. On desktop it uses the main pane as a grand staff, with the rail holding
 its controls. A temporary **Score** navigation entry (**6**) returns to it.
 
 1. Choose a section preset such as **A**, **B** or **all**, or click a note in a

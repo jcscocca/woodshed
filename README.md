@@ -160,9 +160,12 @@ a piano block, advance its spacing, or add a piano practice day.
 
 ## Optional tools and material limits
 
-Catalogue includes optional resources and built-in alternatives for some guided
-goals. Commercial repertoire links are external resources; the core does not
-require buying or leaving the app. Named classical material is explicitly
+Catalogue is a shelf of sheet music: the course's 24 pieces grouped by unit,
+ten repertoire pieces with full scores (Petzold, Schumann, Burgmüller, Clementi
+and two lead sheets) and six outside scores and books. Every in-app piece opens
+regardless of the current unit, and a filter narrows the shelf by difficulty.
+Drills live under Chords and Scales. Commercial repertoire links are external
+resources; the core does not require buying or leaving the app. Named classical material is explicitly
 identified as an excerpt or arrangement, with source and edition notes.
 
 - [Curriculum/source review](docs/piano-curriculum-evidence.md) records inspected
@@ -170,7 +173,7 @@ identified as an excerpt or arrangement, with source and edition notes.
 - [Topic coverage](docs/piano-topic-coverage.md) maps 29 benchmark areas to concrete
   lessons. Coverage does not establish an exam level or teaching effectiveness.
 - Earlier repertoire tracks, exercise editing, chord charts, Your song and
-  sight-reading remain in Catalogue. Their piano MIDI tools retain their own
+  sight-reading remain under Catalogue's **Older practice tools**. Their piano MIDI tools retain their own
   grading and progress model; guided lessons do not require this hardware.
   See the [earlier practice tools reference](docs/earlier-practice-tools.md) for
   connection, score, chart/song, editing and keyboard instructions.
