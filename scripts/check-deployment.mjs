@@ -60,6 +60,7 @@ try {
   evidence.checks.settingsVersion = true;
   await page.getByRole("button", { name: "Close", exact: true }).click();
   await page.getByRole("button", { name: "Start 20-minute session", exact: true }).click();
+  await page.locator("summary", { hasText: "Add details" }).click();
   await page.getByRole("spinbutton", { name: "Minutes practised", exact: true }).fill("1");
   await page.getByRole("textbox", { name: "One thing to try next time", exact: true }).fill(evidence.fixture.note);
   await page.getByRole("button", { name: "Save practice", exact: true }).click();
