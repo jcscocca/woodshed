@@ -3,7 +3,7 @@
 // Levels were set by reading each score; they filter but are never shown.
 import { EXTERNAL_MUSIC } from "./guides.js";
 
-export const LEVELS = ["Easier", "Middle", "Harder"];
+export const LEVELS = ["Easier", "Middle", "Harder", "Hardest"];
 export const SHELF_GROUPS = [{ id: "course", label: "Course pieces" }, { id: "repertoire", label: "Repertoire" }, { id: "outside", label: "Outside Woodshed" }];
 
 const course = (exerciseId, title, who, level, extra = {}) => ({ id: `shelf-${exerciseId}`, group: "course", exerciseId, title, who, level, ...extra });
@@ -48,9 +48,9 @@ export const SHELF = [
   repertoire("pcs-la-candeur", "La Candeur", "Burgmüller", "Harder"),
   repertoire("pcs-clementi-36-1", "Sonatina in C, first movement", "Clementi", "Harder"),
   repertoire("pcs-arabesque", "Arabesque", "Burgmüller", "Harder"),
-  repertoire("pcs-bach-prelude-c", "Prelude in C", "Bach · Mutopia", "Harder"),
+  repertoire("pcs-bach-prelude-c", "Prelude in C", "Bach · Mutopia", "Hardest"),
   repertoire("pcs-old-french-song", "Old French Song", "Tchaikovsky · Mutopia", "Harder"),
-  repertoire("pcs-gymnopedie-1", "Gymnopédie No. 1", "Satie · Mutopia", "Harder"),
+  repertoire("pcs-gymnopedie-1", "Gymnopédie No. 1", "Satie · Mutopia", "Hardest"),
   outside("external-star-wars-beginning", "Star Wars for Beginning Piano", "Hal Leonard book", "Middle"),
   outside("external-disney-simple", "Simple Disney Songs", "Hal Leonard book", "Harder"),
   outside("external-ghibli-entry", "Studio Ghibli Favorites for Beginners 2", "Yamaha book", "Middle"),
