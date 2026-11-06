@@ -28,7 +28,10 @@ test("filters narrow the shelf and say so when nothing matches", async ({ page }
   const difficulty = page.getByRole("group", { name: "Difficulty" }), shelf = page.getByRole("group", { name: "Shelf" });
   await difficulty.getByRole("button", { name: "Harder", exact: true }).click();
   await expect(group(page, "Course pieces")).toHaveCount(0);
-  await expect(group(page, "Repertoire").locator(".pg-shelf-item")).toHaveCount(11);
+  await expect(group(page, "Repertoire").locator(".pg-shelf-item")).toHaveCount(9);
+  await difficulty.getByRole("button", { name: "Hardest", exact: true }).click();
+  await expect(group(page, "Repertoire").locator(".pg-shelf-item")).toHaveCount(2);
+  await difficulty.getByRole("button", { name: "Harder", exact: true }).click();
   await shelf.getByRole("button", { name: "Outside Woodshed", exact: true }).click();
   await expect(page.locator(".pg-shelf-item")).toHaveCount(1);
   await difficulty.getByRole("button", { name: "Easier", exact: true }).click();

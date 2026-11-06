@@ -12,6 +12,7 @@ test("the shelf holds only music: 27 course pieces, 13 repertoire, 3 outside", (
   assert.deepEqual(SHELF_GROUPS.map((g) => g.id), ["course", "repertoire", "outside"]);
   assert.deepEqual(SHELF_GROUPS.map((g) => group(g.id).length), [27, 13, 3]);
   assert.equal(new Set(SHELF.map((e) => e.id)).size, SHELF.length);
+  for (const level of LEVELS) assert.ok(SHELF.some((e) => e.level === level), `no pieces at ${level}`);
   for (const entry of SHELF) {
     assert.ok(entry.title && entry.who, entry.id);
     assert.ok(LEVELS.includes(entry.level), `${entry.id}: level`);
