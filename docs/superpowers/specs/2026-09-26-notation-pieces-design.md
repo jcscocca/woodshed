@@ -279,8 +279,13 @@ these rules.
 
 - **Hands:** voice 1 is the right hand, voice 2 the left, one voice per staff
   (`%%staves {1 2}` or `%%score {1 2}`, with `V:1 clef=treble` and `V:2
-  clef=bass`). At most two voices; no voice overlay (`&`). A one-voice score
-  takes its hand from the clef.
+  clef=bass`). At most two staves; no voice overlay (`&`). A one-voice score
+  takes its hand from the clef. A left hand with held inner voices may have
+  more: every voice after the first is the left hand's, in either staff
+  (`%%staves {1 (2 3)}`, or `{(1 2) (4 3)}` for left-hand chords in the
+  treble staff), and every voice appears on every source line (`x` rests where
+  it is silent). Two left-hand voices striking one pitch together grade as one
+  key.
 - **Layout:** one 4-bar system per source line (the stage draws one SVG per
   line).
 - **Clefs:** a mid-piece clef change is an inline `[K:clef=treble]` or

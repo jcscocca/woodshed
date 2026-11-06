@@ -187,14 +187,17 @@ test("every lesson with score/snippet parses without throwing", () => {
   }
 });
 
-// What the engine can grade (the spec's ABC authoring conventions): at most two voices, one per
-// staff; a full first bar; repeats written out; no inline metre change; 2/4, 3/4 or 4/4.
+// What the engine can grade (the spec's ABC authoring conventions): at most two staves, the same
+// voices on every line and no overlay; a full first bar; repeats written out; no inline metre
+// change; 2/4, 3/4 or 4/4.
 const ungradable = (abc) => {
   const [tune] = abcjs.parseOnly(abc), { num, den } = tune.getMeterFraction(), metre = JSON.stringify(tune.getMeter()), out = [];
   if (den !== 4 || ![2, 3, 4].includes(num)) out.push(`metre ${num}/${den}`);
   if (tune.getPickupLength()) out.push("pickup");
-  for (const line of tune.lines.filter((l) => l.staff)) {
-    if (line.staff.length > 2 || line.staff.some((s) => s.voices.length !== 1)) out.push("voices");
+  if (abc.split("\n").some((l) => !/^([A-Za-z]:|%)/.test(l) && l.includes("&"))) out.push("voices");
+  const lines = tune.lines.filter((l) => l.staff), voices = (l) => l.staff.reduce((n, s) => n + s.voices.length, 0);
+  for (const line of lines) {
+    if (line.staff.length > 2 || voices(line) !== voices(lines[0])) out.push("voices");
     // a body M: line lands on the staff, not in the voice
     if (line.staff.some((s) => s.meter && JSON.stringify(s.meter) !== metre)) out.push("metre change");
     for (const el of line.staff.flatMap((s) => s.voices.flat())) {
@@ -209,8 +212,10 @@ test("the score lint catches repeats, endings, overlays, extra voices, metre cha
   const H = "X:1\nM:4/4\nL:1/8\nK:C\n";
   const bad = [["|: C8 :| D8 |]", "repeat"], ["C8 :: D8 :|", "repeat"], ["C8 [1 D8 :| [2 E8 |]", "repeat"], ["C8 |1 D8 :|2 E8 |]", "repeat"],
     ["C8 & E8 | D8 |]", "voices"], ["C8 | [M:3/4] D6 |]", "metre change"], ["C2 | D8 |]", "pickup"],
-    ["%%staves {1 2 3}\nV:1\nV:2\nV:3\n[V:1] C8 |]\n[V:2] E8 |]\n[V:3] G8 |]", "voices"]];
+    ["%%staves {1 2 3}\nV:1\nV:2\nV:3\n[V:1] C8 |]\n[V:2] E8 |]\n[V:3] G8 |]", "voices"],
+    ["%%staves {1 (2 3)}\nV:1\nV:2\nV:3\n[V:1] C8 |\n[V:2] E8 |\n[V:3] G8 |\n[V:1] C8 |]\n[V:2] E8 |]", "voices"]];
   for (const [body, why] of bad) assert.ok(ungradable(H + body).includes(why), `${why}: ${body}`);
+  assert.deepEqual(ungradable(`${H}%%staves {1 (2 3)}\nV:1\nV:2 clef=bass\nV:3 clef=bass\n[V:1] c8 |]\n[V:2] E8 |]\n[V:3] C8 |]`), []);
   assert.deepEqual(ungradable("X:1\nM:6/8\nL:1/8\nK:C\nC6 | D6 |]"), ["metre 6/8"]);
   assert.deepEqual(ungradable(`${H}C8 | D8 |\nM:3/4\nE6 | F6 |]`), ["metre change"]);
   assert.deepEqual(ungradable(`${H}"C"(3CDE {g}F2 G2- G2 y | c8 |]`), []);

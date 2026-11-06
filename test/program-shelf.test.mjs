@@ -8,9 +8,9 @@ const test = (name, fn) => { fn(); console.log(`ok   ${name}`); };
 const byId = new Map(EXERCISES.map((e) => [e.id, e]));
 const group = (id) => SHELF.filter((entry) => entry.group === id);
 
-test("the shelf holds only music: 27 course pieces, 10 repertoire, 6 outside", () => {
+test("the shelf holds only music: 27 course pieces, 13 repertoire, 3 outside", () => {
   assert.deepEqual(SHELF_GROUPS.map((g) => g.id), ["course", "repertoire", "outside"]);
-  assert.deepEqual(SHELF_GROUPS.map((g) => group(g.id).length), [27, 10, 6]);
+  assert.deepEqual(SHELF_GROUPS.map((g) => group(g.id).length), [27, 13, 3]);
   assert.equal(new Set(SHELF.map((e) => e.id)).size, SHELF.length);
   for (const entry of SHELF) {
     assert.ok(entry.title && entry.who, entry.id);
