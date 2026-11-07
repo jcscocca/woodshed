@@ -71,13 +71,14 @@ self-reported assessments are calculated from this grading engine.
 
 ## Repertoire tracks
 
-The earlier piano tracks contain 58 scored stages:
+The earlier piano tracks contain 107 scored stages:
 
 | Track | Material and approach |
 |---|---|
 | Pieces — 11 stages | Petzold minuets/musette, Schumann Album for the Young selections, Burgmüller studies, a Clementi sonatina movement, and Bach's Prelude in C, Tchaikovsky's Old French Song and Satie's first Gymnopédie; work in sections, hands separately then together. |
 | Pop from chords — 11 stages | Block/close chords, ballad bass, syncopation, doo-wop arpeggio, twelve-bar blues, public-domain Ode to Joy/Amazing Grace lead sheets, then the Andalusian cadence, ii–V–I and rhythm changes. |
 | Songs from lead sheets — 30 stages | Public-domain standards (refrains, 1914–1930), folk songs and carols, easiest first; melody in the right hand over a left hand built from the chords. Sources are in the curriculum review. |
+| More pieces — 49 stages | Public-domain Mutopia editions, easiest first: Behr, the Anna Magdalena notebook, Bach's Applicatio, Handel's Aylesford pieces and Sonatina HWV 585, twelve Burgmüller Op. 100 studies, two Tchaikovsky Album for the Young pieces, Mozart's K. 453a and Kuhlau's Sonatina Op. 20 No. 1; each checked against the edition's MIDI. |
 | Two-Hand Coordination — 6 stages | Five-finger patterns, contrary motion, scales, Hanon No. 1, cadences and arpeggios. |
 
 Each track shows completed stages, the current stage and later locked stages.

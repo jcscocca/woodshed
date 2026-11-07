@@ -161,8 +161,9 @@ a piano block, advance its spacing, or add a piano practice day.
 ## Optional tools and material limits
 
 Catalogue is a shelf of sheet music: the course's 27 pieces grouped by unit,
-11 repertoire pieces with full scores (Petzold, Schumann, Burgmüller, Clementi,
-Bach, Tchaikovsky and Satie), 32 songs as lead sheets (public-domain standards
+60 repertoire pieces with full scores (Petzold, the Anna Magdalena notebook,
+Bach, Handel, Schumann, Burgmüller, Clementi, Kuhlau, Mozart, Tchaikovsky, Behr
+and Satie), 32 songs as lead sheets (public-domain standards
 up to 1930, folk songs and carols) and eight outside books. Every in-app piece opens
 regardless of the current unit, and a filter narrows the shelf by difficulty.
 Drills live under Chords and Scales. Commercial repertoire links are external
