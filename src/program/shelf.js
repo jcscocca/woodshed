@@ -4,10 +4,11 @@
 import { EXTERNAL_MUSIC } from "./guides.js";
 
 export const LEVELS = ["Easier", "Middle", "Harder", "Hardest"];
-export const SHELF_GROUPS = [{ id: "course", label: "Course pieces" }, { id: "repertoire", label: "Repertoire" }, { id: "outside", label: "Outside Woodshed" }];
+export const SHELF_GROUPS = [{ id: "course", label: "Course pieces" }, { id: "repertoire", label: "Repertoire" }, { id: "songs", label: "Songs" }, { id: "outside", label: "Outside Woodshed" }];
 
 const course = (exerciseId, title, who, level, extra = {}) => ({ id: `shelf-${exerciseId}`, group: "course", exerciseId, title, who, level, ...extra });
 const repertoire = (lessonId, title, who, level) => ({ id: `shelf-${lessonId}`, group: "repertoire", lessonId, title, who, level });
+const song = (lessonId, title, who, level) => ({ ...repertoire(lessonId, title, who, level), group: "songs" });
 const outside = (externalId, title, who, level) => ({ id: `shelf-${externalId}`, group: "outside", url: EXTERNAL_MUSIC.find((e) => e.id === externalId).url, title, who, level });
 
 export const SHELF = [
@@ -38,8 +39,6 @@ export const SHELF = [
   course("e7-switchyard-blues", "Switchyard twelve", "Original 12-bar blues", "Middle"),
   course("m8-form-ab", "Two-part Conversation", "Original, AB form", "Easier"),
   course("m8-form-aba", "Return Dance", "Original, ABA form", "Easier"),
-  repertoire("pop-ode-to-joy", "Ode to Joy", "Beethoven, lead sheet", "Middle"),
-  repertoire("pop-amazing-grace", "Amazing Grace", "Traditional, lead sheet", "Middle"),
   repertoire("pno-minuet", "Minuet in G", "Petzold", "Harder"),
   repertoire("pcs-minuet-gmin", "Minuet in G minor", "Petzold", "Harder"),
   repertoire("pcs-musette", "Musette in D", "Anonymous, Anna Magdalena notebook", "Harder"),
@@ -51,9 +50,46 @@ export const SHELF = [
   repertoire("pcs-bach-prelude-c", "Prelude in C", "Bach · Mutopia", "Hardest"),
   repertoire("pcs-old-french-song", "Old French Song", "Tchaikovsky · Mutopia", "Harder"),
   repertoire("pcs-gymnopedie-1", "Gymnopédie No. 1", "Satie · Mutopia", "Hardest"),
+  song("pop-ode-to-joy", "Ode to Joy", "Beethoven", "Middle"),
+  song("pop-amazing-grace", "Amazing Grace", "Traditional", "Middle"),
+  song("song-i-got-rhythm", "I Got Rhythm", "Gershwin, 1930", "Harder"),
+  song("song-dream-a-little-dream-of-me", "Dream a Little Dream of Me", "Andre and Schwandt, 1930", "Harder"),
+  song("song-embraceable-you", "Embraceable You", "Gershwin, 1930", "Harder"),
+  song("song-but-not-for-me", "But Not for Me", "Gershwin, 1930", "Harder"),
+  song("song-body-and-soul", "Body and Soul", "Johnny Green, 1930", "Hardest"),
+  song("song-aint-misbehavin", "Ain't Misbehavin'", "Waller, 1929", "Harder"),
+  song("song-singin-in-the-rain", "Singin' in the Rain", "Nacio Herb Brown, 1929", "Middle"),
+  song("song-blue-skies", "Blue Skies", "Berlin, 1927", "Harder"),
+  song("song-aint-she-sweet", "Ain't She Sweet", "Ager, 1927", "Harder"),
+  song("song-bye-bye-blackbird", "Bye Bye Blackbird", "Henderson, 1926", "Middle"),
+  song("song-sweet-georgia-brown", "Sweet Georgia Brown", "Bernie, Pinkard and Casey, 1925", "Harder"),
+  song("song-tea-for-two", "Tea for Two", "Youmans, 1924", "Harder"),
+  song("song-it-had-to-be-you", "It Had to Be You", "Isham Jones, 1924", "Harder"),
+  song("song-rhapsody-in-blue-andantino", "Rhapsody in Blue: Andantino Theme", "Gershwin, 1924", "Middle"),
+  song("song-st-louis-blues", "St. Louis Blues", "W. C. Handy, 1914", "Harder"),
+  song("song-when-the-saints", "When the Saints Go Marching In", "Traditional, arr. R. E. Winsett, 1929", "Middle"),
+  song("song-greensleeves", "Greensleeves", "Traditional", "Middle"),
+  song("song-scarborough-fair", "Scarborough Fair", "Traditional, Yorkshire", "Middle"),
+  song("song-shenandoah", "Shenandoah", "Traditional, American", "Middle"),
+  song("song-londonderry-air", "Londonderry Air (Danny Boy)", "Traditional Irish air", "Middle"),
+  song("song-sakura", "Sakura", "Traditional Japanese", "Easier"),
+  song("song-skye-boat-song", "Skye Boat Song", "Traditional, arr. Lawson, 1884", "Middle"),
+  song("song-wayfaring-stranger", "Wayfaring Stranger", "Traditional American, printed 1896", "Middle"),
+  song("song-swing-low-sweet-chariot", "Swing Low, Sweet Chariot", "Spiritual, Fisk Jubilee Singers, 1872", "Harder"),
+  song("song-auld-lang-syne", "Auld Lang Syne", "Traditional Scottish air", "Middle"),
+  song("song-silent-night", "Silent Night", "Gruber, 1818", "Middle"),
+  song("song-jingle-bells", "Jingle Bells", "Pierpont, 1857", "Middle"),
+  song("song-o-holy-night", "O Holy Night", "Adam, 1847", "Harder"),
+  song("song-god-rest-ye-merry-gentlemen", "God Rest Ye Merry, Gentlemen", "Traditional", "Middle"),
+  song("song-carol-of-the-bells", "Carol of the Bells (Shchedryk)", "Leontovych, 1916", "Middle"),
   outside("external-star-wars-beginning", "Star Wars for Beginning Piano", "Hal Leonard book", "Middle"),
   outside("external-disney-simple", "Simple Disney Songs", "Hal Leonard book", "Harder"),
   outside("external-ghibli-entry", "Studio Ghibli Favorites for Beginners 2", "Yamaha book", "Middle"),
+  outside("external-pop-simple", "Simple Pop Songs", "Hal Leonard book", "Easier"),
+  outside("external-einaudi-graded", "Einaudi: Graded Pieces for Piano", "Chester Music book", "Middle"),
+  outside("external-movie-simple", "Simple Movie Songs", "Hal Leonard book", "Easier"),
+  outside("external-video-game-easy", "The Greatest Video Game Music", "Hal Leonard book", "Middle"),
+  outside("external-broadway-first", "My First Broadway Song Book", "Hal Leonard book", "Easier"),
 ];
 
 export const unitHeading = (unit, current) => `${unit.key === "Across keys" ? "Musicianship" : unit.key} · Unit ${unit.number}${current ? " · you're here" : ""}`;

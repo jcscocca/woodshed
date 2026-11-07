@@ -162,7 +162,7 @@ export default {
       "Pick a pattern from the Pop track you've already learned.",
       "Wait mode first, then play-along; the tempo climbs as you play it clean.",
     ],
-    watch: ["Chord symbols it knows: C, Cm, C7, Cmaj7, Cm7, Csus2, Csus4, Cdim, and a slash bass like C/E."],
+    watch: ["Chord symbols it knows: C, Cm, C7, Cmaj7, Cm7, C6, Cm6, Csus2, Csus4, Cdim, Cdim7, Cm7b5, Caug, and a slash bass like C/E."],
   },
 
   "trk-pno-1": {
@@ -329,6 +329,48 @@ export default {
       key: "G", meter: "3/4", chords: "G | G | G | C | G | G | G | D | G | G | G | C | G | G | D | G", pattern: "waltz",
       melody: GRACE_MELODY, bpm: 60, target: 90,
       sections: [{ name: "A", from: 1, to: 8 }, { name: "B", from: 9, to: 16 }],
+    },
+  },
+  "pop-andalusian": {
+    summary: "The Andalusian cadence in A minor: i–VII–VI–V, Am–G–F–E, the bass falling a step at a time from A to E, under a ballad left hand.",
+    steps: [
+      "Left hand alone: A, G, F, E, one root per bar, with the fifth and octave above each in the ballad pattern.",
+      "Right hand alone: close chord shapes that move by step with the bass. The E chord has a G sharp, the only accidental.",
+      "Hands together in wait mode, then with the click.",
+    ],
+    watch: ["This loop is under \"Hit the Road Jack\", \"Runaway\" (Del Shannon) and \"Sultans of Swing\" (in D minor). Listen for the falling bass."],
+    chart: {
+      key: "Am", meter: "4/4", chords: "Am | G | F | E | Am | G | F | E7", pattern: "ballad",
+      bpm: 60, target: 96,
+      sections: [{ name: "A", from: 1, to: 4 }, { name: "A'", from: 5, to: 8 }],
+    },
+  },
+  "pop-two-five-one": {
+    summary: "ii–V–I, the jazz cadence, as voice-led seventh chords: Dm7–G7–Cmaj7 in C, then Gm7–C7–Fmaj7 in F.",
+    steps: [
+      "Right hand alone: three notes of each chord, with the root in the left hand. One note holds across each change (F from Dm7 to G7, B from G7 to Cmaj7; in F, B flat and then E) and the others move by a step.",
+      "Left hand alone: the roots, D, G, C, then G, C, F.",
+      "Hands together in wait mode, then with the click.",
+    ],
+    watch: ["Standards such as \"Autumn Leaves\", \"Satin Doll\" and \"Honeysuckle Rose\" are built from chains of ii–V–I. Listen for the held note under each change."],
+    chart: {
+      key: "C", meter: "4/4", chords: "Dm7 | G7 | Cmaj7 | Cmaj7 | Gm7 | C7 | Fmaj7 | Fmaj7", pattern: "voiceled",
+      bpm: 56, target: 88,
+      sections: [{ name: "In C", from: 1, to: 4 }, { name: "In F", from: 5, to: 8 }],
+    },
+  },
+  "pop-rhythm-changes": {
+    summary: "Rhythm changes in B flat, the chords of Gershwin's \"I Got Rhythm\" (1930): an A section of I–VI7–ii–V, two chords a bar, then a bridge of dominant sevenths D7–G7–C7–F7, two bars each.",
+    steps: [
+      "Left hand alone, A section: two chords a bar, changing on beat 3. Bar 6 moves from E flat to E diminished, a half step up in the bass.",
+      "Bridge: each dominant seventh resolves down a fifth to the next, D7 to G7 to C7 to F7, and F7 leads back to B flat.",
+      "Right hand alone, then hands together in wait mode. The full tune is AABA: A, A again, the bridge, then A.",
+    ],
+    watch: ["The same chords are under \"Anthropology\", \"Oleo\" and \"Cotton Tail\". The Catalogue's \"I Got Rhythm\" lead sheet has the melody."],
+    chart: {
+      key: "Bb", meter: "4/4", chords: "Bb G7 | Cm7 F7 | Bb G7 | Cm7 F7 | Bb Bb7 | Eb Edim7 | Bb F7 | Bb | D7 | D7 | G7 | G7 | C7 | C7 | F7 | F7", pattern: "voiceled",
+      bpm: 60, target: 104,
+      sections: [{ name: "A", from: 1, to: 8 }, { name: "Bridge", from: 9, to: 16 }],
     },
   },
   "tec-hanon-1": {

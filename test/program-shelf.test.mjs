@@ -8,9 +8,9 @@ const test = (name, fn) => { fn(); console.log(`ok   ${name}`); };
 const byId = new Map(EXERCISES.map((e) => [e.id, e]));
 const group = (id) => SHELF.filter((entry) => entry.group === id);
 
-test("the shelf holds only music: 27 course pieces, 13 repertoire, 3 outside", () => {
-  assert.deepEqual(SHELF_GROUPS.map((g) => g.id), ["course", "repertoire", "outside"]);
-  assert.deepEqual(SHELF_GROUPS.map((g) => group(g.id).length), [27, 13, 3]);
+test("the shelf holds only music: 27 course pieces, 11 repertoire, 32 songs, 8 outside", () => {
+  assert.deepEqual(SHELF_GROUPS.map((g) => g.id), ["course", "repertoire", "songs", "outside"]);
+  assert.deepEqual(SHELF_GROUPS.map((g) => group(g.id).length), [27, 11, 32, 8]);
   assert.equal(new Set(SHELF.map((e) => e.id)).size, SHELF.length);
   for (const level of LEVELS) assert.ok(SHELF.some((e) => e.level === level), `no pieces at ${level}`);
   for (const entry of SHELF) {
@@ -29,11 +29,19 @@ test("course pieces are guided music in course order, never drills", () => {
   assert.deepEqual([...new Set(order)], UNITS.map((_, i) => i), "every unit has a piece");
 });
 
-test("repertoire opens a scored lesson from the older tracks", () => {
+test("repertoire and songs open a scored lesson from the older tracks", () => {
   const stages = new Set(trackItems().map((item) => item.id));
-  for (const entry of group("repertoire")) {
+  for (const entry of [...group("repertoire"), ...group("songs")]) {
     assert.ok(stages.has(entry.lessonId), entry.id);
     assert.ok(hasScore(getLesson(entry.lessonId)), `${entry.id}: no score`);
+  }
+});
+
+test("songs are lead sheets with a melody, and new ones name their public-domain source", () => {
+  for (const entry of group("songs")) {
+    const lesson = getLesson(entry.lessonId);
+    assert.ok(lesson?.chart?.melody, `${entry.id}: no lead-sheet melody`);
+    if (entry.lessonId.startsWith("song-")) assert.match(lesson.source?.url ?? "", /^https:\/\//, `${entry.id}: source`);
   }
 });
 

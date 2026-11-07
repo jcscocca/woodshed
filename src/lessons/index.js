@@ -1,9 +1,10 @@
 import guitar from "./guitar.js";
 import piano from "./piano.js";
 import ear from "./ear.js";
+import songs from "./songs.js";
 
 // Lessons are static content keyed by exercise/stage id. They are looked up at
 // render time and never written to storage, so updates reach existing users.
-export const LESSONS = { ...guitar, ...piano, ...ear };
+export const LESSONS = { ...guitar, ...piano, ...ear, ...songs };
 export const getLesson = (id) => LESSONS[id] || null;
 export const hasScore = (lesson) => !!(lesson && (lesson.score || lesson.chart || lesson.sightread || lesson.song));

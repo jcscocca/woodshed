@@ -238,6 +238,13 @@ test("a score has bpm, target >= bpm and sections inside the piece; scored lesso
   }
 });
 
+test("section names are unique within a lesson, since the section picker selects by name", () => {
+  for (const [id, L] of Object.entries(LESSONS)) {
+    const names = ((L.score || L.chart)?.sections || []).map((s) => s.name);
+    assert.equal(new Set(names).size, names.length, `${id}: ${names.join(", ")}`);
+  }
+});
+
 test("hasScore is true for score/chart/sightread lessons, false otherwise", () => {
   assert.equal(hasScore(LESSONS["pno-minuet"]), true);
   assert.equal(hasScore(LESSONS["pno-sight"]), true);
