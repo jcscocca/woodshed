@@ -14,7 +14,7 @@ test("the catalogue is a shelf of music, grouped course, repertoire, songs, outs
     "D major · Unit 5", "A major · Unit 6", "E major · Unit 7", "Musicianship · Unit 8",
   ]);
   await expect(group(page, "Course pieces").locator(".pg-shelf-item")).toHaveCount(27);
-  await expect(group(page, "Repertoire").locator(".pg-shelf-item")).toHaveCount(11);
+  await expect(group(page, "Repertoire").locator(".pg-shelf-item")).toHaveCount(60);
   await expect(group(page, "Songs").locator(".pg-shelf-item")).toHaveCount(32);
   await expect(group(page, "Outside Woodshed").getByRole("link")).toHaveCount(8);
   await expect(group(page, "Outside Woodshed").getByRole("link", { name: /Simple Disney Songs.*opens in a new tab/ })).toHaveAttribute("target", "_blank");
@@ -29,9 +29,9 @@ test("filters narrow the shelf and say so when nothing matches", async ({ page }
   const difficulty = page.getByRole("group", { name: "Difficulty" }), shelf = page.getByRole("group", { name: "Shelf" });
   await difficulty.getByRole("button", { name: "Harder", exact: true }).click();
   await expect(group(page, "Course pieces")).toHaveCount(0);
-  await expect(group(page, "Repertoire").locator(".pg-shelf-item")).toHaveCount(9);
+  await expect(group(page, "Repertoire").locator(".pg-shelf-item")).toHaveCount(48);
   await difficulty.getByRole("button", { name: "Hardest", exact: true }).click();
-  await expect(group(page, "Repertoire").locator(".pg-shelf-item")).toHaveCount(2);
+  await expect(group(page, "Repertoire").locator(".pg-shelf-item")).toHaveCount(11);
   await difficulty.getByRole("button", { name: "Harder", exact: true }).click();
   await shelf.getByRole("button", { name: "Outside Woodshed", exact: true }).click();
   await expect(page.locator(".pg-shelf-item")).toHaveCount(1);
@@ -39,7 +39,7 @@ test("filters narrow the shelf and say so when nothing matches", async ({ page }
   await expect(page.getByText("No pieces match.", { exact: true })).toBeVisible();
   await difficulty.getByRole("button", { name: "All", exact: true }).click();
   await shelf.getByRole("button", { name: "All", exact: true }).click();
-  await expect(page.locator(".pg-shelf-item")).toHaveCount(78);
+  await expect(page.locator(".pg-shelf-item")).toHaveCount(127);
 });
 
 test("list view is remembered and works when storage is blocked", async ({ page }) => {
