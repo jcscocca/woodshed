@@ -44,7 +44,7 @@ Guitar mic coaching and guitar Echo remain disabled behind `COACH_ENABLED`.
 
 ## Reading and playing an earlier score
 
-Open a scored piece from Catalogue's Repertoire shelf, or a pop stage or
+Open a scored piece from Catalogue's Repertoire or Songs shelf, or a pop stage or
 sight-reading drill from Catalogue's earlier views. On desktop it uses the main pane as a grand staff, with the rail holding
 its controls. A temporary **Score** navigation entry (**6**) returns to it.
 
@@ -71,12 +71,13 @@ self-reported assessments are calculated from this grading engine.
 
 ## Repertoire tracks
 
-The earlier piano tracks contain 22 scored stages:
+The earlier piano tracks contain 58 scored stages:
 
 | Track | Material and approach |
 |---|---|
-| Pieces — 8 stages | Petzold minuets/musette, Schumann Album for the Young selections, Burgmüller studies and a Clementi sonatina movement; work in sections, hands separately then together. |
-| Pop from chords — 8 stages | Block/close chords, ballad bass, syncopation, doo-wop arpeggio, twelve-bar blues and public-domain Ode to Joy/Amazing Grace lead sheets. |
+| Pieces — 11 stages | Petzold minuets/musette, Schumann Album for the Young selections, Burgmüller studies, a Clementi sonatina movement, and Bach's Prelude in C, Tchaikovsky's Old French Song and Satie's first Gymnopédie; work in sections, hands separately then together. |
+| Pop from chords — 11 stages | Block/close chords, ballad bass, syncopation, doo-wop arpeggio, twelve-bar blues, public-domain Ode to Joy/Amazing Grace lead sheets, then the Andalusian cadence, ii–V–I and rhythm changes. |
+| Songs from lead sheets — 30 stages | Public-domain standards (refrains, 1914–1930), folk songs and carols, easiest first; melody in the right hand over a left hand built from the chords. Sources are in the curriculum review. |
 | Two-Hand Coordination — 6 stages | Five-finger patterns, contrary motion, scales, Hanon No. 1, cadences and arpeggios. |
 
 Each track shows completed stages, the current stage and later locked stages.

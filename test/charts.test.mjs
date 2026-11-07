@@ -22,6 +22,11 @@ test("parseChord spells every quality from its root's letter", () => {
   assert.equal(spelled(parseChord("Dsus2")), "D E A");
   assert.equal(spelled(parseChord("Bdim")), "B D F");
   assert.equal(spelled(parseChord("Ebdim")), "Eb Gb Bbb");
+  assert.equal(spelled(parseChord("C6")), "C E G A");
+  assert.equal(spelled(parseChord("Fm6")), "F Ab C D");
+  assert.equal(spelled(parseChord("Caug")), "C E G#");
+  assert.equal(spelled(parseChord("C#dim7")), "C# E G Bb");
+  assert.equal(spelled(parseChord("Bm7b5")), "B D F A");
   const s = parseChord("C/E");
   assert.equal(s.bass.letter, "E"); assert.equal(s.bass.pc, 4); assert.equal(s.name, "C/E");
   for (const t of ["H", "Cm9", "c", "C/H", ""]) assert.equal(parseChord(t), null, t);
