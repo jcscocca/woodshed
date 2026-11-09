@@ -13,6 +13,7 @@ const notes = (page) => page.getByRole("textbox", { name: "One thing to try next
 const minutes = (page) => page.getByRole("spinbutton", { name: "Minutes practised", exact: true, includeHidden: true });
 const openDetails = async (page) => { const d = page.locator("details.ws-player-details"); if (await d.count() && !(await d.evaluate((el) => el.open))) await d.locator("summary").click(); };
 const openCard = (page, exercise) => page.locator(".pg-scale-path .pg-card").filter({ has: page.getByRole("heading", { name: exercise.title, exact: true }) }).getByRole("button", { name: "Open lesson", exact: true }).click();
+const animationsSettled = (page) => page.evaluate(async () => { await Promise.all(document.getAnimations().filter((animation) => animation.effect.getComputedTiming().iterations !== Infinity).map((animation) => animation.finished.catch(() => {}))); });
 const goToScales = async (page) => {
   await page.getByRole("button", { name: "Scales", exact: true }).click();
   await page.getByRole("button", { name: "All-key reference", exact: true }).click();
@@ -34,7 +35,7 @@ test("optional reference keeps pattern, key and drafts without becoming another 
   await expect(page.locator("label").filter({has:patternControl})).toContainText("Pattern and range");
   await page.getByRole("combobox", { name: "Pattern and range", exact: true }).selectOption(twoOctavePattern);
   await page.getByRole("combobox", { name: "Scale key", exact: true }).selectOption(twoOctaveScale.key);
-  await expect(page.locator("#ws-main .ws-main")).toHaveCSS("opacity", "1");
+  await animationsSettled(page);
   const accessibility = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
   expect(accessibility.violations.map((violation) => ({ id: violation.id, nodes: violation.nodes.map((node) => node.target) }))).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
