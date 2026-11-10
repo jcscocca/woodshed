@@ -75,7 +75,7 @@ for (const viewport of VIEWPORTS) test.describe(`${viewport.width}×${viewport.h
     await page.locator("details.ws-player-details > summary").click();
     await page.getByLabel("Minutes practised").fill("2000");
     await page.getByRole("button", { name: "Done", exact: true }).click();
-    await expect(page.locator(".ws-player-error")).toHaveText("Minutes practised must be 240 or fewer.");
+    await expect(page.getByRole("alert").filter({ hasText: "Minutes practised" })).toHaveText("Minutes practised must be 240 or fewer.");
     await expect(page.locator(".pg-notice")).toHaveCount(0);
   });
 });
