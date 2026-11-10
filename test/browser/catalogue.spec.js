@@ -66,6 +66,17 @@ test("a repertoire piece opens its score and a course piece opens to practise", 
   await expect(page.getByRole("heading", { name: "Two Rooms: a complete AB piece" }).first()).toBeVisible();
 });
 
+test("a piece skipped from the catalogue can be unskipped there", async ({ page }) => {
+  await openCatalogue(page);
+  const piece = group(page, "Course pieces").getByRole("button", { name: /^Night windows/ });
+  await piece.click();
+  await page.getByRole("button", { name: "Too easy — skip", exact: true }).click();
+  await expect(page.locator(".pg-notice")).toContainText("Skipped: Night windows.");
+  await piece.click();
+  await page.getByRole("button", { name: "Unskip", exact: true }).click();
+  await expect(page.locator(".pg-notice")).toContainText("Unskipped: Night windows.");
+});
+
 test("older practice tools stay one tap away", async ({ page }) => {
   await openCatalogue(page);
   await page.getByRole("button", { name: "Browse repertoire tracks", exact: true }).click();

@@ -68,4 +68,14 @@ for (const viewport of VIEWPORTS) test.describe(`${viewport.width}×${viewport.h
     await expect(page.locator(".pg-notice")).toContainText("Saved: C, F and G: leave home and return.");
     await expect(chordCard(page, "C, F and G: leave home and return").locator(".pg-status")).toContainText(/ready · 1 visit/i);
   });
+
+  test("Done refuses more minutes than the form allows", async ({ page }) => {
+    await page.goto("./");
+    await openChord(page, "C, F and G: leave home and return");
+    await page.locator("details.ws-player-details > summary").click();
+    await page.getByLabel("Minutes practised").fill("2000");
+    await page.getByRole("button", { name: "Done", exact: true }).click();
+    await expect(page.locator(".ws-player-error")).toHaveText("Minutes practised must be 240 or fewer.");
+    await expect(page.locator(".pg-notice")).toHaveCount(0);
+  });
 });

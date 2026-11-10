@@ -388,7 +388,7 @@ A6 z2 |]`,
       key: "Em", meter: "3/4", pattern: "waltz", bpm: 60, target: 90,
       chords: "Em | G | D | Em | B | G | D | B | Em | Bm | D | Em | B | Bm | D | B | Em",
       sections: [{ name: "A", from: 1, to: 9 }, { name: "B", from: 10, to: 17 }],
-      melody: `z5 E | G2 A B>c B | A2 F D>E F | G2 E E>^D E |
+      melody: `z4 z E | G2 A B>c B | A2 F D>E F | G2 E E>^D E |
 F2 ^D B,2 E | G2 A B>c B | A2 F D>E F | G>F E ^D>^C ^D |
 E3 E3 | d3 d>^c B | A2 F D>E F | G2 E E>^D E |
 F2 ^D B,3 | d3 d>^c B | A2 F D>E F | G>F E ^D>^C ^D |
