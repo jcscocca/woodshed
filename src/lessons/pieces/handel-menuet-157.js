@@ -12,7 +12,7 @@ K:Dm
 %%staves {1 2}
 V:1 clef=treble
 V:2 clef=bass
-[V:1] [Fd]2 A2 .[Af]2 [Ae]2 A2 .[Ag]2 | .[Af]2 [Bg]f [Ge]d [A^c]d e2 .A2 | AB .[Fc]2 .[EB]2 [FA]2 .[Gc]2 [Af]2 | .[FA]2 [DB]A [EG]A F6 |
+[V:1] [Fd]2 A2 .[Af]2 [Ae]2 A2 .[Ag]2 | .[Af]2 [Bg]f [Ge]d [A^c]d e2 .A2 | AB .[Fc]2 .[EB]2 [FA]2 .[Gc]2 [Af]2 | .[FA]2 [D-B][DA] [E-G][EA] F6 |
 [V:2] .D,2 .F,2 .D,2 .^C,2 .^C2 .A,2 | .D2 .G,2 .B,2 .A,2 .A,,2 .G,2 | .F,2 .A,2 .G,2 .F,2 .E,2 .D,2 | .C,2 .B,,2 .C,2 .F,,2 .F,2 .E,2 |
 [V:1] [Af]2 c2 .[ca]2 [cg]2 c2 .[cb]2 | .[ca]2 ba gf ef .g2 .[Gc]2 | [Ad]e .[df]2 .[ce]2 [Fd]2 [dg]2 .[Adf]2 | .[GBe]2 .[FAd]2 .[EA^c]2 [FAd]6 |]
 [V:2] .F,2 .A,2 .F,2 .E,2 .E2 .C2 | .F2 .E2 .D2 .C2 .C,2 .E,2 | .F,2 .D,2 .A,2 .B,2 .B,,2 .F,2 | .G,2 .A,2 .A,,2 D,6 |]`;

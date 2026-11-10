@@ -11,9 +11,9 @@ K:A
 %%staves {1 2}
 V:1 clef=treble
 V:2 clef=bass
-[V:1] z10 e2 | dcBA [Af]2 [Ae]4 [Gd]2 | [Ac]2 BA [FB]2 E4 [EA]2 | [DG]ABG [EA]2 [EB]cdB [Ec]2 |
-[V:2] z10 [G,E]2 | [A,E]4 D2 C2 B,A, B,2 | A,4 D,2 [E,G,-]2 [D,G,-]2 [C,G,]2 | B,,4 C,2 G,,4 A,,2 |
-[V:1] [Af]2 e2 (5:4:5[F^d]/2e/2^d/2c/2^d/2 [Ge]4 B2 | AGFE e2 [Ad]4 [Be]2 | [Ec]2 BA [Ec]2 [GB]4 [^Ac]2 | [Bd]efd [Ae]2 [Af]gaf [dg]2 |
+[V:1] z8 z2 e2 | dcBA [Af]2 [Ae]4 [Gd]2 | [A-c]2 [AB]A [FB]2 E4 [EA]2 | [D-G][D-A][D-B][DG] [EA]2 [E-B][E-c][E-d][EB] [Ec]2 |
+[V:2] z8 z2 [G,E]2 | [A,E]4 D2 C2 B,A, B,2 | A,4 D,2 [E,G,-]2 [D,G,-]2 [C,G,]2 | B,,4 C,2 G,,4 A,,2 |
+[V:1] [A-f]2 [Ae]2 (5:4:5[F-^d]/2[F-e]/2[F-^d]/2[F-c]/2[F^d]/2 [Ge]4 B2 | AGFE e2 [Ad]4 [Be]2 | [E-c]2 [E-B][EA] [Ec]2 [GB]4 [^Ac]2 | [B-d][B-e][B-f][Bd] [Ae]2 [A-f][A-g][A-a][Af] [dg]2 |
 [V:2] F,,4 B,,2 E,4 [^D,B,]2 | [E,B,]4 [A,C]2 F,2 E,D, G,2 | A,4 A,,2 E,2 D,2 C,2 | B,,4 C,2 D,4 B,,2 |
 [V:1] [ea]2 [Ac]2 [GB]2 [CA]4 z2 |]
 [V:2] C,2 D,2 E,2 A,,4 z2 |]`;

@@ -16,7 +16,7 @@ V:2 clef=bass
 [V:2] A,,2 C,2 E,2 | B,,2 D,2 E,2 | F,2 D,2 E,2 | A,2 E,2 A,,2 |
 [V:1] [CG]2 [Dc]B [Ec]2 | [DG]2 [Gd]c [Bd]2 | [EG]2 [df]2 [ce]f | [Bd-]2 [Ad-]2 [Gd]2 |
 [V:2] E,2 D,2 C,2 | B,,2 A,,2 G,,2 | C,2 B,,2 C,2 | G,,2 A,,2 B,,2 |
-[V:1] [Ge]f de [Ec]d | Bc [CA]B G2 | [A,F]E [CD-]2 [B,D]C | [E,G,C]6 |
+[V:1] [G-e][G-f] [G-d][Ge] [E-c][E-d] | [E-B][Ec] [C-A][C-B] [CG]2 | [A,F]E [CD-]2 [B,D]C | [E,G,C]6 |
 [V:2] C,2 B,,2 A,,2 | G,,2 F,,2 E,,2 | F,,2 G,,4 | C,2 G,,2 C,,2 |
 [V:1] cd e2 ^G2 | [CA]c [EB]4 | [Ec]2 dc [FB]A | [E^G]2 ^F^G [^G,E]2 |
 [V:2] [A,-E]2 [A,-C]2 [A,B,]2 | A,2 ^G,2 E,2 | A,4 D,2 | E,2 B,,2 E,,2 |
@@ -33,7 +33,7 @@ export default {
   ],
   watch: [
     "G sharp is written in throughout A and A′, including the low G sharp in the right hand in bars 4, 20 and 23. In B the G is natural.",
-    "In bars 13 and 14 the right hand's lower notes, G, E and C, are held under the moving eighths but written only where they start; keep each one down until the next.",
+    "In bars 13 and 14 the right hand's lower notes, G, E and C, are tied under the moving eighths; keep each one down until the next.",
   ],
   source: { label: "Mutopia Project — Handel, Menuet (Trio) (Aylesford Pieces, Edition Schott 1930)", url: "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=168" },
   score: {

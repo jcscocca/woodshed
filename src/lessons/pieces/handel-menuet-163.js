@@ -11,9 +11,9 @@ K:F
 %%staves {1 2}
 V:1 clef=treble
 V:2 clef=bass
-[V:1] z10 [Ac]2 | [FA]3/2B/2[Ac]2[Ac]2 [FA]3/2B/2[Ac]2[Ac]2 | [Fd]2[Bf]2[Ge]2 [cf]2[Ae]d[Gc]2 | [Ad]2[Fc]=BAG [cg]2[Gf]e[Ed]c |
-[V:2] z10 F,2 | F,,2F,2F,2 F,,2F,2F,2 | B,2G,2C2 A,2F,2E,2 | F,2D,2G,2 E,2G,2A,2 |
-[V:1] [Ac]2[Ge]d[Dc]d [Ec]4[Ac]2 | [FA]3/2B/2[Ac]2[Ac]2 [FA]3/2B/2[Ac]2[Ac]2 | [Fd]2[Bf]2[Ge]2 [cf]2[Ae]d[Gc]2 | [Ad]2[Fc]=BAG [cg]2[Gf]e[Ed]c |
+[V:1] z8 z2 [Ac]2 | [FA]3/2B/2[Ac]2[Ac]2 [FA]3/2B/2[Ac]2[Ac]2 | [Fd]2[Bf]2[Ge]2 [cf]2[Ae]d[Gc]2 | [Ad]2[F-c][F-=B][F-A][FG] [cg]2[G-f][Ge][E-d][Ec] |
+[V:2] z8 z2 F,2 | F,,2F,2F,2 F,,2F,2F,2 | B,2G,2C2 A,2F,2E,2 | F,2D,2G,2 E,2G,2A,2 |
+[V:1] [Ac]2[Ge]d[Dc]d [Ec]4[Ac]2 | [FA]3/2B/2[Ac]2[Ac]2 [FA]3/2B/2[Ac]2[Ac]2 | [Fd]2[Bf]2[Ge]2 [cf]2[Ae]d[Gc]2 | [Ad]2[F-c][F-=B][F-A][FG] [cg]2[G-f][Ge][E-d][Ec] |
 [V:2] F,2G,2G,,2 C,2C2F,2 | F,,2F,2F,2 F,,2F,2F,2 | B,2G,2C2 A,2F,2E,2 | F,2D,2G,2 E,2G,2A,2 |
 [V:1] [Ac]2[Ge]d[Dc]d [Ec]4[Ec]2 | [Ff]2[Gf]e[Af]d [Gcg]2[Gc]2B2 | [FA]2[CB]AGF [Ec]2[df]e[cf]2 | [Fd]2[Dc]B[EA]G [DF]E[B,F]2[CB]2 |
 [V:2] F,2G,2G,,2 C,2C2B,2 | A,2G,2F,2 E,2C,D,E,C, | F,2E,2D,2 [C,C]2[B,,B,]2[A,,A,]2 | [B,,B,]2B,,2C,2 D,2D,2E,2 |
