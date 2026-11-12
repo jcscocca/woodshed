@@ -81,8 +81,8 @@ export default {
     "Play-along with the click at 56, a section at a time. Each clean pass nudges the tempo up toward 92.",
   ],
   watch: [
-    "In Rising chords (bars 45–50) the right hand holds two-note chords while the left hand breaks the same chord in eighths, falling from the top. The chords climb a step each bar, so the accidentals change: B flat in bar 46, C sharp in bar 49, D sharp and F sharp in bar 50.",
-    "G sharp comes and goes. It is written in wherever the music is in A minor or E major, and the G is natural in the C major and F major passages, as in bars 18, 41 and 67.",
+    "In Rising chords (bars 45–50) the right hand holds two-note chords while the left hand breaks the same chord in eighths, falling from the top. The chords rise by step, except for a third between bars 47 and 48, so the accidentals change: B flat in bar 46, C sharp in bar 49, D sharp and F sharp in bar 50.",
+    "G sharp comes and goes. It is written in wherever it applies, mostly in the A minor and E major passages; the G is natural in bars 18, 41, 61 and 67.",
   ],
   source: { label: "Mutopia Project — Handel, Sonatina (Aylesford Pieces, Edition Schott 1930)", url: "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=169" },
   score: {

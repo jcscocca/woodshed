@@ -27,7 +27,7 @@ export default {
   summary: "Handel's Menuet (Trio) in A minor, from the Aylesford Pieces, all 24 bars of 3/4. A two-part right hand, a tune with a lower line of thirds and sixths, over a left hand in plain quarter notes. Three sections: A (bars 1–8), which ends in A minor; B (9–16), in C major; and A′ (17–24), which brings back the opening and closes in A minor. The original repeats bars 1–8 and bars 9–24; here you play each part once.",
   steps: [
     "Left hand alone, all the way through, in wait mode. It moves mostly in quarter notes, one a beat, with a low A held through bars 1 and 17 under the notes above it.",
-    "Right hand alone in A. Each beat strikes the tune and its lower note together, then the tune moves on in eighths; keep the eighths even, D–C in bar 3, and D–C then B–A in bar 5.",
+    "Right hand alone in A. Where the tune and a lower note start together, strike them as one, then let the tune move on in eighths; keep the eighths even, D–C in bar 3, and D–C then B–A in bar 5.",
     "B moves to C major and has no sharps. In bar 12 the right hand holds D on top while B, A and G step down underneath; in bars 13–14 the tune falls in eighths over held lower notes.",
     "Play-along with the click at 60. Each clean pass nudges the tempo up toward 92.",
   ],

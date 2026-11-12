@@ -28,9 +28,9 @@ V:3 clef=bass
 export default {
   summary: "Burgmüller's \"Douce Plainte\" (Sweet Lament), No. 16 of his 25 easy studies, Op. 100, all 16 bars, in G minor and 4/4. Groups of sixteenths pass between the hands under a slow tune. Four sections: A1 (bars 1–4), A2 (5–8), B1 (9–12) and B2 (13–16). The original repeats each half with a first ending; here you play each half once and take the second endings (bars 8 and 16), so bars 9–15 are printed as 10–16.",
   steps: [
-    "Left hand alone in A1, in wait mode. Each bar starts with one slurred group of sixteenths, G–B flat–G–B flat–D–B flat–D–B flat, ending on an eighth, then rests. Keep the hand still over the notes and play the group as one movement.",
+    "Left hand alone in A1, in wait mode. Each bar starts with one slurred group of sixteenths ending on an eighth: G–B flat–G–B flat–D–B flat–D–B flat, or the same shape on C–E flat–G in bar 3. Bars 1–3 then rest; bar 4 goes on in eighths. Keep the hand still over the notes and play the group as one movement.",
     "In A2 the sixteenths move to the right hand while the left hand holds F sharp, then G. Bar 7 is a falling line of right-hand eighths, G–E–C sharp–A–G–E; then hands together in A.",
-    "B1 (bars 9–12): the right hand repeats thirds in eighths, C–E flat to C–D, over repeated left-hand F sharp–A chords. Keep both hands light and even, with no accents, and hold the left hand's half-note chords in bars 10 and 12.",
+    "B1 (bars 9–12): in bars 9 and 11 the right hand rocks between a third and a second in eighths (C–E flat to C–D in bar 9) over repeated left-hand chords. Keep both hands light and even, with no accents, and hold the left hand's half-note chords in bars 10 and 12.",
     "Switch to play-along with the click at 56. Each clean pass nudges the tempo up toward 104.",
   ],
   watch: [

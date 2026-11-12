@@ -37,11 +37,11 @@ V:2 clef=treble
 [V:2] [DF]2z2 A2z2 | d2z2 B2z2 | [GB]2z2 [Ac]2z2 | D2z6 |]`;
 
 export default {
-  summary: "March of the Wooden Soldiers, No. 5 of Tchaikovsky's Album for the Young, Op. 39 (1878), in the Schirmer edition's version, all 48 bars. D major, 2/4, short detached chords and a dotted figure in every other bar. Six sections: A (bars 1–8), A′ (9–16), B (17–24), B′ (25–32), A again (33–40) and A″ (41–48). B turns to D minor colours over a held A in the left hand; the last eight bars change the ending to close on D.",
+  summary: "March of the Wooden Soldiers, No. 5 of Tchaikovsky's Album for the Young, Op. 39 (1878), in the Schirmer edition's version, all 48 bars. D major, 2/4, short detached chords and recurring dotted-eighth–sixteenth figures. Six sections: A (bars 1–8), A′ (9–16), B (17–24), B′ (25–32), A again (33–40) and A″ (41–48). B turns to D minor colours over a held A in the left hand; the last eight bars change the ending to close on D.",
   steps: [
     "Right hand alone in A, in wait mode. Bars 2 and 4 are the figure B–A sharp–B, then a sixteenth rest and C sharp: a dotted eighth, a sixteenth, an eighth. Count it in sixteenths until the short notes land late and quick.",
     "Left hand alone. Both staves are in the treble clef, so the left hand reads like the right. In A it plays the dotted figure with the right hand, G–F sharp–G under B–A sharp–B; in B it holds a three-note chord, A–D–F natural, for a whole bar in bars 18, 20, 26 and 28.",
-    "Hands together in wait mode, a section at a time. Most notes are eighths with an eighth rest after them; lift on the rest so every chord is short.",
+    "Hands together in wait mode, a section at a time. Many notes are eighths followed by a rest; lift on each rest, and hold the left hand's full-bar chords in bars 18, 20, 26 and 28.",
     "Play-along with the click at 72. Each clean pass nudges the tempo up toward 120.",
   ],
   watch: [

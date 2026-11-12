@@ -33,7 +33,7 @@ export default {
   summary: "Minuet in A minor, BWV Anh. 120, from the 1725 notebook of Anna Magdalena Bach, 29 bars in 3/4. The left hand imitates the right a bar later at the start of each half, and in the first half it walks down by semitones under the tune. Four sections: A1 (bars 1–5), A2 (6–13), B1 (14–21) and B2 (22–29). Bar 1 holds the quarter-note pickup, so bar numbers here run one ahead of the printed ones; the second half's pickup G is the last beat of bar 13. The original repeats each half; here you play each half once.",
   steps: [
     "Right hand alone in A1, in wait mode. The pickup E leads to a dotted eighth and a sixteenth, A and B, in bar 2; bars 3 and 5 end with a note tied over the bar line. Hold the tied note and don't play it again.",
-    "Left hand alone in A1 and A2. Bars 2–5 copy the right hand's opening an octave lower, one bar behind. Then bars 6–12 are three quarters a bar on one note, stepping down a semitone each bar: A, G sharp, G, F sharp, F, E, D.",
+    "Left hand alone in A1 and A2. Bars 2–5 copy the right hand's opening an octave lower, one bar behind. Then bars 6–12 are three quarters a bar on one note, stepping down by semitones from A through G sharp, G, F sharp and F to E, then by a whole tone to D.",
     "Hands together in B2. Bars 22–25 have short trills in both hands, each ending with two quick notes. Play them as the plain written notes first, and add the trills once the rhythm is steady.",
     "Play-along with the click at 60. Each clean pass nudges the tempo up toward 96.",
   ],

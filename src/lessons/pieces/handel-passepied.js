@@ -23,7 +23,7 @@ export default {
   steps: [
     "Right hand alone in A, in wait mode. Most beats pair a moving top line with a held lower note a third or sixth below; strike both together, then keep the top line moving while the lower note holds.",
     "Then the left hand alone. It is a plain bass line in eighths and quarters; in the second half of bar 3 the G sharp is held above E, D and C sharp, so press it once and keep it down.",
-    "Hands together in B, a half-bar at a time. Bars 7 and 8 climb by step to the high A in bar 9; play bar 9's three eighths evenly before the last chord.",
+    "Hands together in B, a half-bar at a time. Bar 8 has rising groups separated by drops of a third, and its high A returns at the start of bar 9; play bar 9's three eighths evenly before the last chord.",
     "Play-along with the click at 50. Each clean pass nudges the tempo up toward 80.",
   ],
   watch: [

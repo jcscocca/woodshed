@@ -43,7 +43,7 @@ V:3 clef=bass
 [V:3] x16 | z4 A,,,4 D,,8 |]`;
 
 export default {
-  summary: "Handel's Allegro in D minor, from the Aylesford Pieces, all 38 bars of 4/4: a two-part piece built on one sixteenth-note subject that passes between the hands. Five sections: Opening (bars 1–6), where the left hand answers the right a bar later; To A minor (7–15), with the subject in each hand in turn and a close in A minor; Middle (16–20), through G minor, F major and C major; Sequence (21–29), a falling pattern that closes in F major in bar 29; and Return (30–38), back in D minor, with an Adagio close from the middle of bar 37.",
+  summary: "Handel's Allegro in D minor, from the Aylesford Pieces, all 38 bars of 4/4: a two-part piece built on one sixteenth-note subject that passes between the hands. Five sections: Opening (bars 1–6), where the left hand answers the right a bar later; To A minor (7–15), with the subject in each hand in turn and a close in A minor; Middle (16–20), through G minor, F major and C major; Sequence (21–29), a falling pattern, with G minor followed by D minor in bar 29; and Return (30–38), back in D minor, with an Adagio close from beat 4 of bar 37.",
   steps: [
     "Opening, hands separately in wait mode. The subject is bar 1's sixteenths, D–A–D–E, D–E–F–D; in bar 2 the left hand plays it while the right hand holds a tied D.",
     "Bars 3–4: the right hand alternates two notes in sixteenths, B flat and D in bar 3, A and C in bar 4, over detached eighths in the left hand. Keep the alternating notes light and even, and let the left hand's rests be heard.",
@@ -52,7 +52,7 @@ export default {
   ],
   watch: [
     "The accidentals follow the keys: B natural and G sharp in the A minor bars (8–15), F sharp and E flat in bar 16, and C sharp wherever the music is in D minor. Each one is written in.",
-    "From the end of bar 36 the right hand goes low, down to the F and F sharp below middle C, where the edition switches it to the bass clef; the score keeps it in the treble staff, on ledger lines. The edition marks Adagio halfway through bar 37; slow down there to the end.",
+    "From the end of bar 36 the right hand goes low, down to the F and F sharp below middle C, where the edition switches it to the bass clef; the score keeps it in the treble staff, on ledger lines. The edition marks Adagio on beat 4 of bar 37; slow down there to the end.",
   ],
   source: { label: "Mutopia Project — Handel, Allegro (Aylesford Pieces, Edition Schott 1930)", url: "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=160" },
   score: {

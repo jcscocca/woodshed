@@ -30,7 +30,7 @@ V:2 clef=bass
 [V:2] [D,,D,]8 z4 |]`;
 
 export default {
-  summary: "Handel's Menuet in D major from the Aylesford Pieces, Andantino, all 29 bars in 3/4. The right hand plays the tune over a second voice, written here as chord notes; the left hand moves in quarters and halves. Four sections: A1 (bars 1–5), A2 (6–13), B1 (14–21) and B2 (22–29). Bar 1 holds the pickup, so bar numbers here run one ahead of the printed ones. The original repeats each half; here you play each half once.",
+  summary: "Handel's Menuet in D major from the Aylesford Pieces, Andantino, all 29 bars in 3/4. The right hand plays the tune over a second voice, written here as chord notes; the left hand moves in quarters and halves. Four sections: A1 (bars 1–5), A2 (6–13), B1 (14–21) and B2 (22–29). Bar 1 holds the pickup, so bar numbers here run one ahead of the printed ones. The original repeats the first half; here you play both halves once.",
   steps: [
     "Left hand alone in A1 and A2, in wait mode. It is a bass line in quarters and halves; keep the quarters detached and even.",
     "Right hand alone in A2. Bar 6 has a run of sixteenths, E and D, which is a written-out trill; bar 12 has another on F sharp and G, ending in a triplet. Play them slowly and evenly first.",

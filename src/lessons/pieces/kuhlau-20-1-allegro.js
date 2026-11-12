@@ -56,12 +56,12 @@ export default {
   summary: "The first movement (Allegro) of Kuhlau's Sonatina in C, Op. 20 No. 1, all 80 bars, in 4/4 and C major. It is a sonata form: an exposition (bars 1–31) with a first theme over an Alberti bass, a bridge of broken chords and triplets, and a second theme in G major that ends in sixteenth-note runs; a development (32–49) over a left-hand figure that keeps returning to G, turning to C minor; and a recapitulation (50–80) with the second theme back in C. Seven sections: First theme (bars 1–8), Bridge (9–16), Second theme (17–31), Development (32–49), First theme again (50–57), Bridge again (58–65) and Second theme in C (66–80). The original repeats the exposition; here you play it once, as the reference recording does.",
   steps: [
     "Right hand alone through the first theme, bars 1–8, in wait mode. Bar 2 holds a G, tied over to an eighth, then strikes it three more times; bar 7 is the first run of eighths, starting on C sharp.",
-    "Left hand alone in bars 1–8 and 17–20: an Alberti figure, low–high–middle–high, eight eighths to the bar. Keep the hand still over each chord and move only at the bar line. In bar 8 it drops into the bass clef with G–A–B rising to the low C of bar 9.",
+    "Left hand alone in bars 1–8 and 17–20: an Alberti figure, low–high–middle–high, eight eighths to the bar, in bars 1–6 and 17–20. Keep the hand still over each chord and move only at the bar line. Bar 7 holds F and A, and in bar 8 it drops into the bass clef with G–A–B rising to the low C of bar 9.",
     "The sixteenth runs, bars 24–29 and 73–78, right hand alone and slowly. Bars 25 and 27 turn on C sharp and then C natural before the repeated F sharp eighths; decide where the thumb passes under in each run and keep it the same every time.",
     "Switch to play-along with the click at 60. Each clean pass nudges the tempo up toward 120.",
   ],
   watch: [
-    "Bars 13–16 and 62–65 are eighth-note triplets, twelve to the bar, each group of three starting with a rest. Count the triplets against the left hand's half notes, and play the E flats in bars 13–14 and 62–63.",
+    "Bars 13–16 and 62–65 are eighth-note triplets, twelve to the bar, each bar starting with a rest. Count the triplets against the left hand's long octaves, and play the E flats in bars 13–14 and 62–63.",
     "Bars 39–45 turn to C minor: repeated E flat–C thirds in the right hand, an A flat in the left hand in bar 39, and E flat in the left-hand scales of bars 42 and 44, where bars 41 and 43 have E natural and F sharp.",
   ],
   source: { label: "Mutopia Project — Kuhlau, Sonatina in C, Op. 20 No. 1, I. Allegro (B. Schott's Söhnen)", url: "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=232" },

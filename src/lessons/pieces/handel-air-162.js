@@ -28,13 +28,13 @@ V:2 clef=bass
 export default {
   summary: "An Air in B flat major from Handel's Aylesford Pieces, a two-part piece in which the left hand answers the right in imitation, all 28 bars. The edition is in 3/8; here two printed bars make one 3/4 bar, so each bar holds two short phrases. Four sections: A (bars 1–6), A again (7–12), B (13–20) and B again (21–28). Both halves repeat in the original and are written out here; bar 20 is the first ending and bar 28 the second.",
   steps: [
-    "Right hand alone in A, in wait mode. Each half bar starts with a strong note and falls by step in sixteenths; bar 1 opens on high B flat and lands on D.",
+    "Right hand alone in A, in wait mode. Bars 1 and 2 each start with a strong note, fall by step in sixteenths and land on a held note; bar 1 opens on high B flat and lands on D.",
     "Left hand alone in A. In bar 1 it plays the right hand's opening figure half a bar late and two octaves lower, after a held B flat, then the falling sixteenths. Listen for the same shape passing between the hands.",
     "Hands together in B, a half bar at a time. Bars 15–16 turn toward G minor with F sharps; in bar 16 the right hand holds G under B flat and A, then F sharp under A.",
     "Play-along with the click at 60. Each clean pass nudges the tempo up toward 100.",
   ],
   watch: [
-    "B flat and E flat are in the key signature, but the A section turns to F major: the right hand's Es in bars 4–6 are E natural, and so is the left hand's in bar 5. Bar 13 opens with E natural in both hands before the E flat returns.",
+    "B flat and E flat are in the key signature, but the A section turns to F major: the right hand's Es in bars 4–6 are E natural, and so is the left hand's in bar 5. Bar 13 starts on F in both hands and uses E natural in their descending lines; E flat returns in the right hand in bar 14 and the left in bar 17.",
     "The edition marks short trills on the E in bars 6 and 12 and on the A in bars 20 and 28; the score writes the main notes alone. Add the trills once the notes are secure.",
   ],
   source: { label: "Mutopia Project — Handel, Air (Aylesford Pieces, Edition Schott 1930)", url: "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=162" },

@@ -26,7 +26,7 @@ export default {
   summary: "Handel's Entrée in G minor, from the Aylesford Pieces, in 4/4, all 20 bars. A dance in two halves: the right hand moves in eighths and sixteenths, sometimes with a held lower note under the tune, over a walking left hand. Five sections: A1 (bars 1–4), A2 (5–8), B1 (9–12), B2 (13–16) and B3 (17–20). The original repeats each half; here you play each half once. Bar 1 holds the pickup, so bar numbers here run one ahead of the printed ones.",
   steps: [
     "Left hand alone in A1 and A2, in wait mode. It walks in even eighths, G–A–B flat–C–D in bar 2, and drops an octave in bars 3 and 6; keep the eighths detached and even.",
-    "Right hand alone in bars 3–4. Each bar starts with two notes together where the lower one holds, F sharp under A in bar 3 and G under D in bar 4; hold the lower note with one finger while the others move.",
+    "Right hand alone in bars 3–4. Two notes start together and the lower one holds: F sharp under A on beat 2 of bar 3, and G under D at the start of bar 4; hold the lower note with one finger while the others move.",
     "Bars 10–12 are sixteenth-note runs in the right hand over dotted left-hand steps. Practise them hands separately in wait mode, then together a bar at a time.",
     "Play-along with the click at 48. Each clean pass nudges the tempo up toward 80.",
   ],

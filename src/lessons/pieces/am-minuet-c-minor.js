@@ -27,7 +27,7 @@ V:2 clef=bass
 export default {
   summary: "The Minuet in C minor from the Anna Magdalena Bach notebook (BWV Anh. 121, composer unknown), all 24 bars, in 3/4. Three sections: A (bars 1–8), a rising line in quarter notes that closes on G; B (9–16), the same two-bar figure twice, a step apart, with a triplet in bars 11 and 15; and C (17–24), where the right hand climbs by half steps over a stepping bass. The original repeats each half; here you play each half once.",
   steps: [
-    "Right hand alone in A, in wait mode. Bars 1–3 climb in pairs of repeated quarters; the trilled F sharp in bar 4 is tied over to the G in bar 5, and the tied notes in bars 5 and 6 are not struck again.",
+    "Right hand alone in A, in wait mode. Bars 1–3 climb in pairs of repeated quarters; the trilled F sharp in bar 4 lasts two beats, then G on beat 3 ties into bar 5, and the tied notes in bars 5 and 6 are not struck again.",
     "Left hand alone in B. Bars 9 and 13 have two voices in the left hand. In bar 9 the low C holds the whole bar under E and F; in bar 13 D holds two beats, B flat comes in under it on beat 2 and holds to the bar line, and E flat sounds on beat 3. Don't lift the held notes early.",
     "Right hand alone in C, slowly. From bar 17 the tune rises a half step at a time (G, A flat, A natural, B flat, B natural, C), while the left hand mostly steps down against it, half steps included (C, B flat, A natural in bar 20).",
     "Play-along with the click at 72. Each clean pass nudges the tempo up toward 108.",

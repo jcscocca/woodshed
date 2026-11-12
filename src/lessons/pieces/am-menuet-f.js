@@ -28,7 +28,7 @@ V:2 clef=bass
 [V:2] F,2 z4 | G,2 z4 | A,2 B,2 C2 | F,6 |]`;
 
 export default {
-  summary: "Menuet in F major, BWV Anh. 113, a minuet from the 1725 notebook of Anna Magdalena Bach, all 32 bars in 3/4. Two halves: A (bars 1–12) stays in F; B (bars 13–32) moves to D minor and comes home. Five sections: A1 (bars 1–4), A2 (5–12), B1 (13–16), B2 (17–24) and B3 (25–32). The original repeats each half; here you play each half once.",
+  summary: "Menuet in F major, BWV Anh. 113, a minuet from the 1725 notebook of Anna Magdalena Bach, all 32 bars in 3/4. Two halves: A (bars 1–12) begins in F and closes in C; B (bars 13–32) moves to D minor and comes home. Five sections: A1 (bars 1–4), A2 (5–12), B1 (13–16), B2 (17–24) and B3 (25–32). The original repeats each half; here you play each half once.",
   steps: [
     "Right hand alone in A1, in wait mode. Bar 1 has two sixteenths, bars 2 and 3 have triplets: three even eighths to a beat, nine notes in bar 3. Keep the three notes of each triplet even, not dotted.",
     "Right hand in A2. Bars 5–8 are broken chords that keep coming back to C: the top C stays put while the lower note moves (A, F, G in bars 5 and 7; A, B flat, G in bars 6 and 8). Keep the C light and let the moving note lead.",

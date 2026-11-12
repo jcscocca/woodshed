@@ -27,7 +27,7 @@ export default {
   steps: [
     "Right hand alone in bar 1, in wait mode. Each turn is the main note, the note above, the main note, the note below and the main note again, the last four as 32nds; play them close to the key and land evenly on the next eighth. Then bars 2–3, where the turns move to G and E.",
     "Left hand alone in A. It holds a chord for two beats and repeats it twice in eighths; in bar 7 it strikes C–G–B flat on each beat with a rest between.",
-    "B, bars 9–12: the right hand plays G-based chords, a dotted quarter then staccato eighths, while the left hand has the turns on C and D in bars 9 and 10, each followed by a held G. In bar 12 the turns go back to the right hand.",
+    "B, bars 9–12: the right hand plays G-based chords, a dotted quarter then staccato eighths in bars 9 and 10 and six staccato eighths in bar 11, while the left hand has the turns on C and D in bars 9 and 10, each followed by a held G. In bar 12 the turns go back to the right hand.",
     "Hands together, a section at a time, then play-along with the click at 44. Each clean pass nudges the tempo up toward 80.",
   ],
   watch: [

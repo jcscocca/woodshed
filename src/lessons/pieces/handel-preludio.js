@@ -35,7 +35,7 @@ export default {
   summary: "Handel's Preludio in D minor, from the Aylesford Pieces, all 22 bars of 4/4: a two-part piece in running sixteenths, the hands passing the same figures back and forth. Four sections: Opening (bars 1–5), where the right hand states the figure and the left hand answers it alone; Development (6–10), which touches F major and returns to D minor in bar 10; Episodes (11–16), short figures traded between the hands; and Close (17–22), which settles in D minor.",
   steps: [
     "Opening, hands separately in wait mode. The right hand plays alone until halfway through bar 3: the figure starts D–F–C sharp–E and then outlines chords in sixteenths. The left hand takes the same figure from there to the end of bar 5 while the right hand rests.",
-    "Development, hands together, one bar at a time. In bars 6–9 one hand runs in sixteenths while the other plays eighths or a held quarter; keep the sixteenths even as the other hand changes.",
+    "Development, hands together, one bar at a time. In bars 6–9 the hands trade sixteenth-note runs, and on the last beat of bars 8 and 9 both run together; keep the sixteenths even as the other hand changes.",
     "Episodes, left hand alone first. In bars 11–12 and 16–17 it moves up into the upper staff, below the right hand, and trades short figures with it, such as A–C sharp–B–A in bar 11; follow its notes from one staff to the other.",
     "Play-along with the click at 60. Each clean pass nudges the tempo up toward 100.",
   ],
