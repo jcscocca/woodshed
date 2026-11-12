@@ -382,7 +382,7 @@ export default function Woodshed() {
     <div className="ws-main">
       {["guided", "chords", "scales", "progress"].includes(view) && <Program key={`${view}:${programEpoch}`} section={view} progress={data.programProgress} onAttempt={onProgramAttempt} unitId={data.programUnitId} onUnitChange={chooseProgramUnit} onChangeProgress={changeProgramProgress} />}
       {view === "progress" && data.sessions.length > 0 && <details className="pg-legacy-toggle"><summary>Earlier practice history</summary><Progress data={data} live={live} streak={streak} onEditSession={setEditSession} /></details>}
-      {view === "catalogue" && !legacyView && <Program key={`${view}:${programEpoch}`} section={view} progress={data.programProgress} onAttempt={onProgramAttempt} unitId={data.programUnitId} onUnitChange={chooseProgramUnit} onLegacyView={setLegacyView} onOpenPiece={(id) => openLesson(live.items.find((it) => it.id === id) || trackItems().find((it) => it.id === id))} />}
+      {view === "catalogue" && !legacyView && <Program key={`${view}:${programEpoch}`} section={view} progress={data.programProgress} onAttempt={onProgramAttempt} unitId={data.programUnitId} onUnitChange={chooseProgramUnit} onChangeProgress={changeProgramProgress} onLegacyView={setLegacyView} onOpenPiece={(id) => openLesson(live.items.find((it) => it.id === id) || trackItems().find((it) => it.id === id))} />}
       {view === "catalogue" && legacyView && <>
         <button className="ws-btn ghost sm" style={{ marginBottom: 20 }} onClick={() => { closeLesson(); setLegacyView(null); }}>← Back to catalogue</button>
         {legacyView === "tracks" && <Tracks live={live} onComplete={completeStage} onReopen={reopenStage} onLearn={openLesson} selectedId={selectedId} />}

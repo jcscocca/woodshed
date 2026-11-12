@@ -16,11 +16,11 @@ V:2 clef=bass
 [V:2] A,2B,2C2 F2=E2D2 | B,2C2C,2 F,2A,2F,2 | B,,6 B,2A,G,F,E, | D,4E,2 F,2E,D,C,B,, |
 [V:1] cBcdec d4d2 | g2d=efd =e4g2 | c'2gabg a2c2f2 | [dg]a[G=e]3f [Af]6 |
 [V:2] A,,4F,2 B,2DCB,A, | G,4G,2 C2G,A,B,G, | A,2B,2C2 F2=E2D2 | B,2C2C,2 F,2A,2F,2 |
-[V:1] f2=edcB A4B2 | cBcdec d6 | b2ag^f=e d2g2[^Fc]2 | [GB]A[^FA]3G G6 |
+[V:1] f2=edcB A4B2 | cBcdec d6 | b2ag^f=e d2g2[^Fc]2 | [G-B][GA][^FA]3G G6 |
 [V:2] F,,6 F,2=E,D,C,B,, | A,,4F,2 B,2DCB,A, | G,4C2 B,4A,2 | G,2D2D,2 G,2B,A,G,F, |
 [V:1] gfedcB A4c2 | f2defd g4a2 | bagfed gfedcB | [Gc]2[CA]3B [DB]6 |
 [V:2] E,2C,2E,2 F,2A,G,F,E, | D,2B,,2D,2 E,2EDC2 | D2B,2D,2 E,2F,2G,2 | E,2F,2F,,2 B,,,2D,,2F,,2 |
-[V:1] f2=edcB A4B2 | cBcdec d6 | b2ag^f=e d2g2[^Fc]2 | [GB]A[^FA]3G G6 |
+[V:1] f2=edcB A4B2 | cBcdec d6 | b2ag^f=e d2g2[^Fc]2 | [G-B][GA][^FA]3G G6 |
 [V:2] F,,6 F,2=E,D,C,B,, | A,,4F,2 B,2DCB,A, | G,4C2 B,4A,2 | G,2D2D,2 G,2B,A,G,F, |
 [V:1] gfedcB A4c2 | f2defd g4a2 | bagfed gfedcB | [Gc]2[CA]3B [DB]6 |]
 [V:2] E,2C,2E,2 F,2A,G,F,E, | D,2B,,2D,2 E,2EDC2 | D2B,2D,2 E,2F,2G,2 | E,2F,2F,,2 [B,,,B,,]6 |]`;

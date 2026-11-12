@@ -208,6 +208,7 @@ export default function PracticePlayer({ exercise, onLog, onClose, defaultMinute
   const save = async (event, quick) => {
     event?.preventDefault();
     if (recordingActive || saveGate.current.busy || saveGate.current.saved || !onLog) return;
+    if (quick === "done" && Number(minutes) > 240) { setSaveError("Minutes practised must be 240 or fewer."); return; }
     const gate = saveGate.current, exerciseId = exercise.id;
     gate.busy = true;
     stop(); setSaveError(null); setSaving(true);

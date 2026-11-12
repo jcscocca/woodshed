@@ -29,7 +29,7 @@ V:3 clef=bass
 [V:3] x8 A,,2^C,2 =B,,2A,,2 | D,=B,,A,,B,, ^C,B,,C,D, C,3D, E,3C, | D,^C,D,E, F,E,F,G, A,2^C2 =B,2A,2 | D=B,A,B, ^CB,CD C2A,2 B,2C2 |
 [V:1] d=BAB ^cBcd [Af]2[Ge]d [EAc]3d | dAFA D4 z8 |]
 [V:2] x16 | x16 |]
-[V:3] F,D,^C,D, E,D,E,F, D,2G,2 A,2A,,2 | D,4- D,A,F,A, D,4 D,,2z2 |]`;
+[V:3] F,D,^C,D, E,D,E,F, D,2G,2 A,2A,,2 | D,4- D,-[D,-A,][D,-F,][D,A,] D,4 D,,2z2 |]`;
 
 export default {
   summary: "Handel's Preludio in D minor, from the Aylesford Pieces, all 22 bars of 4/4: a two-part piece in running sixteenths, the hands passing the same figures back and forth. Four sections: Opening (bars 1–5), where the right hand states the figure and the left hand answers it alone; Development (6–10), which touches F major and returns to D minor in bar 10; Episodes (11–16), short figures traded between the hands; and Close (17–22), which settles in D minor.",

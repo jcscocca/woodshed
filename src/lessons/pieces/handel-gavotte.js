@@ -24,7 +24,7 @@ V:3 clef=bass
 [V:1] [GBe]6 [dg]f | [Gf]e [Ge]d [Fd]c [Gc]B | [Ec]6 [Be]d | [Fd]c [Gc]B [DB]A [^CA]G |
 [V:2] .E,2 .E,,2 .E,2 .B,,2 | .C,2 .B,,2 .A,,2 .G,,2 | .A,,2 .E,2 .A,2 .G,2 | .A,2 .G,2 .F,2 .E,2 |
 [V:3] x8 | x8 | x8 | x8 |
-[V:1] [DF]6 [F,G]D | [CE]2 [A,A]E [DF]2 [B,B]F | [B,G]2 [Cc]G [DA]2 [Dd]A | [GB]F [EA]G [DGB]2 [CFA]G |
+[V:1] [DF]6 [F,G]D | [CE]2 [A,A]E [DF]2 [B,B]F | [B,G]2 [Cc]G [DA]2 [Dd]A | [GB-][FB] [E-A][EG] [DGB]2 [C-F-A][CFG] |
 [V:2] .D,2 .D,,2 .D,2 .B,,2 | .C,2 .C,,2 .D,2 .D,,2 | .E,2 .E,,2 .F,2 .F,,2 | .G,2 .C,2 .D,2 .D,,2 |
 [V:3] x8 | x8 | x8 | x8 |
 [V:1] [B,DG]6 z2 |]

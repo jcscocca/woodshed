@@ -226,6 +226,15 @@ test("every score and snippet is one the engine can grade", () => {
     for (const abc of [(L.score || L.chart) && scoreFor(L).abc, L.snippet].filter(Boolean)) assert.deepEqual(ungradable(abc), [], id);
 });
 
+// abcjs warns when it cannot draw a length as one symbol (z5, D5): the page then disagrees with the expected beat.
+test("every score and snippet parses without an abcjs warning", () => {
+  for (const [id, L] of Object.entries(LESSONS))
+    for (const abc of [(L.score || L.chart) && scoreFor(L).abc, L.snippet].filter(Boolean)) {
+      const { warnings } = abcjs.parseOnly(abc)[0];
+      assert.ok(!warnings?.length, `${id}: ${warnings}`);
+    }
+});
+
 test("a score has bpm, target >= bpm and sections inside the piece; scored lessons carry no shape", () => {
   for (const [id, L] of Object.entries(LESSONS)) {
     if (L.score || L.chart || L.sightread || L.song) assert.ok(!L.shape, `${id}: a scored lesson has no shape`);

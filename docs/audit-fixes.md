@@ -162,3 +162,38 @@ editing/reload, and lesson continuity across the compact breakpoint. Compact
 Tuner stopped owned playback and waited for an explicit listening action.
 These were UI fixture reports, not measured playing. The observed scope is
 recorded in [release readiness](release-readiness.md#follow-up-live-walkthrough--2026-10-28).
+
+## Score and code audit — 2026-11-09
+
+A second audit covered the 49 Mutopia scores and the code merged since the first
+one (`a1b510b..d87daf6`). It found no wrong notes. It did find six defects, all
+fixed here, and a class of shortened notes in the Handel scores.
+
+| Finding | Fix | Check |
+|---|---|---|
+| **Unskip from the Catalogue could not save.** The Catalogue's player was mounted without the progress handler, so Unskip showed "That change could not be saved" and the piece stayed skipped. | The Catalogue mount passes `onChangeProgress`, as the course mount does. | `test/browser/catalogue.spec.js`: skip a piece from the shelf, reopen it and unskip it. |
+| **Done skipped the minutes check.** The one-tap Done button bypassed the form's 240-minute limit, so a typo such as 2000 was saved as zero minutes and still completed the block. | Done refuses more than 240 minutes and says so under the form. An empty or below-1 entry still falls back to the lesson's default, as before. | `test/browser/tablet.spec.js`: Done with 2000 minutes shows the message and saves nothing. |
+| **Four lengths abcjs cannot draw.** A rest or note of 5 or 10 units has no single symbol, so abcjs warned and drew a length that disagrees with the beat the score grades: `z5` in Greensleeves, `z10` in Handel's Menuet I in F and Passepied (both voices), and `D5` in Burgmüller's La Pastorale. | Each is split into drawable lengths (`z4 z`, `z8 z2`, `D3-D2`). The parsed notes are identical before and after. | `test/lessons.test.mjs` fails on any abcjs warning in any score, chart or snippet. |
+
+The score audit also found 386 notes that folding two voices into one had
+shortened. Two groups were restored, in ten Handel files:
+
+- **Holds the lesson text asks for.** Where a lesson says to keep a note down, the
+  note is now tied for its full length: Air in B flat, Entrée, Gavotte, Menuet I
+  in D minor, Menuet I in F, Menuet (Trio) in A minor and Passepied.
+- **Left-hand bass notes.** The Sonatina in A minor and the Allegro in D minor
+  now write the left hand's second voice as a third voice (`%%staves {1 (2 3)}`),
+  and the Preludio's last bar ties its low D. No shortened left-hand note remains.
+
+The per-piece record is in the
+[repertoire table](piano-curriculum-evidence.md#repertoire-scores-from-mutopia).
+The remaining shortened notes are right-hand inner voices; every onset is still
+graded.
+
+Verification on this branch: `npm test` passes, the production build passes, and
+the browser suite passes 105 of 123 scheduled cases with 18 intentional skips
+(narrow-width and duplicate-project cases). Unskip and the Done limit were also
+exercised by hand in a 1180×820 preview. Still open from the same audit, and not
+changed here: 47 lesson-text corrections awaiting review, 20 level disagreements
+from the playability measure, and hand-distribution questions in Gymnopédie No. 1
+and the Gavotte.
