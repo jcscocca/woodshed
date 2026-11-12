@@ -27,7 +27,7 @@ export default {
   steps: [
     "Right hand alone in A, in wait mode, without the ornaments. Bars 1, 3 and 4 start with the same figure, an eighth and two sixteenths; bars 1 and 3 end with two quick thirty-seconds that run into a dotted eighth.",
     "Left hand alone. It is quarter notes throughout except the held F in bar 8 and the half note D at the end. Bar 13 is three Cs under the right hand's broken C major chord.",
-    "Hands together, a section at a time. The sixteenth-note triplets in bars 5 and 14 fill one beat; count them against the left hand's quarter.",
+    "Hands together, a section at a time. The sixteenth-note triplets in bars 5 and 14 fill the second half of beat 1; keep the left hand's quarter steady underneath.",
     "Once the notes are secure, add the ornaments: each mordent is the main note, the note below and the main note again, played quickly on the beat. Then play-along with the click at 56, nudging up toward 80.",
   ],
   watch: [

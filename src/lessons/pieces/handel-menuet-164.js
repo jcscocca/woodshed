@@ -38,7 +38,7 @@ V:3 clef=bass
 [V:3] =E,2F,2F,2 | C,2=E,2F,2 | B,,2C,2x2 | x6 |]`;
 
 export default {
-  summary: "Menuet II, the trio in F minor that follows Menuet I in Handel's Aylesford Pieces, all 32 bars in 3/4. Both hands move in quarter notes, often in two voices each. Four sections: A (bars 1–8), A again (9–16), B1 (17–24) and B2 (25–32). The original repeats the first half, written out here; B2 opens over the same left hand as B1, bars 25–28 against 17–20, with the right hand filled in with eighths, and closes in F minor.",
+  summary: "Menuet II, the trio in F minor that follows Menuet I in Handel's Aylesford Pieces, all 32 bars in 3/4. Both hands move in quarter notes, often in two voices each. Four sections: A (bars 1–8), A again (9–16), B1 (17–24) and B2 (25–32). The original repeats the first half, written out here; B2 varies B1's opening in both hands, with the right hand filled in with eighths, and closes in F minor.",
   steps: [
     "Right hand alone in A, in wait mode. Bars 1–2 are a single line that leaps up; from bar 3 the hand plays two voices, so read each pair of notes as one shape.",
     "Left hand alone. In bars 1–2 it holds a C on top while the lower voice moves underneath; from bar 3 it is one line. In B the two voices return, often moving together in quarters.",

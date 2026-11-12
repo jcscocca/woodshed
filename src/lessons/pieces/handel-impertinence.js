@@ -27,8 +27,8 @@ V:2 clef=bass
 export default {
   summary: "Handel's \"Impertinence\" in G minor from the Aylesford Pieces, all 21 bars in 4/4. A bourrée-like dance in two parts: one line in each hand, the left hand answering the right. Five sections: A1 (bars 1–5), A2 (6–9), B1 (10–13), B2 (14–17) and B3 (18–21). Bar 1 holds the pickup, so bar numbers here run one ahead of the printed ones. The original repeats each half; here you play each half once.",
   steps: [
-    "Right hand alone in A1, in wait mode. The tune starts on the pickup D in bar 1 and moves by step; bars 4 and 6 open with two eighths, then three detached quarters.",
-    "Left hand alone in A1 and A2. In bar 3 it imitates the right hand's opening; from bar 5 it walks down in quarters to the low F in bar 7.",
+    "Right hand alone in A1, in wait mode. The tune opens with leaps from the pickup D to G and B flat, then descends by step; bars 4 and 6 open with two eighths, then three detached quarters.",
+    "Left hand alone in A1 and A2. In bar 3 it imitates the right hand's opening; in bar 6 it descends in quarters, D–B flat–A–G, reaching low F at the start of bar 7.",
     "Bar 8 has an eighth-note triplet then four sixteenths over a held G, and bar 20 has six quick notes, A and B flat, in the time of one beat. Take each slowly in wait mode until the rhythm is even.",
     "Play-along with the click at 66. Each clean pass nudges the tempo up toward 104.",
   ],

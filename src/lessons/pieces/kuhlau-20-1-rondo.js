@@ -135,15 +135,15 @@ V:3 clef=bass
 [V:3] x8 | x8 |]`;
 
 export default {
-  summary: "The third movement (Rondo, Allegro) of Kuhlau's Sonatina in C, Op. 20 No. 1, all 158 bars, in 2/4 and C major. The refrain (A) comes back four times around two episodes: B, sixteenth-note sequences that settle in G major, and C, in A minor over held bass notes. Nine sections: A (bars 1–17), B (18–36), A again (37–52), C (53–76), Link (77–84), A third time (85–100), B again (101–119), A last time (120–134) and Coda (135–158). Bar 1 holds the pickup, so bar numbers here run one ahead of the printed ones.",
+  summary: "The third movement (Rondo, Allegro) of Kuhlau's Sonatina in C, Op. 20 No. 1, all 158 bars, in 2/4 and C major. The refrain (A) appears four times around two episodes: B, sixteenth-note sequences that settle in G major, and C, in A minor over held bass notes. Nine sections: A (bars 1–17), B (18–36), A again (37–52), C (53–76), Link (77–84), A third time (85–100), B again (101–119), A last time (120–134) and Coda (135–158). Bar 1 holds the pickup, so bar numbers here run one ahead of the printed ones.",
   steps: [
     "Right hand alone in A, in wait mode. Most bars of the tune start with a dotted eighth and a sixteenth on the same note, then turn around it in sixteenths: G, G, then F sharp–G–A–G in bar 2. Keep the repeated note light and the sixteenths even.",
-    "Left hand alone. In bars 2–9 it plays short eighth-note chords in the treble clef, and from bar 10 an Alberti bass in the bass clef. In C it holds a bass note under repeated chords, A and G sharp in bars 53–58 and 69–72, E in bars 61–67; keep the low note down for the whole bar.",
-    "B, bars 18–36, right hand alone: sixteenth-note sequences that step down (18–25), then a passage in G major with F sharps (26–36). Bars 35–36 alternate G and F sharp; play them evenly and lead straight into the tune at bar 37.",
+    "Left hand alone. In bars 2–9 it plays chords, mostly short eighths, moving from the treble clef to the bass clef in bar 8, and from bar 10 an Alberti bass. In C it holds a bass note under repeated chords, A and G sharp in bars 53–58 and 69–72, E in bars 61–67; keep the low note down for the whole bar.",
+    "B, bars 18–36, right hand alone: sixteenth-note sequences that step down (18–25), then a passage in G major with F sharps (26–36). Bars 35–36 alternate G and F sharp, and bar 36 finishes G–F natural–E–F natural; play them evenly and lead straight into the tune at bar 37.",
     "Switch to play-along with the click at 56. Each clean pass nudges the tempo up toward 104.",
   ],
   watch: [
-    "C, bars 53–76, is in A minor: G sharp throughout, and D sharp leading into E. Bars 81–84 are chromatic sixteenths, down and then up from B to F sharp in bar 84; read each sharp and natural as it comes.",
+    "C, bars 53–76, is in A minor: G sharp in many bars, with G natural in bars 59 and 73–74, and D sharp leading into E. Bars 81–84 are chromatic sixteenths, down and then up from B to F sharp in bar 84; read each sharp and natural as it comes.",
     "In the coda the right hand drops below middle C, onto ledger lines under the treble staff, in bars 135–140, then plays the figure of bars 137–140 an octave higher in bars 145–148. Keep the sixteenths even through the change of register.",
   ],
   source: { label: "Mutopia Project — Kuhlau, Sonatina in C, Op. 20 No. 1, III. Rondo (B. Schott's Söhnen)", url: "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=234" },

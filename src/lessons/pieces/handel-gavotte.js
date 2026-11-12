@@ -41,7 +41,7 @@ export default {
   ],
   watch: [
     "B1 turns toward E minor, with D sharps in bars 11 and 12. An accidental lasts one bar only, which is why bar 12 marks the sharp again.",
-    "In bars 18–20 the right hand plays two notes against each other, a quarter below and eighths above; the lower notes go down to F sharp, A and B below middle C.",
+    "In bars 17–19 the right hand reaches below middle C: F sharp at the end of bar 17, then A and B in bar 18 and B again in bar 19. In bar 20 it plays two notes against each other, a held quarter with eighths moving above or below it.",
   ],
   source: { label: "Mutopia Project — Handel, Gavotte (Edition Schott 1930)", url: "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=151" },
   score: {

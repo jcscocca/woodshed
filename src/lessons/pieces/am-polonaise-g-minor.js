@@ -20,7 +20,7 @@ V:2 clef=bass
 [V:2] B,,4 C,4 E,4 | D,8 C,4 | B,,4 G,,4 B,,4 | D,4 G,,8 |]`;
 
 export default {
-  summary: "The Polonaise in G minor from the Anna Magdalena Bach notebook (BWV Anh. 119, composer unknown), all 16 bars, in 3/4. A polonaise is a stately Polish dance; its mark is the short-long rhythm on the beat, a dotted eighth and a sixteenth or an eighth and two sixteenths. Three sections: A (bars 1–4), B (5–10, turning to B flat major) and C (11–16, back to G minor). The original repeats each half; here you play each half once.",
+  summary: "The Polonaise in G minor from the Anna Magdalena Bach notebook (BWV Anh. 119, composer unknown), all 16 bars, in 3/4. A polonaise is a stately Polish dance; its mark is a dotted eighth followed by a sixteenth, or an eighth followed by two sixteenths, on the first beat. Three sections: A (bars 1–4), B (5–10, turning to B flat major) and C (11–16, back to G minor). The original repeats each half; here you play each half once.",
   steps: [
     "Right hand alone in A, in wait mode. Bars 1 and 5 open with a dotted eighth and a sixteenth; bars 2, 3 and 4 with an eighth and two sixteenths. Keep the sixteenths short and leaning into the next beat.",
     "Left hand alone. It walks mostly in quarters. Bars 2, 4 and 10 move in eighths (bar 2 is F sharp, E, F sharp, D), and bar 5 copies the right hand's dotted rhythm.",

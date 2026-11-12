@@ -31,13 +31,13 @@ export default {
   summary: "Burgmüller's \"Consolation\", No. 13 of his 25 easy studies, Op. 100, all 26 bars, in C major and 4/4. A quarter-note tune sings over a repeated G in eighths, played in the same hand. Four sections: Intro (bars 1–7), A (8–15), B (16–23) and Coda (24–26). The original repeats A, and B with a first ending; here you play each part once and take the second ending (bar 23), so bar numbers from 23 on are one less than the printed ones.",
   steps: [
     "Intro (bars 1–7), right hand alone, in wait mode. Hold the lower note for the whole bar, G in bars 1–2, then B, C and A, while the upper fingers rock between the two notes above it in eighths.",
-    "Right hand alone in A (bars 8–15). The tune is in quarters on the beat; on each off-beat the thumb plays G underneath. Keep each tune note held through its G, then add the left hand's held chords.",
+    "Right hand alone in A (bars 8–15). The tune is mostly in quarters on the beat, with the thumb's G on the off-beats; bars 11, 14 and 15 run in eighths. Keep each tune note held through its G, then add the left hand's held chords.",
     "B (bars 16–23): in bars 16–19 the left hand takes the same two-part pattern, a quarter-note line with G on the off-beats, under a right-hand tune in quarters. In bars 20–21 the pattern goes back to the right hand. Practise the left hand alone in bars 16–19 first.",
     "Switch to play-along with the click at 60. Each clean pass nudges the tempo up toward 112.",
   ],
   watch: [
     "The off-beat Gs are not part of the tune. Play them lightly and don't let them cut the tune note short; the score writes each held note tied into a chord with the G.",
-    "Accidentals: C sharp in bars 5 (left hand), 6, 9, 17 and 20, D sharp in bars 5, 18 and 25, F sharp in bar 11, and in bar 14 A sharp and F sharp in the right hand over a left-hand D sharp.",
+    "Accidentals: C sharp in bars 5 (left hand), 6, 9, 16, 18 and 20, D sharp in bars 5, 19 and 25, F sharp in bar 11, and in bar 14 A sharp and F sharp in the right hand over a left-hand D sharp.",
   ],
   source: { label: "Mutopia Project — Burgmüller, Consolation, Op. 100 No. 13 (Collection Litolff)", url: "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=224" },
   score: {

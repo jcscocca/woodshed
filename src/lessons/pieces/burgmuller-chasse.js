@@ -45,9 +45,9 @@ V:2 clef=bass
 export default {
   summary: "Burgmüller's \"La Chasse\" (The Hunt), No. 9 of his 25 easy studies, Op. 100, all 57 bars, in C major. The original is in 6/8; here it is written in 3/4 with the same eighth notes, so each bar is two groups of three. The right hand plays horn calls, a high G answered by the G an octave below, over left-hand chords. Seven sections: Intro (bars 1–5, left hand alone), A (6–13), B (14–21), A again (22–29), C (30–37, in A minor), A′ (38–45) and Coda (46–57). Bar 1 holds the eighth-note pickup, so bar numbers here run one ahead of the printed ones. The original repeats C; here you play it once.",
   steps: [
-    "Right hand alone in A, in wait mode. Each half bar is a horn call: the high G with the fifth finger, then the low G twice with fingers 2 and 1. Keep the hand spread over the octave instead of jumping, and keep all three notes short.",
+    "Right hand alone in A, in wait mode. In bars 6–8 and 10–12 each half bar is a horn call: the high G with the fifth finger, then the low G twice with fingers 2 and 1. Keep the hand spread over the octave instead of jumping, and keep all three notes short.",
     "Left hand alone in B. Each bar is an eighth rest, then F sharp slurred to G, twice: in the treble clef in bars 14–16, an octave lower in bars 18–21. Start each pair after the rest. Bar 17 is a broken G chord, and bar 21 ends on the low G.",
-    "C (bars 30–37) is the one legato section: long right-hand notes, then a run of eighths in bars 35–37, over left-hand broken chords in the treble clef. Take it hands separately in wait mode before putting it together.",
+    "C (bars 30–37) is the one legato section: long right-hand notes over left-hand broken chords in the treble clef (bars 30–34), then a run of eighths in bars 35–37. Take it hands separately in wait mode before putting it together.",
     "Switch to play-along with the click at 80. Each clean pass nudges the tempo up toward 160.",
   ],
   watch: [

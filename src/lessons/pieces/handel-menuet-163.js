@@ -26,7 +26,7 @@ export default {
   summary: "Menuet I in F major from Handel's Aylesford Pieces, all 17 bars, played before Menuet II. The edition is in 3/8; here two printed bars make one 3/4 bar. Bar 1 holds the eighth-note pickup, padded with rests. Four sections: A (bars 1–5), A again (6–9), B (10–13) and B′ (14–17). The original repeats the first half, written out here; the second half is printed twice, the second time with the left hand in octaves.",
   steps: [
     "Right hand alone in A, in wait mode. It plays two voices: the upper one carries the tune and the lower one moves in thirds and sixths under it. In bar 2 the short A–B flat before each C is a dotted sixteenth and a thirty-second, quick and light.",
-    "Left hand alone. In A and B it is one line of eighths; in B′ (bars 14–17) the same line is mostly in octaves, so shape each octave before you play it.",
+    "Left hand alone. In A and B it is mostly one line of eighths; in B′ (bars 14–17) the same line is mostly in octaves, so shape each octave before you play it.",
     "Hands together in B, a half bar at a time. Bar 11 ends with three left-hand octaves stepping down, C, B flat, A.",
     "Play-along with the click at 60. Each clean pass nudges the tempo up toward 100.",
   ],

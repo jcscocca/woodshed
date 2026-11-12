@@ -43,8 +43,8 @@ export default {
   summary: "Burgmüller's \"La Pastorale\", No. 3 of his 25 easy studies, Op. 100, all 29 bars, in G major. The original is in 6/8; here each bar is written in 3/4 with eighths, so a bar is two groups of three eighths, counted in two. Five sections: Intro (bars 1–2, right hand alone), A (3–10), B (11–18), A′ (19–26) and Coda (27–29). The original repeats bars 3–10; here you play them once.",
   steps: [
     "Right hand alone in A, in wait mode. Most bars are a dotted quarter followed by three eighths; hold the dotted quarter for its full three eighths and join it to the next group. The small notes are quick graces played just before the beat: F sharp before E in bars 3 and 7, and A–B before C in bar 5.",
-    "Left hand alone in A. Each bar is one chord struck as three eighths and a dotted quarter: G–B–D, with C in place of B in bar 5. Keep the repeated chords light and even and hold the last one for its whole half bar.",
-    "Left hand alone in B (bars 11–14). The lower notes, F sharp with C and then G with B, are held for the whole bar while the thumb plays D three times on the off-beats. Strike the held notes once and keep them down.",
+    "Left hand alone in A. In bars 3–8 each bar is one chord struck as three eighths and a dotted quarter: G–B–D, with C in place of B in bar 5. Keep the repeated chords light and even and hold the last one for its whole half bar.",
+    "Left hand alone in B (bars 11–14). The lower notes, F sharp with C and then G with B, are held for the whole bar while the thumb plays two D eighths after an eighth rest, then a D dotted quarter on the second main beat. Strike the held notes once and keep them down.",
     "Hands together, a section at a time, then play-along with the click at 50. Each clean pass nudges the tempo up toward 84.",
   ],
   watch: [

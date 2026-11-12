@@ -23,9 +23,9 @@ V:2 clef=bass
 export default {
   summary: "Mozart's \"Marche funebre del Sig. Maestro Contrapunto\", K. 453a, a short mock funeral march he wrote in 1784 into the music book of his pupil Barbara Ployer, all 16 bars. C minor; the autograph is in cut time, counted here in 4/4, so each printed half-note beat is two beats. Four sections: A1 (bars 1–4), A2 (5–8), B1 (9–12) and B2 (13–16). The original repeats each half; here you play each half once.",
   steps: [
-    "Left hand alone in A1 and A2, in wait mode. It plays octaves, one a beat; bars 5–6 move by half step, C down to C flat and B flat, then up through C and C sharp to D, so keep the hand shaped as an octave and move it from the arm.",
+    "Left hand alone in A1 and A2, in wait mode. It plays octaves in quarters, with rests in bars 2 and 4 and single notes in bars 7–8; bars 5–6 move mainly by half step, C down to C flat and B flat, then up a whole step to C and on through C sharp to D, so keep the hand shaped as an octave and move it from the arm.",
     "Right hand alone. Most beats are three- or four-note chords; bars 2 and 4 break into pairs of eighths in thirds and sixths. Play the dotted rhythm in bars 1, 3, 9, 10 and 13 as a long and a very short chord, the short one leaning into the next beat.",
-    "Bars 11–12 by themselves. Three right-hand lines share one hand: the thumb repeats G in a dotted rhythm while the top notes fall slowly by half step, from G and F sharp down to D. Hold the long E flat in bar 11 and the tied notes, and strike only the thumb's G.",
+    "Bars 11–12 by themselves. Three right-hand lines share one hand: the thumb repeats G in a dotted rhythm, then F sharp on beat 2 of bar 12, while the top notes fall slowly by half step, from G and F sharp down to D. Hold the long E flat in bar 11 and the tied notes, and strike only the thumb's note.",
     "Play-along with the click at 44. Each clean pass nudges the tempo up toward 66.",
   ],
   watch: [

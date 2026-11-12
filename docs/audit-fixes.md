@@ -193,7 +193,13 @@ graded.
 Verification on this branch: `npm test` passes, the production build passes, and
 the browser suite passes 105 of 123 scheduled cases with 18 intentional skips
 (narrow-width and duplicate-project cases). Unskip and the Done limit were also
-exercised by hand in a 1180×820 preview. Still open from the same audit, and not
-changed here: 47 lesson-text corrections awaiting review, 20 level disagreements
-from the playability measure, and hand-distribution questions in Gymnopédie No. 1
-and the Gavotte.
+exercised by hand in a 1180×820 preview.
+
+The audit also read every lesson's summary, steps and watch notes against its
+score. A follow-up on 2026-11-11 made 49 corrections in 29 pieces where the
+text named the wrong bar, key, interval, rhythm or accidental, or described a
+pattern as running through bars it does not cover. Sixteen further flags were
+judged acceptable shorthand and left alone. Only prose changed; no score did.
+
+Still open from the same audit: 20 level disagreements from the playability
+measure, and hand-distribution questions in Gymnopédie No. 1 and the Gavotte.

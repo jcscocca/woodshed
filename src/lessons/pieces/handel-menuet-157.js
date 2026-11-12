@@ -20,7 +20,7 @@ V:2 clef=bass
 export default {
   summary: "Handel's Menuet I in D minor from the Aylesford Pieces, Andantino. The edition is in 3/8; here each pair of its bars makes one 3/4 bar, so the 16 printed bars become 8, and the notes and their timing are unchanged. Two sections: A (bars 1–4), which moves to F major, and B (5–8), which returns to D minor. The original repeats each half and gives the second half two endings; here you play each half once and go straight to the second ending.",
   steps: [
-    "Left hand alone, in wait mode. It plays detached eighths throughout, often jumping an octave, as in bar 1 (C sharp, then the C sharp above).",
+    "Left hand alone, in wait mode. It plays detached eighths, often jumping an octave, as in bar 1 (C sharp, then the C sharp above), and ends on a held dotted-quarter D.",
     "Right hand alone in A. Most beats are a two-note chord; bars 2 and 4 add sixteenths. In bar 4 the top line moves in sixteenths over lower eighths, F, D, E.",
     "Hands together, one section at a time. In B the right hand climbs to a high B flat in bar 5, then falls in sixteenths in bar 6.",
     "Play-along with the click at 50. Each clean pass nudges the tempo up toward 76.",

@@ -36,7 +36,7 @@ export default {
   summary: "Morning Prayer, No. 1 of Tchaikovsky's Album for the Young, Op. 39 (1878), all 24 bars. A slow hymn in G major and 3/4, written in four parts: two in each hand. Three sections: A (bars 1–8), A′ (9–16) and Coda (17–24), where the left hand repeats a low G in eighths under a held note above it.",
   steps: [
     "Right hand alone in A, in wait mode. Bars 1–4 are two-note chords; from bar 5 the lower note often holds while the upper one moves, or the other way round, as in bars 5, 6 and 8. Keep held notes down and strike only the moving one.",
-    "Left hand alone in A. In bars 5, 6, 8 and 13 it has two lines too: the upper note holds for two beats while the lower one steps underneath.",
+    "Left hand alone in A. In bars 5, 6, 8 and 13 it has two lines too: one note holds while the other moves: the upper one in bars 5, 6 and 13, the low D in bar 8.",
     "Coda alone, left hand first. From bar 16 the low G repeats in even eighths for six bars while a second line above it moves slowly: D, E flat, D, E flat, then D–C–B and B flat–A.",
     "Hands together in wait mode, a section at a time, then play-along with the click at 44. Each clean pass nudges the tempo up toward 62.",
   ],
