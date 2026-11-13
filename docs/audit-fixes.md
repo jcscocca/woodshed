@@ -201,5 +201,24 @@ text named the wrong bar, key, interval, rhythm or accidental, or described a
 pattern as running through bars it does not cover. Sixteen further flags were
 judged acceptable shorthand and left alone. Only prose changed; no score did.
 
-Still open from the same audit: 20 level disagreements from the playability
-measure, and hand-distribution questions in Gymnopédie No. 1 and the Gavotte.
+The playability measure scored all 119 in-app scores and found 20 whose score
+sat in another level's middle half. On 2026-11-12 seven of them changed level
+and thirteen were kept:
+
+| Piece | Was | Now | Why |
+|---|---|---|---|
+| Ain't She Sweet | Harder | Middle | The left hand stays in one place and the melody is mostly on the beat. |
+| Swing Low, Sweet Chariot | Harder | Middle | Four bars in F with no accidentals. |
+| Sakura | Easier | Middle | The ballad left hand moves in every bar. |
+| Body and Soul | Hardest | Harder | One melody line over single left-hand notes at a slow tempo. |
+| Carol of the Bells | Middle | Harder | 32 bars at 120 with the most left-hand travel among the waltz-pattern songs. |
+| La Chasse | Harder | Hardest | 57 bars at 160 with a busy left hand. |
+| Air in B flat | Harder | Hardest | Both hands move in every bar; it outscores most of the Hardest shelf. |
+
+The measure counts what is printed, and a song's left hand is generated from
+its pattern, so the thirteen kept labels are mostly songs whose difficulty is
+syncopation or accidentals (kept Harder) or whose waltz pattern inflates the
+count (kept Middle). The level filter is the only place a level is used.
+
+Still open from the same audit: hand-distribution questions in Gymnopédie No. 1
+and the Gavotte.
