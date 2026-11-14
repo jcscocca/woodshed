@@ -50,8 +50,8 @@ V:4 clef=bass
 [V:2] z [A,CF]2 | z [B,DF]2 | z [CEA]2 | z [A,CFA]2 |
 [V:3] F,,3 | B,,,3 | E,,3 | E,,3 |
 [V:4] x3 | x3 | x3 | x3 |
-[V:1] F3 | [=CEA=c]3 | [DFAd]3 | z3 |
-[V:2] z [A,D] [B,DG] | x3 | x3 | z [B,DF]2 |
+[V:1] F-[A,DF-][B,DFG] | [=CEA=c]3 | [DFAd]3 | z3 |
+[V:2] x3 | x3 | x3 | z [B,DF]2 |
 [V:3] E,,3 | [A,,G,]3 | [D,,A,,D,]3 | G,,3 |
 [V:4] x B,, E, | x3 | x3 | x3 |
 [V:1] z3 | z3 | z3 | x f a |
@@ -86,8 +86,8 @@ V:4 clef=bass
 [V:2] x3 | x3 | z [B,EG]2 | z [A,D=FA]2 |
 [V:3] D,,3 | D,,3 | E,,3 | E,,3 |
 [V:4] z [=C,E,A,D]2 | z [=C,F,A,D]2 | x3 | x3 |
-[V:1] B =c =f | e d =c | e d =c | =F3 |
-[V:2] z [A,=C=F]2 | z [=CEA]2 | z [A,=C=FA]2 | z [A,D] [B,DG] |
+[V:1] B =c =f | e d =c | e d =c | =F-[A,DF-][B,DFG] |
+[V:2] z [A,=C=F]2 | z [=CEA]2 | z [A,=C=FA]2 | x3 |
 [V:3] E,,3 | E,,3 | E,,3 | E,,3 |
 [V:4] x3 | x3 | x3 | x B,, E, |
 [V:1] [=CEA=c]3 | [D=FAd]3 |]
@@ -107,6 +107,8 @@ export default {
     "C and F naturals are written in against the two sharps of the key, in bars 21–31 (and 60–70) and in Ending 2.",
     "Ending 2 isn't Ending 1: it closes on D minor, with F natural.",
     "In bars 37 and 76 the left hand adds an inner voice, B then E, over the held low E.",
+    "In B, six left-hand chords stretch a ninth (bars 24–26 and 29–31). If that is past your reach, roll the chord from the bottom up.",
+    "In bars 9–12 (and 48–51) the chord's top note is the F sharp the right hand is holding; restrike it with the chord.",
   ],
   source: { label: "Mutopia Project — Satie, Gymnopédie No. 1 (Dover edition)", url: "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=37" },
   score: {

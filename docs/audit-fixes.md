@@ -220,5 +220,19 @@ its pattern, so the thirteen kept labels are mostly songs whose difficulty is
 syncopation or accidentals (kept Harder) or whose waltz pattern inflates the
 count (kept Middle). The level filter is the only place a level is used.
 
-Still open from the same audit: hand-distribution questions in Gymnopédie No. 1
-and the Gavotte.
+The same measure flagged three hand questions in Gymnopédie No. 1, settled on
+2026-11-12 against the Mutopia source:
+
+- **Bars 37 and 76.** The left hand was asked for two tenths. The edition gives
+  the left hand its own inner voice there (B, then E), so the chords above it
+  now sit in the right hand's voice, tied under the held F sharp. The same 455
+  notes parse with the same lengths; ten change hand.
+- **Ninths in bars 24–26 and 29–31.** These are Satie's left-hand chords, so the
+  score is unchanged and a watch note suggests rolling them.
+- **Bars 9–12 and 48–51.** The chord's top note is the F sharp the right hand
+  holds. Wait mode needs every chord note pressed, so a watch note says to
+  restrike it.
+
+Still open from the same audit: the Gavotte's bar 17, where the right hand has
+F sharp 3 under G4. It matches the Mutopia file, but the octaves in bars 18–19
+suggest the print has G; it waits on a check against a printed edition.
