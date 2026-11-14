@@ -309,7 +309,7 @@ export default {
       "Hands together in wait mode, then play-along with the click once it's secure.",
       "Section B leans on the dominant before A' repeats the opening — work it the same way, section by section.",
     ],
-    watch: ["This is a lead sheet: the melody is written out for you, and the chord symbols above the staff are just the harmony underneath it."],
+    watch: ["This is a lead sheet: the melody is written out for you, and the chord symbols above the staff are just the harmony underneath it.", "In bar 12 the melody drops to the G below middle C, and the left hand's pattern reaches the same G on beat 4; lift the right hand so the left can play it."],
     chart: {
       key: "C", meter: "4/4", chords: "C | G | C | G | C | G | C | G C | G | C | G | C G | C | G | C | G C", pattern: "ballad",
       melody: ODE_MELODY, bpm: 60, target: 92,

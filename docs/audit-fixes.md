@@ -233,6 +233,32 @@ The same measure flagged three hand questions in Gymnopédie No. 1, settled on
   holds. Wait mode needs every chord note pressed, so a watch note says to
   restrike it.
 
+Four more flags from the same audit were checked against their sources on
+2026-11-14:
+
+- **Menuet II (Trio) in F minor, bar 24.** The right hand held C for the whole
+  bar while the left hand played the same C on beat 2. The edition gives that C
+  one beat, then rests, under a held E natural. The score now does the same
+  (`[=E-C]2[E]4`); the 302 notes and their onsets are unchanged.
+- **Preludio in D minor, bars 16–17.** The shared A and the left hand's drop of
+  more than two octaves are the edition's, which writes the left hand in the
+  treble clef there. The score is unchanged and a watch note describes it.
+- **Sonatina in A minor, bar 52.** The low A under eighths 20 semitones above is
+  the edition's. The score is unchanged and a watch note says to pedal it or let
+  it go. In bars 11 and 76 the left hand repeats a note the right hand holds;
+  that is also the edition's and is left without a note.
+- **Ode to Joy, bar 12.** The melody's low G meets the generated left hand's G
+  on beat 4. A watch note says to lift the right hand. The Menuet in F (Bach)
+  has the same thing in bar 24, as printed, and is left without a note.
+
+- **Swing Low, Sweet Chariot.** It was the four-bar refrain only. The verse
+  ("I looked over Jordan") is added from the same page of the 1880 printing,
+  which makes eight bars. It takes verse 1's rhythm and leaves out the small
+  notes and ties that fit the other verses' words.
+
+Both graders already count a unison written in both hands as one key, so none
+of these affected grading.
+
 Still open from the same audit: the Gavotte's bar 17, where the right hand has
 F sharp 3 under G4. It matches the Mutopia file, but the octaves in bars 18–19
 suggest the print has G; it waits on a check against a printed edition.

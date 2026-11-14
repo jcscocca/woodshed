@@ -520,20 +520,22 @@ E6 |]`,
     },
   },
   "song-swing-low-sweet-chariot": {
-    summary: "The refrain of the spiritual \"Swing Low, Sweet Chariot\" as printed by the Fisk Jubilee Singers (1872), public domain, in F, converted from 2/4 to 4/4 with bars paired. Two phrases: A (1–2), A' (3–4).",
+    summary: "The refrain and verse of the spiritual \"Swing Low, Sweet Chariot\" as printed by the Fisk Jubilee Singers (1872), public domain, in F, converted from 2/4 to 4/4 with bars paired. Three sections: A (1–2), A' (3–4), Verse (5–8).",
     steps: [
       "Right hand alone, counting sixteenths: bars 1 and 3 end with a dotted-eighth, sixteenth, sixteenth, dotted-eighth figure. Keep the long-short-short-long shape exact.",
       "The four repeated Fs that open bars 2 and 4 are sixteenths. Play them light and even.",
-      "Left hand alone: a ballad pattern on F, with C7 for the first half of bar 4.",
+      "Verse, right hand alone: it starts from the A at the end of bar 4. Bar 5 opens short-long-short-long (sixteenth, eighth, sixteenth, eighth); count it in sixteenths.",
+      "Left hand alone: a ballad pattern on F, with C7 for the first half of bars 4 and 8.",
       "Hands together slowly in wait mode, then play-along.",
     ],
-    watch: ["The second phrase starts on C, not A (bar 3), and ends on F instead of the first phrase's held C."],
+    watch: ["The second phrase starts on C, not A (bar 3), and ends on F instead of the first phrase's held C.", "The verse reuses the refrain: bar 6 is bar 2 and bar 8 is bar 4, apart from their last notes."],
     source: { label: "The Story of the Jubilee Singers, with Their Songs (J. B. T. Marsh, 1880), no. 2, p. 126 (archive.org scan)", url: "https://archive.org/details/storyofjubileesi00mars_1" },
     chart: {
       key: "F", meter: "4/4", pattern: "ballad", bpm: 50, target: 76,
-      chords: "F | F | F | C7 F",
-      sections: [{ name: "A", from: 1, to: 2 }, { name: "A'", from: 3, to: 4 }],
-      melody: `A F2 A F3/2F/2 D/2C3/2 | F/2F/2F/2F/2 A/2c/2c c4 | c A2 c F3/2F/2 D/2C3/2 | F/2F/2F/2F/2 A/2A/2G F3 z |]`,
+      chords: "F | F | F | C7 F | F | F | F | C7 F",
+      sections: [{ name: "A", from: 1, to: 2 }, { name: "A'", from: 3, to: 4 }, { name: "Verse", from: 5, to: 8 }],
+      melody: `A F2 A F3/2F/2 D/2C3/2 | F/2F/2F/2F/2 A/2c/2c c4 | c A2 c F3/2F/2 D/2C3/2 | F/2F/2F/2F/2 A/2A/2G F3 A |
+c/2FD/2 FF/2F/2 F/2F/2F D/2C3/2 | F/2F/2F/2F/2 A/2c/2c c3 c | d/2c/2A AF F/2F/2F/2F/2 D/2C3/2 | F/2F/2F/2F/2 A/2A/2G F4 |]`,
     },
   },
   "song-auld-lang-syne": {

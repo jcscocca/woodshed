@@ -42,6 +42,7 @@ export default {
   watch: [
     "B flat is in the key signature, but in bars 11–21 the B is often natural, next to C sharp; both are written in each time.",
     "The edition marks a short trill on the dotted E in bar 10 and on the dotted C sharp in bar 15. The score leaves them off and grades the plain note; add them once the notes are secure.",
+    "In bars 16–17 the left hand is written in the treble clef and shares an A with the right hand; on beat 3 of bar 17 it drops more than two octaves to the low A.",
   ],
   source: { label: "Mutopia Project — Handel, Preludio (Aylesford Pieces, Edition Schott 1930)", url: "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=156" },
   score: {
