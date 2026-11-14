@@ -215,7 +215,7 @@ export const TRACKS = [
       { id: "song-sweet-georgia-brown", title: "Sweet Georgia Brown", type: "song", diff: 4, min: 12, desc: "The 1925 chorus in G: syncopated eighths over a chain of dominant seventh chords." },
       { id: "song-tea-for-two", title: "Tea for Two", type: "song", diff: 4, min: 12, desc: "Youmans' 1924 refrain in Bb: dotted rhythms with a bridge in D major." },
       { id: "song-st-louis-blues", title: "St. Louis Blues", type: "song", diff: 4, min: 12, desc: "Handy's 12-bar blues chorus in G, with the A-sharp to B lean in nearly every bar." },
-      { id: "song-swing-low-sweet-chariot", title: "Swing Low, Sweet Chariot", type: "song", diff: 4, min: 12, desc: "The Fisk Jubilee refrain in F, with dotted sixteenth figures and quick repeated notes." },
+      { id: "song-swing-low-sweet-chariot", title: "Swing Low, Sweet Chariot", type: "song", diff: 4, min: 12, desc: "The Fisk Jubilee refrain and verse in F, with dotted sixteenth figures and quick repeated notes." },
       { id: "song-o-holy-night", title: "O Holy Night", type: "song", diff: 4, min: 12, desc: "Adam's carol in C with the climb to the high E." },
       { id: "song-body-and-soul", title: "Body and Soul", type: "song", diff: 5, min: 12, desc: "Torch-song refrain with a bridge that shifts through two distant keys." },
     ],
