@@ -208,7 +208,7 @@ and thirteen were kept:
 | Piece | Was | Now | Why |
 |---|---|---|---|
 | Ain't She Sweet | Harder | Middle | The left hand stays in one place and the melody is mostly on the beat. |
-| Swing Low, Sweet Chariot | Harder | Middle | Four bars in F with no accidentals. |
+| Swing Low, Sweet Chariot | Harder | Middle | In F with no accidentals, and four bars long at the time. |
 | Sakura | Easier | Middle | The ballad left hand moves in every bar. |
 | Body and Soul | Hardest | Harder | One melody line over single left-hand notes at a slow tempo. |
 | Carol of the Bells | Middle | Harder | 32 bars at 120 with the most left-hand travel among the waltz-pattern songs. |
@@ -254,7 +254,11 @@ Four more flags from the same audit were checked against their sources on
 - **Swing Low, Sweet Chariot.** It was the four-bar refrain only. The verse
   ("I looked over Jordan") is added from the same page of the 1880 printing,
   which makes eight bars. It takes verse 1's rhythm and leaves out the small
-  notes and ties that fit the other verses' words.
+  notes and ties that fit the other verses' words. The verse was then checked
+  against the 1872 Jubilee Songs printing (p. 6), which agrees in all eight
+  bars. Measured again at eight bars the song scores 45.45, rank 48 of 119:
+  just above Middle's central half (31.80–43.89) and below Harder's
+  (52.78–64.36), so it stays at Middle.
 
 Both graders already count a unison written in both hands as one key, so none
 of these affected grading.
