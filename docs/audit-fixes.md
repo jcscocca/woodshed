@@ -263,6 +263,17 @@ Four more flags from the same audit were checked against their sources on
 Both graders already count a unison written in both hands as one key, so none
 of these affected grading.
 
+The audit's duration table also lists eight notes that are longer in the app
+than in the Mutopia MIDI. They were traced on 2026-11-15 and none is an error.
+Each is a second-ending note in a piece that drops its first ending here:
+Handel's Menuet I in D minor (bar 8), the Minuet in B flat from the Anna
+Magdalena notebook (bars 8 and 24), La Styrienne (bar 36) and La Bergeronnette
+(bar 22). The MIDI plays both endings one after the other, the two start on the
+same pitch, and the audit compared the app's note with the first ending's. The
+second-ending lengths in the LilyPond source and in the MIDI match the app.
+Three further rows (Passepied bar 5; Air with variations, bars 26 and 30) are
+quintuplet notes whose length the MIDI rounds down to a whole tick.
+
 Still open from the same audit: the Gavotte's bar 17, where the right hand has
 F sharp 3 under G4. It matches the Mutopia file, but the octaves in bars 18–19
 suggest the print has G; it waits on a check against a printed edition.
