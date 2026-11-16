@@ -478,6 +478,12 @@ body{
 .ws-desk-main > .ws-main{ max-width:960px; margin:0 auto; }
 .ws-rail{ overflow-y:auto; min-height:0; border-left:1px solid var(--line); background:var(--bg2); padding:22px 20px 32px; display:flex; flex-direction:column; gap:20px; }
 .ws-desk.rail-collapsed{ grid-template-columns:200px minmax(0,1fr) 64px; }
+@media (max-width:1279px){
+  .ws-desk{ grid-template-columns:180px minmax(0,1fr) 380px; }
+  .ws-desk.rail-collapsed{ grid-template-columns:180px minmax(0,1fr) 64px; }
+  .ws-side{ padding-left:12px; padding-right:12px; }
+  .ws-side-tab .ws-kbd{ display:none; }
+}
 .ws-rail{ position:relative; padding-left:36px; }
 .ws-rail-toggle{ position:absolute; top:14px; left:-1px; width:28px; height:44px; border:1px solid var(--line); border-left:none; border-radius:0 9px 9px 0; background:var(--bg); color:var(--muted); font-size:18px; line-height:1; cursor:pointer; z-index:1; }
 .ws-rail-toggle:hover{ color:var(--text); }
