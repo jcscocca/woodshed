@@ -166,6 +166,13 @@ test("keepClefs: every notehead sits under the clef drawn before it, and no clef
   for (const [id, L] of Object.entries(LESSONS)) if (L.score || L.chart) checkKeptClefs(id, scoreFor(L).abc);
   for (const level of [1, 4, 7, 10]) for (let seed = 0; seed < 3; seed++) checkKeptClefs(`sight-read L${level} seed ${seed}`, generateDrill(level, seed));
 });
+// Engraving renames a key element in place, so one object at two line starts draws "element type keySignature".
+test("keepClefs: no element object is drawn twice, as written or wrapped", () => {
+  for (const [id, L] of Object.entries(LESSONS)) if (L.score || L.chart) for (const [name, tune] of Object.entries(layouts(scoreFor(L).abc))) {
+    const els = tune.lines.flatMap((l) => (l.staff || []).flatMap((st) => st.voices.flat()));
+    assert.equal(new Set(els).size, els.length, `${id}, ${name}: a shared element`);
+  }
+});
 test("keepClefs: the left hand keeps the editions' clefs in La Candeur and the Arabesque, as written or wrapped", () => {
   const want = { "pcs-la-candeur": "1-14 bass, 15-20 treble, 20-22 bass", "pcs-arabesque": "1-15 bass, 16-18 treble, 19-31 bass" };
   for (const [id, runs] of Object.entries(want)) for (const [name, tune] of Object.entries(layouts(LESSONS[id].score.abc))) assert.equal(clefRuns(tune, 1), runs, `${id}, ${name}`);

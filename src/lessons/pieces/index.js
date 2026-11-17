@@ -58,6 +58,30 @@ import handelAllemande from "./handel-allemande.js";
 import mozartMarcheFunebre from "./mozart-marche-funebre.js";
 import kuhlau201Allegro from "./kuhlau-20-1-allegro.js";
 import kuhlau201Rondo from "./kuhlau-20-1-rondo.js";
+import burgmullerBabillarde from "./burgmuller-babillarde.js";
+import burgmullerInquietude from "./burgmuller-inquietude.js";
+import bachPreludeDMinor926 from "./bach-prelude-d-minor-926.js";
+import chopinPrelude7 from "./chopin-prelude-7.js";
+import rameauTambourin from "./rameau-tambourin.js";
+import burgmullerAdieu from "./burgmuller-adieu.js";
+import burgmullerBallade from "./burgmuller-ballade.js";
+import bachPreludeF928 from "./bach-prelude-f-928.js";
+import bachInvention4 from "./bach-invention-4.js";
+import bachInvention8 from "./bach-invention-8.js";
+import bachInvention13 from "./bach-invention-13.js";
+import chopinPrelude4 from "./chopin-prelude-4.js";
+import chopinPrelude20 from "./chopin-prelude-20.js";
+import beethovenMenuettWoo82 from "./beethoven-menuett-woo82.js";
+import beethovenFurElise from "./beethoven-fur-elise.js";
+import beethoven492Allegro from "./beethoven-49-2-allegro.js";
+import beethoven492Menuetto from "./beethoven-49-2-menuetto.js";
+import beethoven491Andante from "./beethoven-49-1-andante.js";
+import beethoven491Rondo from "./beethoven-49-1-rondo.js";
+import gymnopedie2 from "./gymnopedie-2.js";
+import gymnopedie3 from "./gymnopedie-3.js";
+import schumannTraumerei from "./schumann-traumerei.js";
+import rameauTendresPlaintes from "./rameau-tendres-plaintes.js";
+import brahmsWaltz3915 from "./brahms-waltz-39-15.js";
 
 export default {
   "pno-minuet": minuet,
@@ -120,4 +144,28 @@ export default {
   "pcs-mozart-marche-funebre": mozartMarcheFunebre,
   "pcs-kuhlau-20-1-allegro": kuhlau201Allegro,
   "pcs-kuhlau-20-1-rondo": kuhlau201Rondo,
+  "pcs-burgmuller-babillarde": burgmullerBabillarde,
+  "pcs-burgmuller-inquietude": burgmullerInquietude,
+  "pcs-bach-prelude-d-minor-926": bachPreludeDMinor926,
+  "pcs-chopin-prelude-7": chopinPrelude7,
+  "pcs-rameau-tambourin": rameauTambourin,
+  "pcs-burgmuller-adieu": burgmullerAdieu,
+  "pcs-burgmuller-ballade": burgmullerBallade,
+  "pcs-bach-prelude-f-928": bachPreludeF928,
+  "pcs-bach-invention-4": bachInvention4,
+  "pcs-bach-invention-8": bachInvention8,
+  "pcs-bach-invention-13": bachInvention13,
+  "pcs-chopin-prelude-4": chopinPrelude4,
+  "pcs-chopin-prelude-20": chopinPrelude20,
+  "pcs-beethoven-menuett-woo82": beethovenMenuettWoo82,
+  "pcs-beethoven-fur-elise": beethovenFurElise,
+  "pcs-beethoven-49-2-allegro": beethoven492Allegro,
+  "pcs-beethoven-49-2-menuetto": beethoven492Menuetto,
+  "pcs-beethoven-49-1-andante": beethoven491Andante,
+  "pcs-beethoven-49-1-rondo": beethoven491Rondo,
+  "pcs-gymnopedie-2": gymnopedie2,
+  "pcs-gymnopedie-3": gymnopedie3,
+  "pcs-schumann-traumerei": schumannTraumerei,
+  "pcs-rameau-tendres-plaintes": rameauTendresPlaintes,
+  "pcs-brahms-waltz-39-15": brahmsWaltz3915,
 };

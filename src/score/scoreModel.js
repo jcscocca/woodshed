@@ -43,6 +43,10 @@ export function walkTune(tune, visit) {
 // drop clef changes that change nothing. Key signatures are left as parsed.
 export function keepClefs(tune) {
   const staves = tune.lines.flatMap((l) => l.staff || []), inEffect = [];
+  // `wrap` re-breaks lines by reusing one key or clef object at several line starts; engraving renames a
+  // key in place, so its later uses would draw as "element type keySignature". Give each use its own copy.
+  const seen = new Set();
+  for (const voice of staves.flatMap((st) => st.voices)) voice.forEach((el, i) => { if (seen.has(el)) voice[i] = { ...el }; seen.add(voice[i]); });
   const clefs = new Map([...staves.map((st) => st.clef), ...staves.flatMap((st) => st.voices.flat()).filter((el) => el.el_type === "clef")].reverse().map((c) => [c.verticalPos, c]));
   const placed = (el) => { const p = el.el_type === "note" && ((el.pitches || el.gracenotes || [])[0]); return p ? clefs.get(p.pitch - p.verticalPos) : null; };
   for (const line of tune.lines) (line.staff || []).forEach((staff, s) => staff.voices.forEach((voice, v) => {
